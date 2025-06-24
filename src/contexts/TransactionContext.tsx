@@ -16,6 +16,7 @@ interface Transaction {
   payoutDate: string | null;
   payoutMethod?: string;
   payoutReference?: string;
+  balance?: number; // Running balance after this transaction
 }
 
 interface TransactionSummary {
@@ -31,6 +32,7 @@ interface TransactionSummary {
 interface TransactionContextType {
   transactions: Transaction[];
   getOrganizerTransactions: (organizerId: string) => Transaction[];
+  getOrganizerTransactionsWithBalance: (organizerId: string) => Transaction[];
   getEventTransactions: (eventId: string) => Transaction[];
   getTransactionSummary: (organizerId: string) => TransactionSummary;
   getMonthlyTransactions: (organizerId: string, year: number, month: number) => Transaction[];
@@ -47,6 +49,45 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
 
   const getOrganizerTransactions = (organizerId: string) => {
     return transactions.filter(transaction => transaction.organizerId === organizerId);
+  };
+
+  const getOrganizerTransactionsWithBalance = (organizerId: string) => {
+    const organizerTransactions = getOrganizerTransactions(organizerId);
+    
+    // Sort transactions by timestamp (oldest first) to calculate running balance
+    const sortedTransactions = [...organizerTransactions].sort((a, b) => 
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
+    
+    // Calculate running balance for each transaction
+    let runningBalance = 0;
+    const transactionsWithBalance = sortedTransactions.map(transaction => {
+      // For sales, add the net amount (money coming in)
+      // For payouts, subtract the absolute amount (money going out)
+      // For refunds, subtract the amount (money going out)
+      // For adjustments, add/subtract based on the sign of netAmount
+      
+      if (transaction.type === 'sale') {
+        runningBalance += transaction.netAmount;
+      } else if (transaction.type === 'payout') {
+        // Payout netAmount is already negative, so adding it subtracts from balance
+        runningBalance += transaction.netAmount;
+      } else if (transaction.type === 'refund') {
+        // Refunds reduce the balance
+        runningBalance -= Math.abs(transaction.netAmount);
+      } else if (transaction.type === 'adjustment') {
+        // Adjustments can be positive or negative
+        runningBalance += transaction.netAmount;
+      }
+      
+      return {
+        ...transaction,
+        balance: Math.round(runningBalance * 100) / 100 // Round to 2 decimal places
+      };
+    });
+    
+    // Return in reverse chronological order (newest first) for display
+    return transactionsWithBalance.reverse();
   };
 
   const getEventTransactions = (eventId: string) => {
@@ -168,6 +209,7 @@ export function TransactionProvider({ children }: { children: ReactNode }) {
     <TransactionContext.Provider value={{
       transactions,
       getOrganizerTransactions,
+      getOrganizerTransactionsWithBalance,
       getEventTransactions,
       getTransactionSummary,
       getMonthlyTransactions,

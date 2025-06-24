@@ -24,20 +24,18 @@ import {
   ArrowLeftRight,
   Quote,
   Award,
-  Shield,
-  ShieldCheck,
-  Percent,
-  Clock,
-  BarChart3,
-  Eye,
-  MapPin,
   Crown,
-  Lock,
   ArrowUpRight,
   ArrowDownLeft,
-  Banknote,
+  Minus,
+  Plus,
+  Building,
+  Clock,
   Receipt,
-  FileText
+  Banknote,
+  TrendingDown,
+  Shield,
+  Settings
 } from 'lucide-react';
 
 export function Profile() {
@@ -46,18 +44,13 @@ export function Profile() {
     updateUser, 
     getFollowers, 
     getFollowing, 
-    isFollowMutual,
-    calculateNetRevenue,
-    getPlatformFee,
-    checkVerificationStatus
+    isFollowMutual 
   } = useUser();
-  const { events, tickets, getOrganizerTestimonials, getOrganizerCompletedEvents } = useEvents();
+  const { events, getOrganizerTestimonials } = useEvents();
   const { 
     getTransactionSummary, 
-    getMonthlyTransactions, 
-    getOrganizerTransactions,
-    getPendingPayouts,
-    getCompletedPayouts
+    getOrganizerTransactionsWithBalance,
+    getMonthlyTransactions 
   } = useTransactions();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'following' | 'followers' | 'testimonials' | 'sales' | 'transactions'>('profile');
@@ -108,29 +101,18 @@ export function Profile() {
     setIsEditing(false);
   };
 
-  // Get organizer's events and sales data
+  // Get organizer's events and transaction data
   const organizerEvents = events.filter(event => event.organizerId === user.id);
-  const completedEvents = getOrganizerCompletedEvents(user.id);
-  const organizerTickets = tickets.filter(ticket => 
-    organizerEvents.some(event => event.id === ticket.eventId)
-  );
-
-  // Get transaction data
   const transactionSummary = user.role === 'organizer' ? getTransactionSummary(user.id) : null;
+  const transactionsWithBalance = user.role === 'organizer' ? getOrganizerTransactionsWithBalance(user.id) : [];
+
+  // Calculate monthly earnings (current month)
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
   const monthlyTransactions = user.role === 'organizer' ? getMonthlyTransactions(user.id, currentYear, currentMonth) : [];
-  const allTransactions = user.role === 'organizer' ? getOrganizerTransactions(user.id) : [];
-  const pendingPayouts = user.role === 'organizer' ? getPendingPayouts(user.id) : [];
-  const completedPayouts = user.role === 'organizer' ? getCompletedPayouts(user.id) : [];
-
-  // Calculate monthly earnings from transactions
-  const monthlySales = monthlyTransactions.filter(t => t.type === 'sale' && t.status === 'completed');
-  const monthlyGrossEarnings = monthlySales.reduce((sum, t) => sum + t.grossAmount, 0);
-  const monthlyPlatformFees = monthlySales.reduce((sum, t) => sum + t.platformFee, 0);
-  const monthlyNetEarnings = monthlySales.reduce((sum, t) => sum + t.netAmount, 0);
-
-  const totalTicketsSold = organizerTickets.reduce((sum, ticket) => sum + ticket.quantity, 0);
+  const monthlyEarnings = monthlyTransactions
+    .filter(t => t.type === 'sale' && t.status === 'completed')
+    .reduce((sum, t) => sum + t.netAmount, 0);
 
   // Get followers and following
   const followers = getFollowers(user.id);
@@ -146,49 +128,26 @@ export function Profile() {
     return { ...testimonial, event, reviewer };
   }).filter(t => t.event && t.reviewer); // Only include testimonials with valid events and reviewers
 
-  // Check if organizer is eligible for verification
-  const isEligibleForVerification = user.role === 'organizer' && completedEvents.length >= 2;
-  const isVerified = checkVerificationStatus(user.id);
-
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'following', label: `Following (${following.length})`, icon: UserPlus },
     { id: 'followers', label: `Followers (${followers.length})`, icon: UserCheck }
   ];
 
-  // Add sales tab for organizers
+  // Add organizer-specific tabs
   if (user.role === 'organizer') {
-    tabs.push({
-      id: 'sales',
-      label: 'Sales',
-      icon: BarChart3
-    });
-  }
-
-  // Add transactions tab for organizers
-  if (user.role === 'organizer') {
-    tabs.push({
-      id: 'transactions',
-      label: 'Transactions',
-      icon: Receipt
-    });
-  }
-
-  // Add testimonials tab for organizers
-  if (user.role === 'organizer') {
-    tabs.push({
-      id: 'testimonials',
-      label: `Testimonials (${testimonials.length})`,
-      icon: Quote
-    });
+    tabs.push(
+      { id: 'sales', label: 'Sales', icon: TrendingUp },
+      { id: 'transactions', label: 'Transactions', icon: Receipt },
+      { id: 'testimonials', label: `Testimonials (${testimonials.length})`, icon: Quote }
+    );
   }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-ZA', {
       style: 'currency',
       currency: 'ZAR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
+      minimumFractionDigits: 2
     }).format(amount);
   };
 
@@ -200,6 +159,42 @@ export function Profile() {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const getTransactionIcon = (type: string) => {
+    switch (type) {
+      case 'sale':
+        return <ArrowUpRight className="h-4 w-4 text-green-600" />;
+      case 'payout':
+        return <ArrowDownLeft className="h-4 w-4 text-blue-600" />;
+      case 'refund':
+        return <ArrowDownLeft className="h-4 w-4 text-red-600" />;
+      case 'adjustment':
+        return <Settings className="h-4 w-4 text-gray-600" />;
+      default:
+        return <Minus className="h-4 w-4 text-gray-600" />;
+    }
+  };
+
+  const getTransactionColor = (type: string) => {
+    switch (type) {
+      case 'sale':
+        return 'text-green-600';
+      case 'payout':
+        return 'text-blue-600';
+      case 'refund':
+        return 'text-red-600';
+      case 'adjustment':
+        return 'text-gray-600';
+      default:
+        return 'text-gray-600';
+    }
+  };
+
+  const getBalanceColor = (balance: number) => {
+    if (balance > 0) return 'text-green-600';
+    if (balance < 0) return 'text-red-600';
+    return 'text-gray-600';
   };
 
   return (
@@ -279,93 +274,22 @@ export function Profile() {
                           <User className="h-10 w-10 text-blue-600" />
                         </div>
                         <div>
-                          <div className="flex items-center space-x-3 mb-1">
-                            <h3 className="text-lg font-medium text-gray-900">{user.name}</h3>
-                            {isVerified && (
-                              <div className="flex items-center bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">
-                                <ShieldCheck className="h-3 w-3 mr-1" />
-                                Verified
-                              </div>
+                          <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                            {user.name}
+                            {user.verified && (
+                              <Crown className="h-5 w-5 text-yellow-500 ml-2" title="Verified Organizer" />
                             )}
-                            {!isVerified && user.role === 'organizer' && (
-                              <div className="flex items-center bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs">
-                                <Shield className="h-3 w-3 mr-1" />
-                                Unverified
-                              </div>
-                            )}
-                          </div>
+                          </h3>
                           <p className="text-sm text-gray-600 capitalize">{user.role}</p>
                           <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
                             <span>{following.length} following</span>
                             <span>{followers.length} followers</span>
                             {user.role === 'organizer' && (
-                              <>
-                                <span>{testimonials.length} testimonials</span>
-                                <span>{completedEvents.length} completed events</span>
-                              </>
+                              <span>{testimonials.length} testimonials</span>
                             )}
                           </div>
                         </div>
                       </div>
-
-                      {/* Become Organizer Button for Attendees */}
-                      {user.role === 'attendee' && (
-                        <div className="bg-gradient-to-br from-blue-50 to-pink-50 border border-blue-200 rounded-xl p-6">
-                          <div className="flex items-start space-x-4">
-                            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
-                              <Crown className="h-6 w-6 text-white" />
-                            </div>
-                            <div className="flex-1">
-                              <h4 className="text-lg font-semibold text-gray-900 mb-2">
-                                Ready to organize events?
-                              </h4>
-                              <p className="text-gray-700 mb-4">
-                                Upgrade to an organizer account and start creating amazing events for your community. 
-                                Earn revenue from ticket sales and build your reputation as an event organizer.
-                              </p>
-                              <button
-                                onClick={() => setShowBecomeOrganizerModal(true)}
-                                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-pink-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-                              >
-                                <Crown className="h-5 w-5 mr-2" />
-                                Become an Organizer
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Verification Status for Organizers */}
-                      {user.role === 'organizer' && (
-                        <div className={`p-4 rounded-lg border ${
-                          isVerified 
-                            ? 'bg-green-50 border-green-200' 
-                            : 'bg-yellow-50 border-yellow-200'
-                        }`}>
-                          <div className="flex items-center space-x-3">
-                            {isVerified ? (
-                              <ShieldCheck className="h-5 w-5 text-green-600" />
-                            ) : (
-                              <Shield className="h-5 w-5 text-yellow-600" />
-                            )}
-                            <div>
-                              <h4 className={`font-medium ${
-                                isVerified ? 'text-green-900' : 'text-yellow-900'
-                              }`}>
-                                {isVerified ? 'Verified Organizer' : 'Verification Status'}
-                              </h4>
-                              <p className={`text-sm ${
-                                isVerified ? 'text-green-700' : 'text-yellow-700'
-                              }`}>
-                                {isVerified 
-                                  ? 'You are a verified organizer with faster payouts and enhanced credibility.'
-                                  : `Complete ${2 - completedEvents.length} more event${2 - completedEvents.length !== 1 ? 's' : ''} to become verified and get faster payouts.`
-                                }
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
 
                       {/* Form Fields */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -448,64 +372,47 @@ export function Profile() {
                     </div>
                   </div>
 
-                  {/* Revenue Breakdown for Organizers (Current Month Only) */}
+                  {/* Current Month Revenue (for organizers) */}
                   {user.role === 'organizer' && transactionSummary && (
                     <div className="bg-gray-50 rounded-xl p-6">
                       <h2 className="text-xl font-semibold text-gray-900 mb-6">This Month's Revenue</h2>
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
                           <div className="flex items-center">
-                            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                            <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
                               <DollarSign className="h-5 w-5 text-white" />
                             </div>
                             <div className="ml-3">
-                              <div className="text-xl font-bold text-gray-900">{formatCurrency(monthlyGrossEarnings)}</div>
-                              <div className="text-sm text-gray-600">Gross Revenue</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="bg-white rounded-lg p-4 border border-gray-200">
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
-                              <Percent className="h-5 w-5 text-white" />
-                            </div>
-                            <div className="ml-3">
-                              <div className="text-xl font-bold text-red-600">-{formatCurrency(monthlyPlatformFees)}</div>
-                              <div className="text-sm text-gray-600">Platform Fee ({user.fee}%)</div>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="bg-white rounded-lg p-4 border border-gray-200">
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-                              <TrendingUp className="h-5 w-5 text-white" />
-                            </div>
-                            <div className="ml-3">
-                              <div className="text-xl font-bold text-green-600">{formatCurrency(monthlyNetEarnings)}</div>
+                              <div className="text-2xl font-bold text-gray-900">{formatCurrency(monthlyEarnings)}</div>
                               <div className="text-sm text-gray-600">Net Revenue</div>
                             </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="mt-4 flex space-x-3">
-                        <button
-                          onClick={() => setActiveTab('sales')}
-                          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Sales Report
-                        </button>
-                        <button
-                          onClick={() => setActiveTab('transactions')}
-                          className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                        >
-                          <Receipt className="h-4 w-4 mr-2" />
-                          View Transactions
-                        </button>
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                          <div className="flex items-center">
+                            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                              <Banknote className="h-5 w-5 text-white" />
+                            </div>
+                            <div className="ml-3">
+                              <div className="text-2xl font-bold text-gray-900">{formatCurrency(transactionSummary.pendingBalance)}</div>
+                              <div className="text-sm text-gray-600">Pending Balance</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                          <div className="flex items-center">
+                            <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                              <TrendingUp className="h-5 w-5 text-white" />
+                            </div>
+                            <div className="ml-3">
+                              <div className="text-2xl font-bold text-gray-900">{formatCurrency(transactionSummary.totalPayouts)}</div>
+                              <div className="text-sm text-gray-600">Total Paid Out</div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -513,6 +420,27 @@ export function Profile() {
 
                 {/* Sidebar */}
                 <div className="space-y-6">
+                  {/* Become Organizer Button (for attendees) */}
+                  {user.role === 'attendee' && (
+                    <div className="bg-gradient-to-br from-blue-50 to-pink-50 rounded-xl shadow-sm border border-blue-200 p-6">
+                      <div className="text-center">
+                        <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Crown className="h-8 w-8 text-blue-600" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">Become an Organizer</h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                          Start creating and managing your own events. Earn revenue and build your community.
+                        </p>
+                        <button
+                          onClick={() => setShowBecomeOrganizerModal(true)}
+                          className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-pink-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-pink-700 transition-all duration-200"
+                        >
+                          Get Started
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Account Credits */}
                   {user.credits !== undefined && (
                     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -527,76 +455,16 @@ export function Profile() {
                     </div>
                   )}
 
-                  {/* Platform Fee Info for Organizers */}
-                  {user.role === 'organizer' && (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Platform Fee</h3>
-                      <div className="text-center">
-                        <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Percent className="h-8 w-8 text-blue-600" />
-                        </div>
-                        <div className="text-3xl font-bold text-blue-600 mb-2">{user.fee}%</div>
-                        <p className="text-sm text-gray-600 mb-4">Platform fee on all sales</p>
-                        
-                        {/* Payout Schedule */}
-                        <div className="bg-gray-50 rounded-lg p-3">
-                          <div className="flex items-center justify-center space-x-2 mb-2">
-                            <Clock className="h-4 w-4 text-gray-600" />
-                            <span className="text-sm font-medium text-gray-900">Payout Schedule</span>
-                          </div>
-                          <p className="text-xs text-gray-600">
-                            {isVerified 
-                              ? 'Verified: 3-5 business days'
-                              : 'Unverified: 7-10 business days'
-                            }
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Balance Info for Organizers */}
-                  {user.role === 'organizer' && transactionSummary && (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Balance</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-600">Pending Balance</span>
-                          <span className="font-semibold text-green-600">{formatCurrency(transactionSummary.pendingBalance)}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-600">Total Payouts</span>
-                          <span className="font-semibold text-gray-900">{formatCurrency(transactionSummary.totalPayouts)}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-600">Net Revenue</span>
-                          <span className="font-semibold text-blue-600">{formatCurrency(transactionSummary.totalNetRevenue)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Account Summary */}
                   <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Summary</h3>
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600">Account Type</span>
-                        <span className="font-medium capitalize">{user.role}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-600">Verification Status</span>
-                        <div className="flex items-center space-x-1">
-                          {isVerified ? (
-                            <>
-                              <ShieldCheck className="h-4 w-4 text-green-600" />
-                              <span className="font-medium text-green-600">Verified</span>
-                            </>
-                          ) : (
-                            <>
-                              <Shield className="h-4 w-4 text-yellow-600" />
-                              <span className="font-medium text-yellow-600">Unverified</span>
-                            </>
+                        <div className="flex items-center">
+                          <span className="font-medium capitalize">{user.role}</span>
+                          {user.verified && (
+                            <Crown className="h-4 w-4 text-yellow-500 ml-1" title="Verified" />
                           )}
                         </div>
                       </div>
@@ -619,8 +487,12 @@ export function Profile() {
                             <span className="font-medium">{organizerEvents.length}</span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-600">Net Revenue</span>
+                            <span className="text-gray-600">Total Revenue</span>
                             <span className="font-medium">{formatCurrency(transactionSummary.totalNetRevenue)}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Platform Fee</span>
+                            <span className="font-medium">{user.fee}%</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-gray-600">Testimonials</span>
@@ -637,9 +509,8 @@ export function Profile() {
                     <div className="space-y-3">
                       <button 
                         onClick={() => setShowChangePasswordModal(true)}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors flex items-center"
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                       >
-                        <Lock className="h-4 w-4 mr-3 text-gray-500" />
                         Change Password
                       </button>
                       <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
@@ -648,11 +519,6 @@ export function Profile() {
                       <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
                         Privacy Settings
                       </button>
-                      {user.role === 'organizer' && (
-                        <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
-                          Payout Settings
-                        </button>
-                      )}
                       <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                         Delete Account
                       </button>
@@ -662,66 +528,63 @@ export function Profile() {
               </div>
             )}
 
-            {/* Sales Tab (Organizers Only) */}
+            {/* Sales Tab (for organizers) */}
             {activeTab === 'sales' && user.role === 'organizer' && transactionSummary && (
               <div>
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2">Sales Dashboard</h2>
-                  <p className="text-gray-600">Detailed breakdown of your event sales and revenue</p>
-                </div>
-
+                <h2 className="text-xl font-semibold text-gray-900 mb-6">Sales Dashboard</h2>
+                
                 {/* Revenue Overview */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-6 border border-green-200">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-                        <DollarSign className="h-5 w-5 text-white" />
+                      <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                        <DollarSign className="h-6 w-6 text-white" />
                       </div>
-                      <div className="ml-3">
+                      <div className="ml-4">
                         <div className="text-2xl font-bold text-gray-900">{formatCurrency(transactionSummary.totalGrossRevenue)}</div>
-                        <div className="text-sm text-gray-600">Total Gross Revenue</div>
+                        <div className="text-sm text-gray-600">Gross Revenue</div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-4 border border-red-200">
+                  <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-lg p-6 border border-red-200">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center">
-                        <Percent className="h-5 w-5 text-white" />
+                      <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center">
+                        <TrendingDown className="h-6 w-6 text-white" />
                       </div>
-                      <div className="ml-3">
-                        <div className="text-2xl font-bold text-red-600">{formatCurrency(transactionSummary.totalPlatformFees)}</div>
+                      <div className="ml-4">
+                        <div className="text-2xl font-bold text-gray-900">{formatCurrency(transactionSummary.totalPlatformFees)}</div>
                         <div className="text-sm text-gray-600">Platform Fees</div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                        <TrendingUp className="h-5 w-5 text-white" />
+                      <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                        <Banknote className="h-6 w-6 text-white" />
                       </div>
-                      <div className="ml-3">
-                        <div className="text-2xl font-bold text-green-600">{formatCurrency(transactionSummary.totalNetRevenue)}</div>
+                      <div className="ml-4">
+                        <div className="text-2xl font-bold text-gray-900">{formatCurrency(transactionSummary.totalNetRevenue)}</div>
                         <div className="text-sm text-gray-600">Net Revenue</div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-                        <Users className="h-5 w-5 text-white" />
+                      <div className="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                        <TrendingUp className="h-6 w-6 text-white" />
                       </div>
-                      <div className="ml-3">
-                        <div className="text-2xl font-bold text-gray-900">{totalTicketsSold}</div>
-                        <div className="text-sm text-gray-600">Tickets Sold</div>
+                      <div className="ml-4">
+                        <div className="text-2xl font-bold text-gray-900">{formatCurrency(transactionSummary.pendingBalance)}</div>
+                        <div className="text-sm text-gray-600">Pending Balance</div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Events Table */}
+                {/* Events Performance Table */}
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                   <div className="px-6 py-4 border-b border-gray-200">
                     <h3 className="text-lg font-medium text-gray-900">Event Performance</h3>
@@ -730,9 +593,7 @@ export function Profile() {
                     <table className="w-full">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="text-left py-3 px-6 font-medium text-gray-900">Event</th>
-                          <th className="text-left py-3 px-6 font-medium text-gray-900">Date</th>
-                          <th className="text-left py-3 px-6 font-medium text-gray-900">Tickets Sold</th>
+                          <th className="text-left py-3 px-6 font-medium text-gray-900">Event Name</th>
                           <th className="text-left py-3 px-6 font-medium text-gray-900">Gross Revenue</th>
                           <th className="text-left py-3 px-6 font-medium text-gray-900">Platform Fee</th>
                           <th className="text-left py-3 px-6 font-medium text-gray-900">Net Revenue</th>
@@ -741,58 +602,47 @@ export function Profile() {
                       </thead>
                       <tbody className="divide-y divide-gray-200">
                         {organizerEvents.map(event => {
-                          const eventTransactions = allTransactions.filter(t => t.eventId === event.id && t.type === 'sale');
-                          const eventGrossRevenue = eventTransactions.reduce((sum, t) => sum + t.grossAmount, 0);
-                          const eventPlatformFee = eventTransactions.reduce((sum, t) => sum + t.platformFee, 0);
-                          const eventNetRevenue = eventTransactions.reduce((sum, t) => sum + t.netAmount, 0);
-                          const eventTicketsSold = organizerTickets.filter(ticket => ticket.eventId === event.id).reduce((sum, ticket) => sum + ticket.quantity, 0);
+                          const eventTransactions = transactionsWithBalance.filter(t => 
+                            t.eventId === event.id && t.type === 'sale' && t.status === 'completed'
+                          );
+                          const grossRevenue = eventTransactions.reduce((sum, t) => sum + t.grossAmount, 0);
+                          const platformFees = eventTransactions.reduce((sum, t) => sum + t.platformFee, 0);
+                          const netRevenue = eventTransactions.reduce((sum, t) => sum + t.netAmount, 0);
                           const isPast = new Date(event.date) < new Date();
+                          const hasPayout = transactionsWithBalance.some(t => 
+                            t.eventId === event.id && t.type === 'payout'
+                          );
                           
                           return (
                             <tr key={event.id} className="hover:bg-gray-50">
                               <td className="py-4 px-6">
                                 <div>
                                   <div className="font-medium text-gray-900">{event.title}</div>
-                                  <div className="text-sm text-gray-600 flex items-center">
-                                    <MapPin className="h-3 w-3 mr-1" />
-                                    {event.location}
+                                  <div className="text-sm text-gray-600">
+                                    {new Date(event.date).toLocaleDateString()}
                                   </div>
                                 </div>
                               </td>
                               <td className="py-4 px-6">
-                                <div className="text-sm text-gray-900">
-                                  {new Date(event.date).toLocaleDateString('en-US', {
-                                    month: 'short',
-                                    day: 'numeric',
-                                    year: 'numeric'
-                                  })}
-                                </div>
+                                <div className="font-medium text-gray-900">{formatCurrency(grossRevenue)}</div>
                               </td>
                               <td className="py-4 px-6">
-                                <div className="text-gray-900">{eventTicketsSold}</div>
-                                <div className="text-sm text-gray-600">
-                                  of {event.maxParticipants} max
-                                </div>
+                                <div className="font-medium text-red-600">{formatCurrency(platformFees)}</div>
                               </td>
                               <td className="py-4 px-6">
-                                <div className="font-medium text-gray-900">{formatCurrency(eventGrossRevenue)}</div>
-                              </td>
-                              <td className="py-4 px-6">
-                                <div className="font-medium text-red-600">{formatCurrency(eventPlatformFee)}</div>
-                                <div className="text-xs text-gray-500">{user.fee}%</div>
-                              </td>
-                              <td className="py-4 px-6">
-                                <div className="font-medium text-green-600">{formatCurrency(eventNetRevenue)}</div>
+                                <div className="font-medium text-green-600">{formatCurrency(netRevenue)}</div>
                               </td>
                               <td className="py-4 px-6">
                                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                  isPast 
-                                    ? 'bg-gray-100 text-gray-800' 
+                                  hasPayout
+                                    ? 'bg-green-100 text-green-800'
+                                    : isPast 
+                                    ? 'bg-yellow-100 text-yellow-800' 
                                     : event.sold >= event.maxParticipants
                                     ? 'bg-red-100 text-red-800'
-                                    : 'bg-green-100 text-green-800'
+                                    : 'bg-blue-100 text-blue-800'
                                 }`}>
-                                  {isPast ? 'Completed' : event.sold >= event.maxParticipants ? 'Sold Out' : 'Active'}
+                                  {hasPayout ? 'Paid Out' : isPast ? 'Pending Payout' : event.sold >= event.maxParticipants ? 'Sold Out' : 'Active'}
                                 </span>
                               </td>
                             </tr>
@@ -802,7 +652,7 @@ export function Profile() {
                     </table>
                     
                     {organizerEvents.length === 0 && (
-                      <div className="text-center py-12">
+                      <div className="text-center py-8">
                         <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No events yet</h3>
                         <p className="text-gray-600">Start organizing events to see your sales data here.</p>
@@ -813,56 +663,61 @@ export function Profile() {
               </div>
             )}
 
-            {/* Transactions Tab (Organizers Only) */}
-            {activeTab === 'transactions' && user.role === 'organizer' && (
+            {/* Transactions Tab (for organizers) */}
+            {activeTab === 'transactions' && user.role === 'organizer' && transactionSummary && (
               <div>
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold text-gray-900 mb-2">Transaction History</h2>
-                  <p className="text-gray-600">Complete record of all financial transactions</p>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">Transaction History</h2>
+                  <div className="text-sm text-gray-600">
+                    Current Balance: <span className={`font-semibold ${getBalanceColor(transactionSummary.pendingBalance)}`}>
+                      {formatCurrency(transactionSummary.pendingBalance)}
+                    </span>
+                  </div>
                 </div>
-
-                {/* Transaction Summary Cards */}
-                {transactionSummary && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div className="bg-white rounded-lg p-6 border border-gray-200">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-medium text-gray-900">Pending Balance</h3>
-                        <Banknote className="h-6 w-6 text-green-600" />
+                
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Banknote className="h-5 w-5 text-blue-600" />
                       </div>
-                      <div className="text-3xl font-bold text-green-600 mb-2">
-                        {formatCurrency(transactionSummary.pendingBalance)}
+                      <div className="ml-3">
+                        <div className="text-2xl font-bold text-gray-900">{formatCurrency(transactionSummary.pendingBalance)}</div>
+                        <div className="text-sm text-gray-600">Pending Balance</div>
                       </div>
-                      <p className="text-sm text-gray-600">Available for payout</p>
-                    </div>
-
-                    <div className="bg-white rounded-lg p-6 border border-gray-200">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-medium text-gray-900">Total Payouts</h3>
-                        <ArrowDownLeft className="h-6 w-6 text-blue-600" />
-                      </div>
-                      <div className="text-3xl font-bold text-blue-600 mb-2">
-                        {formatCurrency(transactionSummary.totalPayouts)}
-                      </div>
-                      <p className="text-sm text-gray-600">{completedPayouts.length} payout{completedPayouts.length !== 1 ? 's' : ''}</p>
-                    </div>
-
-                    <div className="bg-white rounded-lg p-6 border border-gray-200">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-medium text-gray-900">Total Transactions</h3>
-                        <FileText className="h-6 w-6 text-purple-600" />
-                      </div>
-                      <div className="text-3xl font-bold text-purple-600 mb-2">
-                        {transactionSummary.transactionCount}
-                      </div>
-                      <p className="text-sm text-gray-600">All time</p>
                     </div>
                   </div>
-                )}
+
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                        <ArrowDownLeft className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div className="ml-3">
+                        <div className="text-2xl font-bold text-gray-900">{formatCurrency(transactionSummary.totalPayouts)}</div>
+                        <div className="text-sm text-gray-600">Total Payouts</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-lg border border-gray-200 p-6">
+                    <div className="flex items-center">
+                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <Receipt className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div className="ml-3">
+                        <div className="text-2xl font-bold text-gray-900">{transactionSummary.transactionCount}</div>
+                        <div className="text-sm text-gray-600">Total Transactions</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Transactions Table */}
                 <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                   <div className="px-6 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-900">Recent Transactions</h3>
+                    <h3 className="text-lg font-medium text-gray-900">All Transactions</h3>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full">
@@ -871,78 +726,68 @@ export function Profile() {
                           <th className="text-left py-3 px-6 font-medium text-gray-900">Date</th>
                           <th className="text-left py-3 px-6 font-medium text-gray-900">Type</th>
                           <th className="text-left py-3 px-6 font-medium text-gray-900">Description</th>
-                          <th className="text-left py-3 px-6 font-medium text-gray-900">Gross</th>
-                          <th className="text-left py-3 px-6 font-medium text-gray-900">Fee</th>
-                          <th className="text-left py-3 px-6 font-medium text-gray-900">Net</th>
+                          <th className="text-right py-3 px-6 font-medium text-gray-900">Amount</th>
+                          <th className="text-right py-3 px-6 font-medium text-gray-900">Balance</th>
                           <th className="text-left py-3 px-6 font-medium text-gray-900">Status</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
-                        {allTransactions
-                          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-                          .slice(0, 20) // Show last 20 transactions
-                          .map(transaction => (
-                            <tr key={transaction.id} className="hover:bg-gray-50">
-                              <td className="py-4 px-6">
-                                <div className="text-sm text-gray-900">
-                                  {formatDate(transaction.timestamp)}
-                                </div>
-                              </td>
-                              <td className="py-4 px-6">
-                                <div className="flex items-center">
-                                  {transaction.type === 'sale' ? (
-                                    <ArrowUpRight className="h-4 w-4 text-green-600 mr-2" />
-                                  ) : (
-                                    <ArrowDownLeft className="h-4 w-4 text-blue-600 mr-2" />
-                                  )}
-                                  <span className={`text-sm font-medium capitalize ${
-                                    transaction.type === 'sale' ? 'text-green-600' : 'text-blue-600'
-                                  }`}>
-                                    {transaction.type}
-                                  </span>
-                                </div>
-                              </td>
-                              <td className="py-4 px-6">
-                                <div className="text-sm text-gray-900">{transaction.description}</div>
-                                {transaction.payoutReference && (
-                                  <div className="text-xs text-gray-500">Ref: {transaction.payoutReference}</div>
-                                )}
-                              </td>
-                              <td className="py-4 px-6">
-                                <div className="text-sm text-gray-900">
-                                  {transaction.grossAmount > 0 ? formatCurrency(transaction.grossAmount) : '-'}
-                                </div>
-                              </td>
-                              <td className="py-4 px-6">
-                                <div className="text-sm text-red-600">
-                                  {transaction.platformFee > 0 ? formatCurrency(transaction.platformFee) : '-'}
-                                </div>
-                              </td>
-                              <td className="py-4 px-6">
-                                <div className={`text-sm font-medium ${
-                                  transaction.netAmount >= 0 ? 'text-green-600' : 'text-blue-600'
-                                }`}>
-                                  {formatCurrency(Math.abs(transaction.netAmount))}
-                                </div>
-                              </td>
-                              <td className="py-4 px-6">
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                  transaction.status === 'completed' 
-                                    ? 'bg-green-100 text-green-800'
-                                    : transaction.status === 'pending'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-red-100 text-red-800'
-                                }`}>
-                                  {transaction.status}
+                        {transactionsWithBalance.map(transaction => (
+                          <tr key={transaction.id} className="hover:bg-gray-50">
+                            <td className="py-4 px-6">
+                              <div className="text-sm text-gray-900">{formatDate(transaction.timestamp)}</div>
+                            </td>
+                            <td className="py-4 px-6">
+                              <div className="flex items-center">
+                                {getTransactionIcon(transaction.type)}
+                                <span className={`ml-2 text-sm font-medium capitalize ${getTransactionColor(transaction.type)}`}>
+                                  {transaction.type}
                                 </span>
-                              </td>
-                            </tr>
-                          ))}
+                              </div>
+                            </td>
+                            <td className="py-4 px-6">
+                              <div className="text-sm text-gray-900">{transaction.description}</div>
+                              {transaction.payoutReference && (
+                                <div className="text-xs text-gray-500">Ref: {transaction.payoutReference}</div>
+                              )}
+                            </td>
+                            <td className="py-4 px-6 text-right">
+                              <div className={`text-sm font-medium ${
+                                transaction.type === 'sale' ? 'text-green-600' : 
+                                transaction.type === 'payout' ? 'text-blue-600' : 
+                                'text-red-600'
+                              }`}>
+                                {transaction.type === 'sale' ? '+' : ''}
+                                {formatCurrency(Math.abs(transaction.netAmount))}
+                              </div>
+                              {transaction.type === 'sale' && transaction.platformFee > 0 && (
+                                <div className="text-xs text-gray-500">
+                                  Fee: {formatCurrency(transaction.platformFee)}
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-4 px-6 text-right">
+                              <div className={`text-sm font-medium ${getBalanceColor(transaction.balance || 0)}`}>
+                                {formatCurrency(transaction.balance || 0)}
+                              </div>
+                            </td>
+                            <td className="py-4 px-6">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                transaction.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                transaction.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                transaction.status === 'failed' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {transaction.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                     
-                    {allTransactions.length === 0 && (
-                      <div className="text-center py-12">
+                    {transactionsWithBalance.length === 0 && (
+                      <div className="text-center py-8">
                         <Receipt className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No transactions yet</h3>
                         <p className="text-gray-600">Start selling tickets to see your transaction history here.</p>
