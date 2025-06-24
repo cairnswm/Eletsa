@@ -48,6 +48,21 @@ export function UserProvider({ children }: { children: ReactNode }) {
   const [users] = useState(usersData);
   const [follows, setFollows] = useState<Follow[]>(followsData);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('UserContext Debug:');
+    console.log('Current user:', user);
+    console.log('All follows data:', follows);
+    console.log('All users data:', users);
+    
+    if (user) {
+      const userFollowers = getFollowers(user.id);
+      const userFollowing = getFollowing(user.id);
+      console.log(`Followers for user ${user.id} (${user.name}):`, userFollowers);
+      console.log(`Following for user ${user.id} (${user.name}):`, userFollowing);
+    }
+  }, [user, follows, users]);
+
   useEffect(() => {
     // Check for stored user session
     const storedUser = localStorage.getItem('currentUser');
@@ -104,25 +119,53 @@ export function UserProvider({ children }: { children: ReactNode }) {
 
   const isFollowing = (targetUserId: string) => {
     if (!user) return false;
-    return follows.some(
+    const result = follows.some(
       follow => follow.followerId === user.id && follow.followingId === targetUserId
     );
+    console.log(`isFollowing check: ${user.id} -> ${targetUserId} = ${result}`);
+    return result;
   };
 
   const getFollowers = (userId: string) => {
+    console.log(`Getting followers for userId: ${userId}`);
     const followerIds = follows
-      .filter(follow => follow.followingId === userId)
+      .filter(follow => {
+        console.log(`Checking follow: ${follow.followerId} -> ${follow.followingId}, target: ${userId}`);
+        return follow.followingId === userId;
+      })
       .map(follow => follow.followerId);
     
-    return users.filter(user => followerIds.includes(user.id));
+    console.log(`Follower IDs for ${userId}:`, followerIds);
+    
+    const followerUsers = users.filter(user => {
+      const isFollower = followerIds.includes(user.id);
+      console.log(`User ${user.id} (${user.name}) is follower: ${isFollower}`);
+      return isFollower;
+    });
+    
+    console.log(`Follower users for ${userId}:`, followerUsers);
+    return followerUsers;
   };
 
   const getFollowing = (userId: string) => {
+    console.log(`Getting following for userId: ${userId}`);
     const followingIds = follows
-      .filter(follow => follow.followerId === userId)
+      .filter(follow => {
+        console.log(`Checking follow: ${follow.followerId} -> ${follow.followingId}, source: ${userId}`);
+        return follow.followerId === userId;
+      })
       .map(follow => follow.followingId);
     
-    return users.filter(user => followingIds.includes(user.id));
+    console.log(`Following IDs for ${userId}:`, followingIds);
+    
+    const followingUsers = users.filter(user => {
+      const isFollowing = followingIds.includes(user.id);
+      console.log(`User ${user.id} (${user.name}) is following: ${isFollowing}`);
+      return isFollowing;
+    });
+    
+    console.log(`Following users for ${userId}:`, followingUsers);
+    return followingUsers;
   };
 
   const isFollowMutual = (userId: string, targetUserId: string) => {
