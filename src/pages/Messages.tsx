@@ -16,25 +16,25 @@ import {
 import { Link } from 'react-router-dom';
 
 interface Message {
-  id: number;
-  fromUserId: number;
-  toUserId: number;
-  eventId: number | null;
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  eventId: string | null;
   timestamp: string;
   message: string;
 }
 
 interface User {
-  id: number;
+  id: string;
   name: string;
   role: string;
 }
 
 interface Conversation {
-  userId: number;
+  userId: string;
   userName: string;
   userRole: string;
-  eventId: number | null;
+  eventId: string | null;
   eventTitle?: string;
   lastMessage: string;
   lastMessageTime: string;
@@ -120,7 +120,7 @@ export function Messages() {
     if (!newMessage.trim() || !selectedConversation || !user) return;
 
     const message: Message = {
-      id: Date.now(),
+      id: `msg-${Date.now()}`,
       fromUserId: user.id,
       toUserId: selectedConversation.userId,
       eventId: selectedConversation.eventId,
