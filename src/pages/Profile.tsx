@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useUser } from '../contexts/UserContext';
 import { useEvents } from '../contexts/EventContext';
+import { useTransactions } from '../contexts/TransactionContext';
 import { users as usersData } from '../data/users';
 import { FollowButton } from '../components/FollowButton';
 import { BecomeOrganizerModal } from '../components/BecomeOrganizerModal';
@@ -31,7 +32,12 @@ import {
   Eye,
   MapPin,
   Crown,
-  Lock
+  Lock,
+  ArrowUpRight,
+  ArrowDownLeft,
+  Banknote,
+  Receipt,
+  FileText
 } from 'lucide-react';
 
 export function Profile() {
@@ -46,8 +52,15 @@ export function Profile() {
     checkVerificationStatus
   } = useUser();
   const { events, tickets, getOrganizerTestimonials, getOrganizerCompletedEvents } = useEvents();
+  const { 
+    getTransactionSummary, 
+    getMonthlyTransactions, 
+    getOrganizerTransactions,
+    getPendingPayouts,
+    getCompletedPayouts
+  } = useTransactions();
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'following' | 'followers' | 'testimonials' | 'sales'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'following' | 'followers' | 'testimonials' | 'sales' | 'transactions'>('profile');
   const [showBecomeOrganizerModal, setShowBecomeOrganizerModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -102,20 +115,22 @@ export function Profile() {
     organizerEvents.some(event => event.id === ticket.eventId)
   );
 
-  const totalGrossRevenue = organizerTickets.reduce((sum, ticket) => sum + ticket.price, 0);
-  const totalNetRevenue = calculateNetRevenue(totalGrossRevenue, user.id);
-  const totalPlatformFee = getPlatformFee(totalGrossRevenue, user.id);
-  const totalTicketsSold = organizerTickets.reduce((sum, ticket) => sum + ticket.quantity, 0);
-
-  // Calculate monthly earnings (current month)
+  // Get transaction data
+  const transactionSummary = user.role === 'organizer' ? getTransactionSummary(user.id) : null;
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
-  const monthlyTickets = organizerTickets.filter(ticket => {
-    const ticketDate = new Date(ticket.purchaseDate);
-    return ticketDate.getMonth() === currentMonth && ticketDate.getFullYear() === currentYear;
-  });
-  const monthlyGrossEarnings = monthlyTickets.reduce((sum, ticket) => sum + ticket.price, 0);
-  const monthlyNetEarnings = calculateNetRevenue(monthlyGrossEarnings, user.id);
+  const monthlyTransactions = user.role === 'organizer' ? getMonthlyTransactions(user.id, currentYear, currentMonth) : [];
+  const allTransactions = user.role === 'organizer' ? getOrganizerTransactions(user.id) : [];
+  const pendingPayouts = user.role === 'organizer' ? getPendingPayouts(user.id) : [];
+  const completedPayouts = user.role === 'organizer' ? getCompletedPayouts(user.id) : [];
+
+  // Calculate monthly earnings from transactions
+  const monthlySales = monthlyTransactions.filter(t => t.type === 'sale' && t.status === 'completed');
+  const monthlyGrossEarnings = monthlySales.reduce((sum, t) => sum + t.grossAmount, 0);
+  const monthlyPlatformFees = monthlySales.reduce((sum, t) => sum + t.platformFee, 0);
+  const monthlyNetEarnings = monthlySales.reduce((sum, t) => sum + t.netAmount, 0);
+
+  const totalTicketsSold = organizerTickets.reduce((sum, ticket) => sum + ticket.quantity, 0);
 
   // Get followers and following
   const followers = getFollowers(user.id);
@@ -150,6 +165,15 @@ export function Profile() {
     });
   }
 
+  // Add transactions tab for organizers
+  if (user.role === 'organizer') {
+    tabs.push({
+      id: 'transactions',
+      label: 'Transactions',
+      icon: Receipt
+    });
+  }
+
   // Add testimonials tab for organizers
   if (user.role === 'organizer') {
     tabs.push({
@@ -158,6 +182,25 @@ export function Profile() {
       icon: Quote
     });
   }
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-ZA', {
+      style: 'currency',
+      currency: 'ZAR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -171,14 +214,14 @@ export function Profile() {
         {/* Tabs */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
           <div className="border-b border-gray-200">
-            <nav className="flex space-x-8 px-6">
+            <nav className="flex space-x-8 px-6 overflow-x-auto">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                    className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
                       activeTab === tab.id
                         ? 'border-blue-500 text-blue-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -406,7 +449,7 @@ export function Profile() {
                   </div>
 
                   {/* Revenue Breakdown for Organizers (Current Month Only) */}
-                  {user.role === 'organizer' && (
+                  {user.role === 'organizer' && transactionSummary && (
                     <div className="bg-gray-50 rounded-xl p-6">
                       <h2 className="text-xl font-semibold text-gray-900 mb-6">This Month's Revenue</h2>
                       
@@ -417,7 +460,7 @@ export function Profile() {
                               <DollarSign className="h-5 w-5 text-white" />
                             </div>
                             <div className="ml-3">
-                              <div className="text-xl font-bold text-gray-900">R{monthlyGrossEarnings}</div>
+                              <div className="text-xl font-bold text-gray-900">{formatCurrency(monthlyGrossEarnings)}</div>
                               <div className="text-sm text-gray-600">Gross Revenue</div>
                             </div>
                           </div>
@@ -429,7 +472,7 @@ export function Profile() {
                               <Percent className="h-5 w-5 text-white" />
                             </div>
                             <div className="ml-3">
-                              <div className="text-xl font-bold text-red-600">-R{getPlatformFee(monthlyGrossEarnings, user.id)}</div>
+                              <div className="text-xl font-bold text-red-600">-{formatCurrency(monthlyPlatformFees)}</div>
                               <div className="text-sm text-gray-600">Platform Fee ({user.fee}%)</div>
                             </div>
                           </div>
@@ -441,20 +484,27 @@ export function Profile() {
                               <TrendingUp className="h-5 w-5 text-white" />
                             </div>
                             <div className="ml-3">
-                              <div className="text-xl font-bold text-green-600">R{monthlyNetEarnings}</div>
+                              <div className="text-xl font-bold text-green-600">{formatCurrency(monthlyNetEarnings)}</div>
                               <div className="text-sm text-gray-600">Net Revenue</div>
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      <div className="mt-4 text-center">
+                      <div className="mt-4 flex space-x-3">
                         <button
                           onClick={() => setActiveTab('sales')}
                           className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                         >
                           <Eye className="h-4 w-4 mr-2" />
-                          View Detailed Sales Report
+                          View Sales Report
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('transactions')}
+                          className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                        >
+                          <Receipt className="h-4 w-4 mr-2" />
+                          View Transactions
                         </button>
                       </div>
                     </div>
@@ -471,7 +521,7 @@ export function Profile() {
                         <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mx-auto mb-4">
                           <CreditCard className="h-8 w-8 text-green-600" />
                         </div>
-                        <div className="text-3xl font-bold text-green-600 mb-2">R{user.credits}</div>
+                        <div className="text-3xl font-bold text-green-600 mb-2">{formatCurrency(user.credits)}</div>
                         <p className="text-sm text-gray-600">Available for purchases or refunds</p>
                       </div>
                     </div>
@@ -500,6 +550,27 @@ export function Profile() {
                               : 'Unverified: 7-10 business days'
                             }
                           </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Balance Info for Organizers */}
+                  {user.role === 'organizer' && transactionSummary && (
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Balance</h3>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-600">Pending Balance</span>
+                          <span className="font-semibold text-green-600">{formatCurrency(transactionSummary.pendingBalance)}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-600">Total Payouts</span>
+                          <span className="font-semibold text-gray-900">{formatCurrency(transactionSummary.totalPayouts)}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-600">Net Revenue</span>
+                          <span className="font-semibold text-blue-600">{formatCurrency(transactionSummary.totalNetRevenue)}</span>
                         </div>
                       </div>
                     </div>
@@ -541,7 +612,7 @@ export function Profile() {
                         <span className="text-gray-600">Followers</span>
                         <span className="font-medium">{followers.length}</span>
                       </div>
-                      {user.role === 'organizer' && (
+                      {user.role === 'organizer' && transactionSummary && (
                         <>
                           <div className="flex items-center justify-between">
                             <span className="text-gray-600">Events Created</span>
@@ -549,7 +620,7 @@ export function Profile() {
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-gray-600">Net Revenue</span>
-                            <span className="font-medium">R{totalNetRevenue}</span>
+                            <span className="font-medium">{formatCurrency(transactionSummary.totalNetRevenue)}</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-gray-600">Testimonials</span>
@@ -592,7 +663,7 @@ export function Profile() {
             )}
 
             {/* Sales Tab (Organizers Only) */}
-            {activeTab === 'sales' && user.role === 'organizer' && (
+            {activeTab === 'sales' && user.role === 'organizer' && transactionSummary && (
               <div>
                 <div className="mb-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-2">Sales Dashboard</h2>
@@ -607,7 +678,7 @@ export function Profile() {
                         <DollarSign className="h-5 w-5 text-white" />
                       </div>
                       <div className="ml-3">
-                        <div className="text-2xl font-bold text-gray-900">R{totalGrossRevenue}</div>
+                        <div className="text-2xl font-bold text-gray-900">{formatCurrency(transactionSummary.totalGrossRevenue)}</div>
                         <div className="text-sm text-gray-600">Total Gross Revenue</div>
                       </div>
                     </div>
@@ -619,7 +690,7 @@ export function Profile() {
                         <Percent className="h-5 w-5 text-white" />
                       </div>
                       <div className="ml-3">
-                        <div className="text-2xl font-bold text-red-600">R{totalPlatformFee}</div>
+                        <div className="text-2xl font-bold text-red-600">{formatCurrency(transactionSummary.totalPlatformFees)}</div>
                         <div className="text-sm text-gray-600">Platform Fees</div>
                       </div>
                     </div>
@@ -631,7 +702,7 @@ export function Profile() {
                         <TrendingUp className="h-5 w-5 text-white" />
                       </div>
                       <div className="ml-3">
-                        <div className="text-2xl font-bold text-green-600">R{totalNetRevenue}</div>
+                        <div className="text-2xl font-bold text-green-600">{formatCurrency(transactionSummary.totalNetRevenue)}</div>
                         <div className="text-sm text-gray-600">Net Revenue</div>
                       </div>
                     </div>
@@ -670,11 +741,11 @@ export function Profile() {
                       </thead>
                       <tbody className="divide-y divide-gray-200">
                         {organizerEvents.map(event => {
-                          const eventTickets = organizerTickets.filter(ticket => ticket.eventId === event.id);
-                          const eventGrossRevenue = eventTickets.reduce((sum, ticket) => sum + ticket.price, 0);
-                          const eventPlatformFee = getPlatformFee(eventGrossRevenue, user.id);
-                          const eventNetRevenue = calculateNetRevenue(eventGrossRevenue, user.id);
-                          const eventTicketsSold = eventTickets.reduce((sum, ticket) => sum + ticket.quantity, 0);
+                          const eventTransactions = allTransactions.filter(t => t.eventId === event.id && t.type === 'sale');
+                          const eventGrossRevenue = eventTransactions.reduce((sum, t) => sum + t.grossAmount, 0);
+                          const eventPlatformFee = eventTransactions.reduce((sum, t) => sum + t.platformFee, 0);
+                          const eventNetRevenue = eventTransactions.reduce((sum, t) => sum + t.netAmount, 0);
+                          const eventTicketsSold = organizerTickets.filter(ticket => ticket.eventId === event.id).reduce((sum, ticket) => sum + ticket.quantity, 0);
                           const isPast = new Date(event.date) < new Date();
                           
                           return (
@@ -704,14 +775,14 @@ export function Profile() {
                                 </div>
                               </td>
                               <td className="py-4 px-6">
-                                <div className="font-medium text-gray-900">R{eventGrossRevenue}</div>
+                                <div className="font-medium text-gray-900">{formatCurrency(eventGrossRevenue)}</div>
                               </td>
                               <td className="py-4 px-6">
-                                <div className="font-medium text-red-600">R{eventPlatformFee}</div>
+                                <div className="font-medium text-red-600">{formatCurrency(eventPlatformFee)}</div>
                                 <div className="text-xs text-gray-500">{user.fee}%</div>
                               </td>
                               <td className="py-4 px-6">
-                                <div className="font-medium text-green-600">R{eventNetRevenue}</div>
+                                <div className="font-medium text-green-600">{formatCurrency(eventNetRevenue)}</div>
                               </td>
                               <td className="py-4 px-6">
                                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
@@ -735,6 +806,146 @@ export function Profile() {
                         <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No events yet</h3>
                         <p className="text-gray-600">Start organizing events to see your sales data here.</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Transactions Tab (Organizers Only) */}
+            {activeTab === 'transactions' && user.role === 'organizer' && (
+              <div>
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-2">Transaction History</h2>
+                  <p className="text-gray-600">Complete record of all financial transactions</p>
+                </div>
+
+                {/* Transaction Summary Cards */}
+                {transactionSummary && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div className="bg-white rounded-lg p-6 border border-gray-200">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-gray-900">Pending Balance</h3>
+                        <Banknote className="h-6 w-6 text-green-600" />
+                      </div>
+                      <div className="text-3xl font-bold text-green-600 mb-2">
+                        {formatCurrency(transactionSummary.pendingBalance)}
+                      </div>
+                      <p className="text-sm text-gray-600">Available for payout</p>
+                    </div>
+
+                    <div className="bg-white rounded-lg p-6 border border-gray-200">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-gray-900">Total Payouts</h3>
+                        <ArrowDownLeft className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <div className="text-3xl font-bold text-blue-600 mb-2">
+                        {formatCurrency(transactionSummary.totalPayouts)}
+                      </div>
+                      <p className="text-sm text-gray-600">{completedPayouts.length} payout{completedPayouts.length !== 1 ? 's' : ''}</p>
+                    </div>
+
+                    <div className="bg-white rounded-lg p-6 border border-gray-200">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-gray-900">Total Transactions</h3>
+                        <FileText className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <div className="text-3xl font-bold text-purple-600 mb-2">
+                        {transactionSummary.transactionCount}
+                      </div>
+                      <p className="text-sm text-gray-600">All time</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Transactions Table */}
+                <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h3 className="text-lg font-medium text-gray-900">Recent Transactions</h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="text-left py-3 px-6 font-medium text-gray-900">Date</th>
+                          <th className="text-left py-3 px-6 font-medium text-gray-900">Type</th>
+                          <th className="text-left py-3 px-6 font-medium text-gray-900">Description</th>
+                          <th className="text-left py-3 px-6 font-medium text-gray-900">Gross</th>
+                          <th className="text-left py-3 px-6 font-medium text-gray-900">Fee</th>
+                          <th className="text-left py-3 px-6 font-medium text-gray-900">Net</th>
+                          <th className="text-left py-3 px-6 font-medium text-gray-900">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {allTransactions
+                          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                          .slice(0, 20) // Show last 20 transactions
+                          .map(transaction => (
+                            <tr key={transaction.id} className="hover:bg-gray-50">
+                              <td className="py-4 px-6">
+                                <div className="text-sm text-gray-900">
+                                  {formatDate(transaction.timestamp)}
+                                </div>
+                              </td>
+                              <td className="py-4 px-6">
+                                <div className="flex items-center">
+                                  {transaction.type === 'sale' ? (
+                                    <ArrowUpRight className="h-4 w-4 text-green-600 mr-2" />
+                                  ) : (
+                                    <ArrowDownLeft className="h-4 w-4 text-blue-600 mr-2" />
+                                  )}
+                                  <span className={`text-sm font-medium capitalize ${
+                                    transaction.type === 'sale' ? 'text-green-600' : 'text-blue-600'
+                                  }`}>
+                                    {transaction.type}
+                                  </span>
+                                </div>
+                              </td>
+                              <td className="py-4 px-6">
+                                <div className="text-sm text-gray-900">{transaction.description}</div>
+                                {transaction.payoutReference && (
+                                  <div className="text-xs text-gray-500">Ref: {transaction.payoutReference}</div>
+                                )}
+                              </td>
+                              <td className="py-4 px-6">
+                                <div className="text-sm text-gray-900">
+                                  {transaction.grossAmount > 0 ? formatCurrency(transaction.grossAmount) : '-'}
+                                </div>
+                              </td>
+                              <td className="py-4 px-6">
+                                <div className="text-sm text-red-600">
+                                  {transaction.platformFee > 0 ? formatCurrency(transaction.platformFee) : '-'}
+                                </div>
+                              </td>
+                              <td className="py-4 px-6">
+                                <div className={`text-sm font-medium ${
+                                  transaction.netAmount >= 0 ? 'text-green-600' : 'text-blue-600'
+                                }`}>
+                                  {formatCurrency(Math.abs(transaction.netAmount))}
+                                </div>
+                              </td>
+                              <td className="py-4 px-6">
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                                  transaction.status === 'completed' 
+                                    ? 'bg-green-100 text-green-800'
+                                    : transaction.status === 'pending'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {transaction.status}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                    
+                    {allTransactions.length === 0 && (
+                      <div className="text-center py-12">
+                        <Receipt className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No transactions yet</h3>
+                        <p className="text-gray-600">Start selling tickets to see your transaction history here.</p>
                       </div>
                     )}
                   </div>

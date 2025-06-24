@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { UserProvider } from './contexts/UserContext';
 import { EventProvider } from './contexts/EventContext';
 import { CartProvider } from './contexts/CartContext';
+import { TransactionProvider } from './contexts/TransactionContext';
 import { Header } from './components/Header';
 import { Landing } from './pages/Landing';
 import { Login } from './pages/Login';
@@ -32,27 +33,29 @@ function App() {
     <UserProvider>
       <EventProvider>
         <CartProvider>
-          <Router>
-            <ScrollToTop />
-            <div className="min-h-screen bg-gray-50">
-              <Header />
-              <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/discover" element={<Discover />} />
-                <Route path="/event/new" element={<EventForm />} />
-                <Route path="/event/:id" element={<EventDetails />} />
-                <Route path="/event/:id/edit" element={<EventForm />} />
-                <Route path="/organizer/:id" element={<OrganizerProfile />} />
-                <Route path="/my-events" element={<MyEvents />} />
-                <Route path="/my-tickets" element={<MyTickets />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/messages" element={<Messages />} />
-                <Route path="/whats-up" element={<WhatsUp />} />
-                <Route path="/checkout" element={<Checkout />} />
-              </Routes>
-            </div>
-          </Router>
+          <TransactionProvider>
+            <Router>
+              <ScrollToTop />
+              <div className="min-h-screen bg-gray-50">
+                <Header />
+                <Routes>
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/discover" element={<Discover />} />
+                  <Route path="/event/new" element={<EventForm />} />
+                  <Route path="/event/:id" element={<EventDetails />} />
+                  <Route path="/event/:id/edit" element={<EventForm />} />
+                  <Route path="/organizer/:id" element={<OrganizerProfile />} />
+                  <Route path="/my-events" element={<MyEvents />} />
+                  <Route path="/my-tickets" element={<MyTickets />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/messages" element={<Messages />} />
+                  <Route path="/whats-up" element={<WhatsUp />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                </Routes>
+              </div>
+            </Router>
+          </TransactionProvider>
         </CartProvider>
       </EventProvider>
     </UserProvider>

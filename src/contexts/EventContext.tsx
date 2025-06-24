@@ -92,7 +92,6 @@ interface EventContextType {
   toggleReviewTestimonial: (reviewId: string) => void;
   getOrganizerTestimonials: (organizerId: string) => Review[];
   getOrganizerCompletedEvents: (organizerId: string) => Event[];
-  getOrganizerRevenue: (organizerId: string) => { gross: number; net: number; platformFee: number };
 }
 
 const EventContext = createContext<EventContextType | undefined>(undefined);
@@ -254,28 +253,6 @@ export function EventProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  const getOrganizerRevenue = (organizerId: string) => {
-    const organizerEvents = events.filter(event => event.organizerId === organizerId);
-    const organizerEventIds = organizerEvents.map(event => event.id);
-    const organizerTickets = tickets.filter(ticket => 
-      organizerEventIds.includes(ticket.eventId)
-    );
-
-    const grossRevenue = organizerTickets.reduce((sum, ticket) => sum + ticket.price, 0);
-    
-    // Get organizer's fee percentage (this would come from user context in real implementation)
-    // For now, we'll assume 15% platform fee for organizers
-    const platformFeePercentage = 15;
-    const platformFee = (grossRevenue * platformFeePercentage) / 100;
-    const netRevenue = grossRevenue - platformFee;
-
-    return {
-      gross: grossRevenue,
-      net: netRevenue,
-      platformFee: platformFee
-    };
-  };
-
   return (
     <EventContext.Provider value={{
       events,
@@ -303,8 +280,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
       updateEvent,
       toggleReviewTestimonial,
       getOrganizerTestimonials,
-      getOrganizerCompletedEvents,
-      getOrganizerRevenue
+      getOrganizerCompletedEvents
     }}>
       {children}
     </EventContext.Provider>
