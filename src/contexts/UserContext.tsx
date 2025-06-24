@@ -22,10 +22,19 @@ interface Follow {
   timestamp: string;
 }
 
+interface RegisterData {
+  username: string;
+  name: string;
+  email: string;
+  password: string;
+}
+
 interface UserContextType {
   user: User | null;
   login: (username: string, password: string) => Promise<boolean>;
+  register: (data: RegisterData) => Promise<boolean>;
   logout: () => void;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
   isOrganizer: boolean;
   isAdmin: boolean;
   isAttendee: boolean;
@@ -45,7 +54,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [users] = useState(usersData);
+  const [users, setUsers] = useState(usersData);
   const [follows, setFollows] = useState<Follow[]>(followsData);
 
   useEffect(() => {
@@ -79,6 +88,57 @@ export function UserProvider({ children }: { children: ReactNode }) {
     return false;
   };
 
+  const register = async (data: RegisterData): Promise<boolean> => {
+    // Check if username or email already exists
+    const existingUser = users.find(u => 
+      u.username === data.username || u.email === data.email
+    );
+    
+    if (existingUser) {
+      return false;
+    }
+
+    // Create new user
+    const newUser = {
+      id: `user-${Date.now()}`,
+      username: data.username,
+      password: data.password,
+      name: data.name,
+      email: data.email,
+      role: 'attendee' as const,
+      credits: 100, // Welcome bonus
+      fee: 0, // Attendees don't pay fees
+      verified: false
+    };
+
+    // Add to users array
+    setUsers(prev => [...prev, newUser]);
+
+    // Log in the new user
+    const { password: _, ...userWithoutPassword } = newUser;
+    setUser(userWithoutPassword);
+    localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
+
+    return true;
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    if (!user) return false;
+
+    // Find user with current password
+    const userData = users.find(u => u.id === user.id && u.password === currentPassword);
+    if (!userData) {
+      return false; // Current password is incorrect
+    }
+
+    // Update password in users array
+    setUsers(prev => prev.map(u => 
+      u.id === user.id ? { ...u, password: newPassword } : u
+    ));
+
+    return true;
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('currentUser');
@@ -89,6 +149,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const updatedUser = { ...user, ...updates };
       setUser(updatedUser);
       localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+      
+      // Also update in the users array
+      setUsers(prev => prev.map(u => 
+        u.id === user.id ? { ...u, ...updates } : u
+      ));
     }
   };
 
@@ -197,7 +262,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
     <UserContext.Provider value={{
       user,
       login,
+      register,
       logout,
+      changePassword,
       isOrganizer,
       isAdmin,
       isAttendee,
