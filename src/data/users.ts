@@ -6,7 +6,9 @@ export const users = [
     name: "Thabo Mokoena", 
     role: "attendee",
     email: "thabo@example.com",
-    credits: 50
+    credits: 50,
+    fee: 0, // Attendees don't pay fees
+    verified: false
   },
   { 
     id: "550e8400-e29b-41d4-a716-446655440002", 
@@ -16,7 +18,9 @@ export const users = [
     role: "organizer", 
     bio: "Curating unforgettable moments.",
     email: "lerato@leratomusic.co.za",
-    phone: "+27 82 123 4567"
+    phone: "+27 82 123 4567",
+    fee: 15, // 15% platform fee
+    verified: true // Has 6 events, so verified
   },
   { 
     id: "550e8400-e29b-41d4-a716-446655440003", 
@@ -25,7 +29,9 @@ export const users = [
     name: "Emily Clark", 
     role: "attendee",
     email: "emily@example.com",
-    credits: 120
+    credits: 120,
+    fee: 0, // Attendees don't pay fees
+    verified: false
   },
   { 
     id: "550e8400-e29b-41d4-a716-446655440004", 
@@ -34,7 +40,9 @@ export const users = [
     name: "João Pereira", 
     role: "attendee",
     email: "joao@example.com",
-    credits: 0
+    credits: 0,
+    fee: 0, // Attendees don't pay fees
+    verified: false
   },
   { 
     id: "550e8400-e29b-41d4-a716-446655440005", 
@@ -44,7 +52,9 @@ export const users = [
     role: "organizer", 
     bio: "We bring energy to every experience.",
     email: "zanele@zaneleevents.co.za",
-    phone: "+27 83 987 6543"
+    phone: "+27 83 987 6543",
+    fee: 15, // 15% platform fee
+    verified: true // Has 6 events, so verified
   },
   { 
     id: "550e8400-e29b-41d4-a716-446655440006", 
@@ -53,7 +63,9 @@ export const users = [
     name: "Michael Lee", 
     role: "attendee",
     email: "michael@example.com",
-    credits: 200
+    credits: 200,
+    fee: 0, // Attendees don't pay fees
+    verified: false
   },
   { 
     id: "550e8400-e29b-41d4-a716-446655440007", 
@@ -61,6 +73,8 @@ export const users = [
     password: "admin123", 
     name: "Admin User", 
     role: "admin",
-    email: "admin@events.platform"
+    email: "admin@events.platform",
+    fee: 0, // Admins don't pay fees
+    verified: true // Admins are always verified
   }
 ];

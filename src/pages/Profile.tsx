@@ -20,7 +20,11 @@ import {
   UserPlus,
   ArrowLeftRight,
   Quote,
-  Award
+  Award,
+  Shield,
+  ShieldCheck,
+  Percent,
+  Clock
 } from 'lucide-react';
 
 export function Profile() {
@@ -29,9 +33,12 @@ export function Profile() {
     updateUser, 
     getFollowers, 
     getFollowing, 
-    isFollowMutual 
+    isFollowMutual,
+    calculateNetRevenue,
+    getPlatformFee,
+    checkVerificationStatus
   } = useUser();
-  const { events, tickets, getOrganizerTestimonials } = useEvents();
+  const { events, tickets, getOrganizerTestimonials, getOrganizerCompletedEvents } = useEvents();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'following' | 'followers' | 'testimonials'>('profile');
   const [editForm, setEditForm] = useState({
@@ -81,11 +88,14 @@ export function Profile() {
 
   // Get organizer's events and sales data
   const organizerEvents = events.filter(event => event.organizerId === user.id);
+  const completedEvents = getOrganizerCompletedEvents(user.id);
   const organizerTickets = tickets.filter(ticket => 
     organizerEvents.some(event => event.id === ticket.eventId)
   );
 
-  const totalRevenue = organizerTickets.reduce((sum, ticket) => sum + ticket.price, 0);
+  const totalGrossRevenue = organizerTickets.reduce((sum, ticket) => sum + ticket.price, 0);
+  const totalNetRevenue = calculateNetRevenue(totalGrossRevenue, user.id);
+  const totalPlatformFee = getPlatformFee(totalGrossRevenue, user.id);
   const totalTicketsSold = organizerTickets.reduce((sum, ticket) => sum + ticket.quantity, 0);
 
   // Calculate monthly earnings (current month)
@@ -95,7 +105,8 @@ export function Profile() {
     const ticketDate = new Date(ticket.purchaseDate);
     return ticketDate.getMonth() === currentMonth && ticketDate.getFullYear() === currentYear;
   });
-  const monthlyEarnings = monthlyTickets.reduce((sum, ticket) => sum + ticket.price, 0);
+  const monthlyGrossEarnings = monthlyTickets.reduce((sum, ticket) => sum + ticket.price, 0);
+  const monthlyNetEarnings = calculateNetRevenue(monthlyGrossEarnings, user.id);
 
   // Get followers and following
   const followers = getFollowers(user.id);
@@ -110,6 +121,10 @@ export function Profile() {
     const reviewer = usersData.find(u => u.id === testimonial.userId);
     return { ...testimonial, event, reviewer };
   }).filter(t => t.event && t.reviewer); // Only include testimonials with valid events and reviewers
+
+  // Check if organizer is eligible for verification
+  const isEligibleForVerification = user.role === 'organizer' && completedEvents.length >= 2;
+  const isVerified = checkVerificationStatus(user.id);
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
@@ -203,17 +218,66 @@ export function Profile() {
                           <User className="h-10 w-10 text-blue-600" />
                         </div>
                         <div>
-                          <h3 className="text-lg font-medium text-gray-900">{user.name}</h3>
+                          <div className="flex items-center space-x-3 mb-1">
+                            <h3 className="text-lg font-medium text-gray-900">{user.name}</h3>
+                            {isVerified && (
+                              <div className="flex items-center bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">
+                                <ShieldCheck className="h-3 w-3 mr-1" />
+                                Verified
+                              </div>
+                            )}
+                            {!isVerified && user.role === 'organizer' && (
+                              <div className="flex items-center bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full text-xs">
+                                <Shield className="h-3 w-3 mr-1" />
+                                Unverified
+                              </div>
+                            )}
+                          </div>
                           <p className="text-sm text-gray-600 capitalize">{user.role}</p>
                           <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
                             <span>{following.length} following</span>
                             <span>{followers.length} followers</span>
                             {user.role === 'organizer' && (
-                              <span>{testimonials.length} testimonials</span>
+                              <>
+                                <span>{testimonials.length} testimonials</span>
+                                <span>{completedEvents.length} completed events</span>
+                              </>
                             )}
                           </div>
                         </div>
                       </div>
+
+                      {/* Verification Status for Organizers */}
+                      {user.role === 'organizer' && (
+                        <div className={`p-4 rounded-lg border ${
+                          isVerified 
+                            ? 'bg-green-50 border-green-200' 
+                            : 'bg-yellow-50 border-yellow-200'
+                        }`}>
+                          <div className="flex items-center space-x-3">
+                            {isVerified ? (
+                              <ShieldCheck className="h-5 w-5 text-green-600" />
+                            ) : (
+                              <Shield className="h-5 w-5 text-yellow-600" />
+                            )}
+                            <div>
+                              <h4 className={`font-medium ${
+                                isVerified ? 'text-green-900' : 'text-yellow-900'
+                              }`}>
+                                {isVerified ? 'Verified Organizer' : 'Verification Status'}
+                              </h4>
+                              <p className={`text-sm ${
+                                isVerified ? 'text-green-700' : 'text-yellow-700'
+                              }`}>
+                                {isVerified 
+                                  ? 'You are a verified organizer with faster payouts and enhanced credibility.'
+                                  : `Complete ${2 - completedEvents.length} more event${2 - completedEvents.length !== 1 ? 's' : ''} to become verified and get faster payouts.`
+                                }
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Form Fields */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -301,6 +365,25 @@ export function Profile() {
                     <div className="bg-gray-50 rounded-xl p-6">
                       <h2 className="text-xl font-semibold text-gray-900 mb-6">Sales Dashboard</h2>
                       
+                      {/* Revenue Breakdown */}
+                      <div className="bg-white rounded-lg p-4 mb-6 border border-gray-200">
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">Revenue Breakdown</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-gray-900">R{totalGrossRevenue}</div>
+                            <div className="text-sm text-gray-600">Gross Revenue</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-red-600">-R{totalPlatformFee}</div>
+                            <div className="text-sm text-gray-600">Platform Fee ({user.fee}%)</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-2xl font-bold text-green-600">R{totalNetRevenue}</div>
+                            <div className="text-sm text-gray-600">Net Revenue</div>
+                          </div>
+                        </div>
+                      </div>
+                      
                       {/* Stats Cards */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
@@ -309,8 +392,8 @@ export function Profile() {
                               <DollarSign className="h-5 w-5 text-white" />
                             </div>
                             <div className="ml-3">
-                              <div className="text-2xl font-bold text-gray-900">R{totalRevenue}</div>
-                              <div className="text-sm text-gray-600">Total Revenue</div>
+                              <div className="text-2xl font-bold text-gray-900">R{monthlyNetEarnings}</div>
+                              <div className="text-sm text-gray-600">This Month (Net)</div>
                             </div>
                           </div>
                         </div>
@@ -333,8 +416,8 @@ export function Profile() {
                               <TrendingUp className="h-5 w-5 text-white" />
                             </div>
                             <div className="ml-3">
-                              <div className="text-2xl font-bold text-gray-900">R{monthlyEarnings}</div>
-                              <div className="text-sm text-gray-600">This Month</div>
+                              <div className="text-2xl font-bold text-gray-900">{completedEvents.length}</div>
+                              <div className="text-sm text-gray-600">Completed Events</div>
                             </div>
                           </div>
                         </div>
@@ -347,14 +430,16 @@ export function Profile() {
                             <tr className="border-b border-gray-200">
                               <th className="text-left py-3 px-4 font-medium text-gray-900">Event Name</th>
                               <th className="text-left py-3 px-4 font-medium text-gray-900">Tickets Sold</th>
-                              <th className="text-left py-3 px-4 font-medium text-gray-900">Revenue</th>
+                              <th className="text-left py-3 px-4 font-medium text-gray-900">Gross Revenue</th>
+                              <th className="text-left py-3 px-4 font-medium text-gray-900">Net Revenue</th>
                               <th className="text-left py-3 px-4 font-medium text-gray-900">Status</th>
                             </tr>
                           </thead>
                           <tbody>
                             {organizerEvents.map(event => {
                               const eventTickets = organizerTickets.filter(ticket => ticket.eventId === event.id);
-                              const eventRevenue = eventTickets.reduce((sum, ticket) => sum + ticket.price, 0);
+                              const eventGrossRevenue = eventTickets.reduce((sum, ticket) => sum + ticket.price, 0);
+                              const eventNetRevenue = calculateNetRevenue(eventGrossRevenue, user.id);
                               const eventTicketsSold = eventTickets.reduce((sum, ticket) => sum + ticket.quantity, 0);
                               const isPast = new Date(event.date) < new Date();
                               
@@ -375,7 +460,13 @@ export function Profile() {
                                     </div>
                                   </td>
                                   <td className="py-3 px-4">
-                                    <div className="font-medium text-gray-900">R{eventRevenue}</div>
+                                    <div className="font-medium text-gray-900">R{eventGrossRevenue}</div>
+                                  </td>
+                                  <td className="py-3 px-4">
+                                    <div className="font-medium text-green-600">R{eventNetRevenue}</div>
+                                    <div className="text-xs text-gray-500">
+                                      After {user.fee}% fee
+                                    </div>
                                   </td>
                                   <td className="py-3 px-4">
                                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
@@ -422,6 +513,34 @@ export function Profile() {
                     </div>
                   )}
 
+                  {/* Platform Fee Info for Organizers */}
+                  {user.role === 'organizer' && (
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Platform Fee</h3>
+                      <div className="text-center">
+                        <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Percent className="h-8 w-8 text-blue-600" />
+                        </div>
+                        <div className="text-3xl font-bold text-blue-600 mb-2">{user.fee}%</div>
+                        <p className="text-sm text-gray-600 mb-4">Platform fee on all sales</p>
+                        
+                        {/* Payout Schedule */}
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="flex items-center justify-center space-x-2 mb-2">
+                            <Clock className="h-4 w-4 text-gray-600" />
+                            <span className="text-sm font-medium text-gray-900">Payout Schedule</span>
+                          </div>
+                          <p className="text-xs text-gray-600">
+                            {isVerified 
+                              ? 'Verified: 3-5 business days'
+                              : 'Unverified: 7-10 business days'
+                            }
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Account Summary */}
                   <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Summary</h3>
@@ -429,6 +548,22 @@ export function Profile() {
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600">Account Type</span>
                         <span className="font-medium capitalize">{user.role}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Verification Status</span>
+                        <div className="flex items-center space-x-1">
+                          {isVerified ? (
+                            <>
+                              <ShieldCheck className="h-4 w-4 text-green-600" />
+                              <span className="font-medium text-green-600">Verified</span>
+                            </>
+                          ) : (
+                            <>
+                              <Shield className="h-4 w-4 text-yellow-600" />
+                              <span className="font-medium text-yellow-600">Unverified</span>
+                            </>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600">Member Since</span>
@@ -449,8 +584,8 @@ export function Profile() {
                             <span className="font-medium">{organizerEvents.length}</span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span className="text-gray-600">Total Revenue</span>
-                            <span className="font-medium">R{totalRevenue}</span>
+                            <span className="text-gray-600">Net Revenue</span>
+                            <span className="font-medium">R{totalNetRevenue}</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-gray-600">Testimonials</span>
@@ -474,6 +609,11 @@ export function Profile() {
                       <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
                         Privacy Settings
                       </button>
+                      {user.role === 'organizer' && (
+                        <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                          Payout Settings
+                        </button>
+                      )}
                       <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                         Delete Account
                       </button>

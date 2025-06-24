@@ -11,6 +11,8 @@ interface User {
   bio?: string;
   phone?: string;
   credits?: number;
+  fee: number; // Platform fee percentage (0-100)
+  verified: boolean; // Verification status
 }
 
 interface Follow {
@@ -33,6 +35,10 @@ interface UserContextType {
   getFollowers: (userId: string) => User[];
   getFollowing: (userId: string) => User[];
   isFollowMutual: (userId: string, targetUserId: string) => boolean;
+  checkVerificationStatus: (userId: string) => boolean;
+  updateVerificationStatus: (userId: string) => void;
+  calculateNetRevenue: (grossRevenue: number, userId: string) => number;
+  getPlatformFee: (grossRevenue: number, userId: string) => number;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -130,6 +136,47 @@ export function UserProvider({ children }: { children: ReactNode }) {
     return userFollowsTarget && targetFollowsUser;
   };
 
+  const checkVerificationStatus = (userId: string) => {
+    const userData = users.find(u => u.id === userId);
+    if (!userData) return false;
+    
+    // Admins are always verified
+    if (userData.role === 'admin') return true;
+    
+    // For organizers, check if they have at least 2 completed events
+    if (userData.role === 'organizer') {
+      // This would need to be implemented with actual event data
+      // For now, we'll use the verified status from the user data
+      return userData.verified;
+    }
+    
+    // Attendees can be verified but don't need special requirements
+    return userData.verified;
+  };
+
+  const updateVerificationStatus = (userId: string) => {
+    // This function would be called when an organizer reaches 2 completed events
+    // It would update the user's verified status in the database
+    if (user && user.id === userId) {
+      updateUser({ verified: true });
+    }
+  };
+
+  const calculateNetRevenue = (grossRevenue: number, userId: string) => {
+    const userData = users.find(u => u.id === userId);
+    if (!userData) return grossRevenue;
+    
+    const platformFee = (grossRevenue * userData.fee) / 100;
+    return grossRevenue - platformFee;
+  };
+
+  const getPlatformFee = (grossRevenue: number, userId: string) => {
+    const userData = users.find(u => u.id === userId);
+    if (!userData) return 0;
+    
+    return (grossRevenue * userData.fee) / 100;
+  };
+
   const isOrganizer = user?.role === 'organizer';
   const isAdmin = user?.role === 'admin';
   const isAttendee = user?.role === 'attendee';
@@ -147,7 +194,11 @@ export function UserProvider({ children }: { children: ReactNode }) {
       isFollowing,
       getFollowers,
       getFollowing,
-      isFollowMutual
+      isFollowMutual,
+      checkVerificationStatus,
+      updateVerificationStatus,
+      calculateNetRevenue,
+      getPlatformFee
     }}>
       {children}
     </UserContext.Provider>
