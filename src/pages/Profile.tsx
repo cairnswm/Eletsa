@@ -3,6 +3,8 @@ import { useUser } from '../contexts/UserContext';
 import { useEvents } from '../contexts/EventContext';
 import { users as usersData } from '../data/users';
 import { FollowButton } from '../components/FollowButton';
+import { BecomeOrganizerModal } from '../components/BecomeOrganizerModal';
+import { ChangePasswordModal } from '../components/ChangePasswordModal';
 import { 
   User, 
   Mail, 
@@ -27,7 +29,9 @@ import {
   Clock,
   BarChart3,
   Eye,
-  MapPin
+  MapPin,
+  Crown,
+  Lock
 } from 'lucide-react';
 
 export function Profile() {
@@ -44,6 +48,8 @@ export function Profile() {
   const { events, tickets, getOrganizerTestimonials, getOrganizerCompletedEvents } = useEvents();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'profile' | 'following' | 'followers' | 'testimonials' | 'sales'>('profile');
+  const [showBecomeOrganizerModal, setShowBecomeOrganizerModal] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [editForm, setEditForm] = useState({
     name: '',
     email: '',
@@ -258,6 +264,33 @@ export function Profile() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Become Organizer Button for Attendees */}
+                      {user.role === 'attendee' && (
+                        <div className="bg-gradient-to-br from-blue-50 to-pink-50 border border-blue-200 rounded-xl p-6">
+                          <div className="flex items-start space-x-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
+                              <Crown className="h-6 w-6 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                                Ready to organize events?
+                              </h4>
+                              <p className="text-gray-700 mb-4">
+                                Upgrade to an organizer account and start creating amazing events for your community. 
+                                Earn revenue from ticket sales and build your reputation as an event organizer.
+                              </p>
+                              <button
+                                onClick={() => setShowBecomeOrganizerModal(true)}
+                                className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-pink-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                              >
+                                <Crown className="h-5 w-5 mr-2" />
+                                Become an Organizer
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Verification Status for Organizers */}
                       {user.role === 'organizer' && (
@@ -531,7 +564,11 @@ export function Profile() {
                   <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
                     <div className="space-y-3">
-                      <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
+                      <button 
+                        onClick={() => setShowChangePasswordModal(true)}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors flex items-center"
+                      >
+                        <Lock className="h-4 w-4 mr-3 text-gray-500" />
                         Change Password
                       </button>
                       <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
@@ -899,6 +936,17 @@ export function Profile() {
           </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <BecomeOrganizerModal 
+        isOpen={showBecomeOrganizerModal}
+        onClose={() => setShowBecomeOrganizerModal(false)}
+      />
+      
+      <ChangePasswordModal 
+        isOpen={showChangePasswordModal}
+        onClose={() => setShowChangePasswordModal(false)}
+      />
     </div>
   );
 }

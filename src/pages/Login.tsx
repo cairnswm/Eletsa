@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
-import { Calendar, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { RegisterModal } from '../components/RegisterModal';
+import { ForgotPasswordModal } from '../components/ForgotPasswordModal';
+import { Calendar, AlertCircle, Eye, EyeOff, UserPlus, HelpCircle } from 'lucide-react';
 
 export function Login() {
   const [username, setUsername] = useState('');
@@ -9,6 +11,8 @@ export function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const { login } = useUser();
   const navigate = useNavigate();
 
@@ -49,6 +53,19 @@ export function Login() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleShowRegister = () => {
+    setShowRegisterModal(true);
+  };
+
+  const handleShowForgotPassword = () => {
+    setShowForgotPasswordModal(true);
+  };
+
+  const handleSwitchToLogin = () => {
+    setShowRegisterModal(false);
+    setShowForgotPasswordModal(false);
   };
 
   return (
@@ -111,6 +128,18 @@ export function Login() {
               </div>
             </div>
 
+            <div className="flex items-center justify-between">
+              <div className="text-sm">
+                <button
+                  type="button"
+                  onClick={handleShowForgotPassword}
+                  className="text-blue-600 hover:text-blue-500 font-medium transition-colors"
+                >
+                  Forgot your password?
+                </button>
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={isLoading}
@@ -149,13 +178,36 @@ export function Login() {
           </div>
         </div>
 
-        <p className="text-center text-sm text-gray-600">
-          New to Eletsa?{' '}
-          <Link to="/discover" className="text-blue-600 hover:text-blue-500 font-medium">
-            Browse events as guest
-          </Link>
-        </p>
+        <div className="text-center space-y-4">
+          <p className="text-sm text-gray-600">
+            New to Eletsa?{' '}
+            <button
+              onClick={handleShowRegister}
+              className="text-blue-600 hover:text-blue-500 font-medium transition-colors"
+            >
+              Create an account
+            </button>
+          </p>
+          <p className="text-sm text-gray-600">
+            <Link to="/discover" className="text-blue-600 hover:text-blue-500 font-medium transition-colors">
+              Browse events as guest
+            </Link>
+          </p>
+        </div>
       </div>
+
+      {/* Modals */}
+      <RegisterModal 
+        isOpen={showRegisterModal}
+        onClose={() => setShowRegisterModal(false)}
+        onSwitchToLogin={handleSwitchToLogin}
+      />
+      
+      <ForgotPasswordModal 
+        isOpen={showForgotPasswordModal}
+        onClose={() => setShowForgotPasswordModal(false)}
+        onSwitchToLogin={handleSwitchToLogin}
+      />
     </div>
   );
 }
