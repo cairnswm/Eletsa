@@ -1,6 +1,6 @@
 export const users = [
   { 
-    id: 1, 
+    id: "550e8400-e29b-41d4-a716-446655440001", 
     username: "thabo", 
     password: "pass123", 
     name: "Thabo Mokoena", 
@@ -9,7 +9,7 @@ export const users = [
     credits: 50
   },
   { 
-    id: 2, 
+    id: "550e8400-e29b-41d4-a716-446655440002", 
     username: "lerato", 
     password: "organize1", 
     name: "Lerato Events", 
@@ -19,7 +19,7 @@ export const users = [
     phone: "+27 82 123 4567"
   },
   { 
-    id: 3, 
+    id: "550e8400-e29b-41d4-a716-446655440003", 
     username: "emily", 
     password: "securepw", 
     name: "Emily Clark", 
@@ -28,7 +28,7 @@ export const users = [
     credits: 120
   },
   { 
-    id: 4, 
+    id: "550e8400-e29b-41d4-a716-446655440004", 
     username: "joao", 
     password: "letmein", 
     name: "João Pereira", 
@@ -37,7 +37,7 @@ export const users = [
     credits: 0
   },
   { 
-    id: 5, 
+    id: "550e8400-e29b-41d4-a716-446655440005", 
     username: "zanele", 
     password: "zanele123", 
     name: "Zanele Events Co.", 
@@ -47,7 +47,7 @@ export const users = [
     phone: "+27 83 987 6543"
   },
   { 
-    id: 6, 
+    id: "550e8400-e29b-41d4-a716-446655440006", 
     username: "michael", 
     password: "mikepass", 
     name: "Michael Lee", 
@@ -56,7 +56,7 @@ export const users = [
     credits: 200
   },
   { 
-    id: 7, 
+    id: "550e8400-e29b-41d4-a716-446655440007", 
     username: "admin", 
     password: "admin123", 
     name: "Admin User", 

@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 
 interface CartItem {
   id: string;
-  eventId: number;
+  eventId: string;
   eventTitle: string;
   eventDate: string;
   eventLocation: string;
@@ -14,13 +14,13 @@ interface CartItem {
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (eventId: number, quantity: number) => void;
+  addToCart: (eventId: string, quantity: number) => void;
   removeFromCart: (itemId: string) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   clearCart: () => void;
   getCartTotal: () => number;
   getCartItemCount: () => number;
-  isInCart: (eventId: number) => boolean;
+  isInCart: (eventId: string) => boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -45,7 +45,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('eventCart', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  const addToCart = (eventId: number, quantity: number) => {
+  const addToCart = (eventId: string, quantity: number) => {
     // Import events data here to avoid circular dependency
     import('../data/events').then(({ events }) => {
       const event = events.find(e => e.id === eventId);
@@ -67,7 +67,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       } else {
         // Add new item
         const newItem: CartItem = {
-          id: `${eventId}-${Date.now()}`,
+          id: `cart-${eventId}-${Date.now()}`,
           eventId,
           eventTitle: event.title,
           eventDate: event.date,
@@ -115,7 +115,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return cartItems.reduce((count, item) => count + item.quantity, 0);
   };
 
-  const isInCart = (eventId: number) => {
+  const isInCart = (eventId: string) => {
     return cartItems.some(item => item.eventId === eventId);
   };
 

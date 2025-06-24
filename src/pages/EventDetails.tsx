@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 
 interface Organizer {
-  id: number;
+  id: string;
   name: string;
   bio: string;
   eventCount: number;
@@ -72,7 +72,7 @@ export function EventDetails() {
 
   useEffect(() => {
     if (id) {
-      setActiveEventId(parseInt(id));
+      setActiveEventId(id);
     }
     return () => setActiveEventId(null);
   }, [id, setActiveEventId]);
@@ -83,7 +83,7 @@ export function EventDetails() {
     }
   }, [activeEvent]);
 
-  const fetchOrganizer = (organizerId: number) => {
+  const fetchOrganizer = (organizerId: string) => {
     const org = organizersData.find((o: Organizer) => o.id === organizerId);
     if (org) {
       setOrganizer(org);
@@ -237,7 +237,7 @@ export function EventDetails() {
     toggleFavorite(activeEvent.id, user.id);
   };
 
-  const handleToggleTestimonial = (reviewId: number) => {
+  const handleToggleTestimonial = (reviewId: string) => {
     toggleReviewTestimonial(reviewId);
   };
 

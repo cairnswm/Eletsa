@@ -70,7 +70,7 @@ export function EventForm() {
 
   useEffect(() => {
     if (isEditing && id) {
-      const event = events.find(e => e.id === parseInt(id));
+      const event = events.find(e => e.id === id);
       if (event) {
         if (!canEditEvent(event)) {
           navigate('/my-events');
@@ -211,7 +211,7 @@ export function EventForm() {
       };
 
       if (isEditing && id) {
-        await updateEvent(parseInt(id), eventData);
+        await updateEvent(id, eventData);
       } else {
         await addEvent(eventData);
       }

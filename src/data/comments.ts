@@ -1,9 +1,9 @@
 export const comments = [
   // Cape Town Jazz Night comments
   {
-    id: 1,
-    eventId: 101,
-    userId: 1,
+    id: "550e8400-e29b-41d4-a716-446655440401",
+    eventId: "550e8400-e29b-41d4-a716-446655440101",
+    userId: "550e8400-e29b-41d4-a716-446655440001",
     userName: "Thabo Mokoena",
     userRole: "attendee",
     comment: "Really excited for this! Love jazz music and the venue looks amazing.",
@@ -11,19 +11,19 @@ export const comments = [
     parentId: null
   },
   {
-    id: 2,
-    eventId: 101,
-    userId: 2,
+    id: "550e8400-e29b-41d4-a716-446655440402",
+    eventId: "550e8400-e29b-41d4-a716-446655440101",
+    userId: "550e8400-e29b-41d4-a716-446655440002",
     userName: "Lerato Events",
     userRole: "organizer",
     comment: "Thanks Thabo! We've got some incredible artists lined up. You're going to love it!",
     timestamp: "2025-06-20T15:15:00",
-    parentId: 1
+    parentId: "550e8400-e29b-41d4-a716-446655440401"
   },
   {
-    id: 3,
-    eventId: 101,
-    userId: 3,
+    id: "550e8400-e29b-41d4-a716-446655440403",
+    eventId: "550e8400-e29b-41d4-a716-446655440101",
+    userId: "550e8400-e29b-41d4-a716-446655440003",
     userName: "Emily Clark",
     userRole: "attendee",
     comment: "Is there parking available at the venue?",
@@ -31,19 +31,19 @@ export const comments = [
     parentId: null
   },
   {
-    id: 4,
-    eventId: 101,
-    userId: 2,
+    id: "550e8400-e29b-41d4-a716-446655440404",
+    eventId: "550e8400-e29b-41d4-a716-446655440101",
+    userId: "550e8400-e29b-41d4-a716-446655440002",
     userName: "Lerato Events",
     userRole: "organizer",
     comment: "Yes Emily! There's plenty of secure parking available. We also have valet service for an additional R50.",
     timestamp: "2025-06-21T09:30:00",
-    parentId: 3
+    parentId: "550e8400-e29b-41d4-a716-446655440403"
   },
   {
-    id: 5,
-    eventId: 101,
-    userId: 6,
+    id: "550e8400-e29b-41d4-a716-446655440405",
+    eventId: "550e8400-e29b-41d4-a716-446655440101",
+    userId: "550e8400-e29b-41d4-a716-446655440006",
     userName: "Michael Lee",
     userRole: "attendee",
     comment: "Can't wait! Been following the local jazz scene for years. This lineup is incredible.",
@@ -53,9 +53,9 @@ export const comments = [
 
   // Jozi Food Truck Festival comments
   {
-    id: 6,
-    eventId: 102,
-    userId: 4,
+    id: "550e8400-e29b-41d4-a716-446655440406",
+    eventId: "550e8400-e29b-41d4-a716-446655440102",
+    userId: "550e8400-e29b-41d4-a716-446655440004",
     userName: "João Pereira",
     userRole: "attendee",
     comment: "Will there be vegetarian options available?",
@@ -63,19 +63,19 @@ export const comments = [
     parentId: null
   },
   {
-    id: 7,
-    eventId: 102,
-    userId: 5,
+    id: "550e8400-e29b-41d4-a716-446655440407",
+    eventId: "550e8400-e29b-41d4-a716-446655440102",
+    userId: "550e8400-e29b-41d4-a716-446655440005",
     userName: "Zanele Events Co.",
     userRole: "organizer",
     comment: "Absolutely! We have 8 food trucks dedicated to vegetarian and vegan options, including some amazing plant-based burgers and fresh salads.",
     timestamp: "2025-06-18T12:00:00",
-    parentId: 6
+    parentId: "550e8400-e29b-41d4-a716-446655440406"
   },
   {
-    id: 8,
-    eventId: 102,
-    userId: 1,
+    id: "550e8400-e29b-41d4-a716-446655440408",
+    eventId: "550e8400-e29b-41d4-a716-446655440102",
+    userId: "550e8400-e29b-41d4-a716-446655440001",
     userName: "Thabo Mokoena",
     userRole: "attendee",
     comment: "This sounds amazing! Perfect weekend activity with the family.",
@@ -83,9 +83,9 @@ export const comments = [
     parentId: null
   },
   {
-    id: 9,
-    eventId: 102,
-    userId: 3,
+    id: "550e8400-e29b-41d4-a716-446655440409",
+    eventId: "550e8400-e29b-41d4-a716-446655440102",
+    userId: "550e8400-e29b-41d4-a716-446655440003",
     userName: "Emily Clark",
     userRole: "attendee",
     comment: "Are pets allowed? Would love to bring my dog!",
@@ -93,19 +93,19 @@ export const comments = [
     parentId: null
   },
   {
-    id: 10,
-    eventId: 102,
-    userId: 5,
+    id: "550e8400-e29b-41d4-a716-446655440410",
+    eventId: "550e8400-e29b-41d4-a716-446655440102",
+    userId: "550e8400-e29b-41d4-a716-446655440005",
     userName: "Zanele Events Co.",
     userRole: "organizer",
     comment: "Yes, well-behaved pets on leashes are welcome! We'll even have a water station for our furry friends.",
     timestamp: "2025-06-20T09:00:00",
-    parentId: 9
+    parentId: "550e8400-e29b-41d4-a716-446655440409"
   },
   {
-    id: 11,
-    eventId: 102,
-    userId: 6,
+    id: "550e8400-e29b-41d4-a716-446655440411",
+    eventId: "550e8400-e29b-41d4-a716-446655440102",
+    userId: "550e8400-e29b-41d4-a716-446655440006",
     userName: "Michael Lee",
     userRole: "attendee",
     comment: "Love the variety of cuisines! From Korean BBQ to authentic Mexican tacos. This is going to be epic!",

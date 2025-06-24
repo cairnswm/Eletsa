@@ -1,6 +1,6 @@
 export const organizers = [
   {
-    id: 2,
+    id: "550e8400-e29b-41d4-a716-446655440002",
     name: "Lerato Events",
     bio: "Curating unforgettable moments.",
     eventCount: 6,
@@ -12,7 +12,7 @@ export const organizers = [
     phone: "+27 82 123 4567"
   },
   {
-    id: 5,
+    id: "550e8400-e29b-41d4-a716-446655440005",
     name: "Zanele Events Co.",
     bio: "We bring energy to every experience.",
     eventCount: 6,
