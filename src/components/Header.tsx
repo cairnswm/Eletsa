@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import { messages as messagesData } from '../data/messages';
 import { CartDropdown } from './CartDropdown';
-import { Calendar, User, LogOut, Menu, X, MessageCircle, Ticket, TrendingUp, Settings } from 'lucide-react';
+import { Calendar, User, LogOut, Menu, X, MessageCircle, Ticket, TrendingUp, Settings, Search } from 'lucide-react';
 
 export function Header() {
   const { user, logout } = useUser();
@@ -32,17 +32,17 @@ export function Header() {
   };
 
   const navigation = [
-    { name: 'Discover', href: '/discover' },
-    { name: 'What\'s Up', href: '/whats-up', protected: true },
-    { name: 'My Tickets', href: '/my-tickets', protected: true },
+    { name: 'Discover', href: '/discover', icon: Search },
+    { name: 'What\'s Up', href: '/whats-up', protected: true, icon: TrendingUp },
+    { name: 'My Tickets', href: '/my-tickets', protected: true, icon: Ticket },
   ];
 
   const organizerNavigation = [
-    { name: 'My Events', href: '/my-events', roles: ['organizer', 'admin'] }
+    { name: 'My Events', href: '/my-events', roles: ['organizer', 'admin'], icon: Settings }
   ];
 
   const adminNavigation = [
-    { name: 'Admin', href: '/admin' }
+    { name: 'Admin', href: '/admin', icon: Settings }
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -106,9 +106,9 @@ export function Header() {
           </nav>
 
           {/* User Menu */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center">
             {user ? (
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-1 sm:space-x-4">
                 {/* Cart Icon */}
                 <CartDropdown />
 
@@ -125,19 +125,30 @@ export function Header() {
                   )}
                 </Link>
 
+                {/* Profile Link - Desktop */}
                 <Link
                   to="/profile"
-                  className="flex items-center space-x-2 text-sm text-gray-700 hover:text-blue-600 transition-colors"
+                  className="hidden sm:flex items-center space-x-2 text-sm text-gray-700 hover:text-blue-600 transition-colors p-2"
                 >
                   <User className="h-4 w-4" />
-                  <span className="hidden sm:inline">{user.name}</span>
+                  <span>{user.name}</span>
                 </Link>
+
+                {/* Profile Icon - Mobile */}
+                <Link
+                  to="/profile"
+                  className="sm:hidden p-2 text-gray-700 hover:text-blue-600 transition-colors"
+                >
+                  <User className="h-5 w-5" />
+                </Link>
+
+                {/* Logout - Desktop only */}
                 <button
                   onClick={logout}
-                  className="flex items-center space-x-1 text-sm text-gray-700 hover:text-red-600 transition-colors"
+                  className="hidden sm:flex items-center space-x-1 text-sm text-gray-700 hover:text-red-600 transition-colors p-2"
                 >
                   <LogOut className="h-4 w-4" />
-                  <span className="hidden sm:inline">Logout</span>
+                  <span>Logout</span>
                 </button>
               </div>
             ) : (
@@ -152,7 +163,7 @@ export function Header() {
             {/* Mobile menu button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100"
+              className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 ml-2"
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -165,6 +176,7 @@ export function Header() {
             <div className="space-y-2">
               {navigation.map((item) => {
                 if (item.protected && !user) return null;
+                const Icon = item.icon;
                 return (
                   <Link
                     key={item.name}
@@ -176,62 +188,63 @@ export function Header() {
                         : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
                     }`}
                   >
-                    {item.name === 'What\'s Up' && <TrendingUp className="h-4 w-4 mr-2" />}
-                    {item.name === 'My Tickets' && <Ticket className="h-4 w-4 mr-2" />}
+                    <Icon className="h-4 w-4 mr-3" />
                     {item.name}
                   </Link>
                 );
               })}
 
-              {user && (user.role === 'organizer' || user.role === 'admin') && organizerNavigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
-                    isActive(item.href)
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  {item.name}
-                </Link>
-              ))}
-
-              {user && (
-                <Link
-                  to="/messages"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center justify-between px-3 py-2 rounded-md text-base font-medium ${
-                    isActive('/messages')
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <span>Messages</span>
-                  {unreadCount > 0 && (
-                    <span className="bg-pink-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  )}
-                </Link>
-              )}
+              {user && (user.role === 'organizer' || user.role === 'admin') && organizerNavigation.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
+                      isActive(item.href)
+                        ? 'text-blue-600 bg-blue-50'
+                        : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 mr-3" />
+                    {item.name}
+                  </Link>
+                );
+              })}
               
-              {user?.role === 'admin' && adminNavigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-base font-medium ${
-                    isActive(item.href)
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                  }`}
+              {user?.role === 'admin' && adminNavigation.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
+                      isActive(item.href)
+                        ? 'text-blue-600 bg-blue-50'
+                        : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 mr-3" />
+                    {item.name}
+                  </Link>
+                );
+              })}
+
+              {/* Logout for mobile */}
+              {user && (
+                <button
+                  onClick={() => {
+                    logout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-red-600 hover:bg-gray-50"
                 >
-                  {item.name}
-                </Link>
-              ))}
+                  <LogOut className="h-4 w-4 mr-3" />
+                  Logout
+                </button>
+              )}
             </div>
           </div>
         )}

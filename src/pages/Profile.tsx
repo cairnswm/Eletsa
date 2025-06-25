@@ -25,12 +25,9 @@ import {
   Quote,
   Award,
   Shield,
-  Crown,
+  Settings,
   Receipt,
-  ArrowUpRight,
-  ArrowDownLeft,
-  Clock,
-  CheckCircle
+  Briefcase
 } from 'lucide-react';
 
 export function Profile() {
@@ -115,9 +112,9 @@ export function Profile() {
   }).filter(t => t.event && t.reviewer); // Only include testimonials with valid events and reviewers
 
   const tabs = [
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'following', label: `Following (${following.length})`, icon: UserPlus },
-    { id: 'followers', label: `Followers (${followers.length})`, icon: UserCheck }
+    { id: 'profile', label: 'Profile', icon: User, mobileLabel: 'Profile' },
+    { id: 'following', label: `Following (${following.length})`, icon: UserPlus, mobileLabel: 'Following' },
+    { id: 'followers', label: `Followers (${followers.length})`, icon: UserCheck, mobileLabel: 'Followers' }
   ];
 
   // Add testimonials tab for organizers
@@ -125,69 +122,17 @@ export function Profile() {
     tabs.push({
       id: 'testimonials',
       label: `Testimonials (${testimonials.length})`,
-      icon: Quote
+      icon: Quote,
+      mobileLabel: 'Reviews'
     });
+    
     tabs.push({
       id: 'transactions',
-      label: `Transactions (${transactionsWithBalance.length})`,
-      icon: Receipt
+      label: 'Transactions',
+      icon: Receipt,
+      mobileLabel: 'Money'
     });
   }
-
-  const formatTransactionDate = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  const formatTransactionTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
-
-  const getTransactionIcon = (type: string) => {
-    switch (type) {
-      case 'sale':
-        return <ArrowUpRight className="h-4 w-4 text-green-600" />;
-      case 'payout':
-        return <ArrowDownLeft className="h-4 w-4 text-blue-600" />;
-      case 'refund':
-        return <ArrowDownLeft className="h-4 w-4 text-red-600" />;
-      default:
-        return <Receipt className="h-4 w-4 text-gray-600" />;
-    }
-  };
-
-  const getTransactionColor = (type: string) => {
-    switch (type) {
-      case 'sale':
-        return 'text-green-600';
-      case 'payout':
-        return 'text-blue-600';
-      case 'refund':
-        return 'text-red-600';
-      default:
-        return 'text-gray-600';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'pending':
-        return <Clock className="h-4 w-4 text-yellow-600" />;
-      default:
-        return <X className="h-4 w-4 text-red-600" />;
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -201,22 +146,43 @@ export function Profile() {
         {/* Tabs */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
           <div className="border-b border-gray-200">
-            <nav className="flex overflow-x-auto px-6 scrollbar-hide">
+            {/* Desktop Tabs */}
+            <nav className="hidden sm:flex space-x-8 px-6">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex items-center py-4 px-4 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
+                    className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                       activeTab === tab.id
                         ? 'border-blue-500 text-blue-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                     }`}
                   >
                     <Icon className="h-4 w-4 mr-2" />
-                    <span className="hidden sm:inline">{tab.label}</span>
-                    <span className="sm:hidden">{tab.label.split(' ')[0]}</span>
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Mobile Tabs - Icons Only */}
+            <nav className="sm:hidden flex justify-around px-4 py-2 overflow-x-auto scrollbar-hide">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`flex flex-col items-center justify-center min-w-[60px] py-3 px-2 rounded-lg transition-colors ${
+                      activeTab === tab.id
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5 mb-1" />
+                    <span className="text-xs font-medium">{tab.mobileLabel}</span>
                   </button>
                 );
               })}
@@ -230,7 +196,7 @@ export function Profile() {
                 {/* Profile Information */}
                 <div className="lg:col-span-2">
                   <div className="mb-8">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
+                    <div className="flex items-center justify-between mb-6">
                       <h2 className="text-xl font-semibold text-gray-900">Profile Information</h2>
                       {!isEditing ? (
                         <button
@@ -262,22 +228,14 @@ export function Profile() {
 
                     <div className="space-y-6">
                       {/* Profile Picture */}
-                      <div className="flex flex-col sm:flex-row sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                        <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-pink-100 rounded-full flex items-center justify-center mx-auto sm:mx-0">
+                      <div className="flex items-center space-x-4">
+                        <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-pink-100 rounded-full flex items-center justify-center">
                           <User className="h-10 w-10 text-blue-600" />
                         </div>
-                        <div className="text-center sm:text-left">
+                        <div>
                           <h3 className="text-lg font-medium text-gray-900">{user.name}</h3>
-                          <div className="flex items-center justify-center sm:justify-start space-x-2">
-                            <p className="text-sm text-gray-600 capitalize">{user.role}</p>
-                            {user.verified && (
-                              <div className="flex items-center text-blue-600">
-                                <Crown className="h-4 w-4 mr-1" />
-                                <span className="text-xs font-medium">Verified</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 mt-1 text-sm text-gray-500">
+                          <p className="text-sm text-gray-600 capitalize">{user.role}</p>
+                          <div className="flex items-center space-x-4 mt-1 text-sm text-gray-500">
                             <span>{following.length} following</span>
                             <span>{followers.length} followers</span>
                             {user.role === 'organizer' && (
@@ -374,103 +332,90 @@ export function Profile() {
                       <h2 className="text-xl font-semibold text-gray-900 mb-6">Sales Dashboard</h2>
                       
                       {/* Stats Cards */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
-                        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
+                        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-3 sm:p-4 border border-green-200">
                           <div className="flex items-center">
-                            <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-                              <DollarSign className="h-5 w-5 text-white" />
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-600 rounded-lg flex items-center justify-center">
+                              <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                             </div>
-                            <div className="ml-3">
-                              <div className="text-xl sm:text-2xl font-bold text-gray-900">R{transactionSummary.totalNetRevenue}</div>
-                              <div className="text-sm text-gray-600">Total Revenue</div>
+                            <div className="ml-2 sm:ml-3">
+                              <div className="text-lg sm:text-2xl font-bold text-gray-900">R{transactionSummary.totalNetRevenue}</div>
+                              <div className="text-xs sm:text-sm text-gray-600">Net Revenue</div>
                             </div>
                           </div>
                         </div>
 
-                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-3 sm:p-4 border border-blue-200">
                           <div className="flex items-center">
-                            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                              <Users className="h-5 w-5 text-white" />
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                              <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                             </div>
-                            <div className="ml-3">
-                              <div className="text-xl sm:text-2xl font-bold text-gray-900">{organizerEvents.reduce((sum, event) => sum + event.sold, 0)}</div>
-                              <div className="text-sm text-gray-600">Tickets Sold</div>
+                            <div className="ml-2 sm:ml-3">
+                              <div className="text-lg sm:text-2xl font-bold text-gray-900">{organizerEvents.length}</div>
+                              <div className="text-xs sm:text-sm text-gray-600">Events</div>
                             </div>
                           </div>
                         </div>
 
-                        <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg p-4 border border-pink-200">
+                        <div className="bg-gradient-to-br from-pink-50 to-pink-100 rounded-lg p-3 sm:p-4 border border-pink-200 col-span-2 lg:col-span-1">
                           <div className="flex items-center">
-                            <div className="w-10 h-10 bg-pink-600 rounded-lg flex items-center justify-center">
-                              <TrendingUp className="h-5 w-5 text-white" />
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-pink-600 rounded-lg flex items-center justify-center">
+                              <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                             </div>
-                            <div className="ml-3">
-                              <div className="text-xl sm:text-2xl font-bold text-gray-900">R{transactionSummary.pendingBalance}</div>
-                              <div className="text-sm text-gray-600">Pending Balance</div>
+                            <div className="ml-2 sm:ml-3">
+                              <div className="text-lg sm:text-2xl font-bold text-gray-900">R{transactionSummary.pendingBalance}</div>
+                              <div className="text-xs sm:text-sm text-gray-600">Pending</div>
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Events Table - Mobile Responsive */}
-                      <div className="bg-white rounded-lg border border-gray-200">
-                        <div className="px-4 py-3 border-b border-gray-200">
-                          <h3 className="text-lg font-medium text-gray-900">Recent Events</h3>
-                        </div>
-                        
-                        {/* Mobile Cards View */}
-                        <div className="block sm:hidden">
-                          {organizerEvents.slice(0, 5).map(event => {
+                      {/* Recent Events - Mobile Cards */}
+                      <div className="block sm:hidden">
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Events</h3>
+                        <div className="space-y-3">
+                          {organizerEvents.slice(0, 3).map(event => {
                             const eventTransactions = transactionsWithBalance.filter(t => t.eventId === event.id && t.type === 'sale');
                             const eventRevenue = eventTransactions.reduce((sum, t) => sum + t.netAmount, 0);
                             const isPast = new Date(event.date) < new Date();
                             
                             return (
-                              <div key={event.id} className="p-4 border-b border-gray-100 last:border-b-0">
-                                <div className="space-y-2">
-                                  <div>
-                                    <div className="font-medium text-gray-900 text-sm">{event.title}</div>
-                                    <div className="text-xs text-gray-600">
-                                      {new Date(event.date).toLocaleDateString()}
-                                    </div>
-                                  </div>
-                                  <div className="flex justify-between items-center">
-                                    <div>
-                                      <div className="text-sm text-gray-900">{event.sold} tickets</div>
-                                      <div className="text-xs text-gray-600">of {event.maxParticipants} max</div>
-                                    </div>
-                                    <div className="text-right">
-                                      <div className="font-medium text-gray-900 text-sm">R{eventRevenue}</div>
-                                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                        isPast 
-                                          ? 'bg-gray-100 text-gray-800' 
-                                          : event.sold >= event.maxParticipants
-                                          ? 'bg-red-100 text-red-800'
-                                          : 'bg-green-100 text-green-800'
-                                      }`}>
-                                        {isPast ? 'Completed' : event.sold >= event.maxParticipants ? 'Sold Out' : 'Active'}
-                                      </span>
-                                    </div>
-                                  </div>
+                              <div key={event.id} className="bg-white rounded-lg p-4 border border-gray-200">
+                                <div className="flex justify-between items-start mb-2">
+                                  <h4 className="font-medium text-gray-900 text-sm line-clamp-1">{event.title}</h4>
+                                  <span className={`text-xs px-2 py-1 rounded-full ${
+                                    isPast ? 'bg-gray-100 text-gray-700' : 'bg-green-100 text-green-700'
+                                  }`}>
+                                    {isPast ? 'Completed' : 'Active'}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-gray-600 mb-2">
+                                  {new Date(event.date).toLocaleDateString()}
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-600">Revenue:</span>
+                                  <span className="font-medium text-gray-900">R{eventRevenue}</span>
                                 </div>
                               </div>
                             );
                           })}
                         </div>
+                      </div>
 
-                        {/* Desktop Table View */}
-                        <div className="hidden sm:block overflow-x-auto">
+                      {/* Events Table - Desktop */}
+                      <div className="hidden sm:block">
+                        <div className="table-container">
                           <table className="w-full">
                             <thead>
-                              <tr className="border-b border-gray-200 bg-gray-50">
-                                <th className="text-left py-3 px-4 font-medium text-gray-900 text-sm">Event Name</th>
-                                <th className="text-left py-3 px-4 font-medium text-gray-900 text-sm">Tickets Sold</th>
-                                <th className="text-left py-3 px-4 font-medium text-gray-900 text-sm">Revenue</th>
-                                <th className="text-left py-3 px-4 font-medium text-gray-900 text-sm">Status</th>
+                              <tr className="border-b border-gray-200">
+                                <th className="text-left py-3 px-4 font-medium text-gray-900">Event Name</th>
+                                <th className="text-left py-3 px-4 font-medium text-gray-900">Tickets Sold</th>
+                                <th className="text-left py-3 px-4 font-medium text-gray-900">Revenue</th>
+                                <th className="text-left py-3 px-4 font-medium text-gray-900">Status</th>
                               </tr>
                             </thead>
                             <tbody>
-                              {organizerEvents.slice(0, 5).map(event => {
+                              {organizerEvents.map(event => {
                                 const eventTransactions = transactionsWithBalance.filter(t => t.eventId === event.id && t.type === 'sale');
                                 const eventRevenue = eventTransactions.reduce((sum, t) => sum + t.netAmount, 0);
                                 const isPast = new Date(event.date) < new Date();
@@ -479,20 +424,20 @@ export function Profile() {
                                   <tr key={event.id} className="border-b border-gray-100 hover:bg-gray-50">
                                     <td className="py-3 px-4">
                                       <div>
-                                        <div className="font-medium text-gray-900 text-sm">{event.title}</div>
-                                        <div className="text-xs text-gray-600">
+                                        <div className="font-medium text-gray-900">{event.title}</div>
+                                        <div className="text-sm text-gray-600">
                                           {new Date(event.date).toLocaleDateString()}
                                         </div>
                                       </div>
                                     </td>
                                     <td className="py-3 px-4">
-                                      <div className="text-gray-900 text-sm">{event.sold}</div>
-                                      <div className="text-xs text-gray-600">
+                                      <div className="text-gray-900">{eventTransactions.length}</div>
+                                      <div className="text-sm text-gray-600">
                                         of {event.maxParticipants} max
                                       </div>
                                     </td>
                                     <td className="py-3 px-4">
-                                      <div className="font-medium text-gray-900 text-sm">R{eventRevenue}</div>
+                                      <div className="font-medium text-gray-900">R{eventRevenue}</div>
                                     </td>
                                     <td className="py-3 px-4">
                                       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
@@ -510,15 +455,15 @@ export function Profile() {
                               })}
                             </tbody>
                           </table>
+                          
+                          {organizerEvents.length === 0 && (
+                            <div className="text-center py-8">
+                              <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                              <h3 className="text-lg font-medium text-gray-900 mb-2">No events yet</h3>
+                              <p className="text-gray-600">Start organizing events to see your sales data here.</p>
+                            </div>
+                          )}
                         </div>
-                        
-                        {organizerEvents.length === 0 && (
-                          <div className="text-center py-8">
-                            <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">No events yet</h3>
-                            <p className="text-gray-600">Start organizing events to see your sales data here.</p>
-                          </div>
-                        )}
                       </div>
                     </div>
                   )}
@@ -540,20 +485,20 @@ export function Profile() {
                     </div>
                   )}
 
-                  {/* Become Organizer CTA for Attendees */}
+                  {/* Become Organizer CTA */}
                   {user.role === 'attendee' && (
                     <div className="bg-gradient-to-br from-blue-50 to-pink-50 rounded-xl shadow-sm border border-blue-200 p-6">
                       <div className="text-center">
                         <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Crown className="h-8 w-8 text-blue-600" />
+                          <Briefcase className="h-8 w-8 text-blue-600" />
                         </div>
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">Become an Organizer</h3>
                         <p className="text-sm text-gray-600 mb-4">
-                          Start creating your own events and earn revenue from ticket sales.
+                          Start creating and managing your own events. Earn revenue and build your community.
                         </p>
                         <button
                           onClick={() => setShowBecomeOrganizerModal(true)}
-                          className="w-full py-2 px-4 bg-gradient-to-r from-blue-600 to-pink-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-pink-700 transition-all duration-200"
+                          className="w-full px-4 py-2 bg-gradient-to-r from-blue-600 to-pink-600 text-white rounded-lg hover:from-blue-700 hover:to-pink-700 transition-all duration-200"
                         >
                           Learn More
                         </button>
@@ -567,12 +512,7 @@ export function Profile() {
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600">Account Type</span>
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium capitalize">{user.role}</span>
-                          {user.verified && (
-                            <Crown className="h-4 w-4 text-blue-600" title="Verified" />
-                          )}
-                        </div>
+                        <span className="font-medium capitalize">{user.role}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600">Member Since</span>
@@ -586,24 +526,16 @@ export function Profile() {
                         <span className="text-gray-600">Followers</span>
                         <span className="font-medium">{followers.length}</span>
                       </div>
-                      {user.role === 'organizer' && (
+                      {user.role === 'organizer' && transactionSummary && (
                         <>
                           <div className="flex items-center justify-between">
                             <span className="text-gray-600">Events Created</span>
                             <span className="font-medium">{organizerEvents.length}</span>
                           </div>
-                          {transactionSummary && (
-                            <>
-                              <div className="flex items-center justify-between">
-                                <span className="text-gray-600">Total Revenue</span>
-                                <span className="font-medium">R{transactionSummary.totalNetRevenue}</span>
-                              </div>
-                              <div className="flex items-center justify-between">
-                                <span className="text-gray-600">Platform Fee</span>
-                                <span className="font-medium">{user.fee}%</span>
-                              </div>
-                            </>
-                          )}
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-600">Total Revenue</span>
+                            <span className="font-medium">R{transactionSummary.totalNetRevenue}</span>
+                          </div>
                           <div className="flex items-center justify-between">
                             <span className="text-gray-600">Testimonials</span>
                             <span className="font-medium">{testimonials.length}</span>
@@ -619,9 +551,8 @@ export function Profile() {
                     <div className="space-y-3">
                       <button 
                         onClick={() => setShowChangePasswordModal(true)}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors flex items-center"
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
                       >
-                        <Shield className="h-4 w-4 mr-3 text-gray-400" />
                         Change Password
                       </button>
                       <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors">
@@ -644,7 +575,7 @@ export function Profile() {
               <div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">People You Follow</h2>
                 {following.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {following.map((followedUser) => {
                       const isMutual = isFollowMutual(user.id, followedUser.id);
                       return (
@@ -693,7 +624,7 @@ export function Profile() {
               <div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-6">Your Followers</h2>
                 {followers.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {followers.map((follower) => {
                       const isMutual = isFollowMutual(user.id, follower.id);
                       return (
@@ -754,7 +685,7 @@ export function Profile() {
                       .map((testimonial) => (
                         <div key={testimonial.id} className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                           {/* Review Header */}
-                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 space-y-4 sm:space-y-0">
+                          <div className="flex items-start justify-between mb-4">
                             <div className="flex items-center space-x-3">
                               <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-pink-100 rounded-full flex items-center justify-center">
                                 <User className="h-6 w-6 text-blue-600" />
@@ -797,14 +728,14 @@ export function Profile() {
 
                           {/* Event Reference */}
                           <div className="border-t border-gray-200 pt-4">
-                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
+                            <div className="flex items-center justify-between">
                               <div>
                                 <div className="text-sm text-gray-600">Review for:</div>
                                 <div className="font-medium text-gray-900">
                                   {testimonial.event.title}
                                 </div>
                               </div>
-                              <div className="text-left sm:text-right">
+                              <div className="text-right">
                                 <div className="text-sm text-gray-600">Event Date:</div>
                                 <div className="text-sm font-medium text-gray-900">
                                   {new Date(testimonial.event.date).toLocaleDateString('en-US', {
@@ -837,168 +768,122 @@ export function Profile() {
                 <div className="mb-6">
                   <h2 className="text-xl font-semibold text-gray-900 mb-2">Transaction History</h2>
                   <p className="text-gray-600">
-                    View all your sales, payouts, and account balance changes
+                    View your sales, payouts, and account balance
                   </p>
                 </div>
 
                 {transactionSummary && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                     <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                      <div className="flex items-center">
-                        <ArrowUpRight className="h-5 w-5 text-green-600 mr-2" />
-                        <div>
-                          <div className="text-lg font-bold text-green-900">R{transactionSummary.totalNetRevenue}</div>
-                          <div className="text-sm text-green-700">Total Revenue</div>
-                        </div>
-                      </div>
+                      <div className="text-2xl font-bold text-green-600">R{transactionSummary.totalNetRevenue}</div>
+                      <div className="text-sm text-green-700">Total Earned</div>
                     </div>
-                    
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <div className="flex items-center">
-                        <ArrowDownLeft className="h-5 w-5 text-blue-600 mr-2" />
-                        <div>
-                          <div className="text-lg font-bold text-blue-900">R{transactionSummary.totalPayouts}</div>
-                          <div className="text-sm text-blue-700">Total Payouts</div>
-                        </div>
-                      </div>
+                      <div className="text-2xl font-bold text-blue-600">R{transactionSummary.totalPayouts}</div>
+                      <div className="text-sm text-blue-700">Total Paid Out</div>
                     </div>
-                    
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <div className="flex items-center">
-                        <Clock className="h-5 w-5 text-yellow-600 mr-2" />
-                        <div>
-                          <div className="text-lg font-bold text-yellow-900">R{transactionSummary.pendingBalance}</div>
-                          <div className="text-sm text-yellow-700">Pending Balance</div>
-                        </div>
-                      </div>
+                      <div className="text-2xl font-bold text-yellow-600">R{transactionSummary.pendingBalance}</div>
+                      <div className="text-sm text-yellow-700">Pending Balance</div>
                     </div>
-                    
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-center">
-                        <Receipt className="h-5 w-5 text-gray-600 mr-2" />
-                        <div>
-                          <div className="text-lg font-bold text-gray-900">{transactionsWithBalance.length}</div>
-                          <div className="text-sm text-gray-700">Total Transactions</div>
-                        </div>
-                      </div>
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                      <div className="text-2xl font-bold text-purple-600">{transactionSummary.transactionCount}</div>
+                      <div className="text-sm text-purple-700">Total Transactions</div>
                     </div>
                   </div>
                 )}
 
                 {transactionsWithBalance.length > 0 ? (
-                  <div className="bg-white rounded-lg border border-gray-200">
-                    {/* Mobile Cards View */}
-                    <div className="block lg:hidden">
+                  <>
+                    {/* Mobile Cards */}
+                    <div className="block sm:hidden space-y-4">
                       {transactionsWithBalance.map((transaction) => (
-                        <div key={transaction.id} className="p-4 border-b border-gray-100 last:border-b-0">
-                          <div className="space-y-3">
-                            <div className="flex items-start justify-between">
-                              <div className="flex items-center space-x-3">
-                                {getTransactionIcon(transaction.type)}
-                                <div>
-                                  <div className="font-medium text-gray-900 text-sm">
-                                    {transaction.description}
-                                  </div>
-                                  <div className="text-xs text-gray-600">
-                                    {formatTransactionDate(transaction.timestamp)} at {formatTransactionTime(transaction.timestamp)}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                {getStatusIcon(transaction.status)}
+                        <div key={transaction.id} className="bg-white rounded-lg border border-gray-200 p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex-1">
+                              <div className="font-medium text-gray-900 text-sm">{transaction.description}</div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                {new Date(transaction.timestamp).toLocaleDateString()} at{' '}
+                                {new Date(transaction.timestamp).toLocaleTimeString('en-US', {
+                                  hour: 'numeric',
+                                  minute: '2-digit',
+                                  hour12: true
+                                })}
                               </div>
                             </div>
-                            
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <div className="text-gray-600">Amount</div>
-                                <div className={`font-medium ${getTransactionColor(transaction.type)}`}>
-                                  {transaction.type === 'payout' ? '-' : '+'}R{Math.abs(transaction.netAmount)}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="text-gray-600">Balance</div>
-                                <div className="font-medium text-gray-900">
-                                  R{transaction.balance || 0}
-                                </div>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              transaction.type === 'sale' ? 'bg-green-100 text-green-700' :
+                              transaction.type === 'payout' ? 'bg-blue-100 text-blue-700' :
+                              'bg-gray-100 text-gray-700'
+                            }`}>
+                              {transaction.type}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                              <span className="text-gray-600">Amount:</span>
+                              <div className={`font-medium ${
+                                transaction.netAmount >= 0 ? 'text-green-600' : 'text-red-600'
+                              }`}>
+                                {transaction.netAmount >= 0 ? '+' : ''}R{Math.abs(transaction.netAmount)}
                               </div>
                             </div>
-                            
-                            {transaction.type === 'sale' && (
-                              <div className="text-xs text-gray-500 bg-gray-50 rounded p-2">
-                                Gross: R{transaction.grossAmount} | Fee: R{transaction.platformFee} | Net: R{transaction.netAmount}
-                              </div>
-                            )}
+                            <div>
+                              <span className="text-gray-600">Balance:</span>
+                              <div className="font-medium text-gray-900">R{transaction.balance}</div>
+                            </div>
                           </div>
                         </div>
                       ))}
                     </div>
 
-                    {/* Desktop Table View */}
-                    <div className="hidden lg:block">
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b border-gray-200 bg-gray-50">
-                              <th className="text-left py-3 px-4 font-medium text-gray-900 text-sm">Date</th>
-                              <th className="text-left py-3 px-4 font-medium text-gray-900 text-sm">Description</th>
-                              <th className="text-left py-3 px-4 font-medium text-gray-900 text-sm">Type</th>
-                              <th className="text-right py-3 px-4 font-medium text-gray-900 text-sm">Amount</th>
-                              <th className="text-right py-3 px-4 font-medium text-gray-900 text-sm">Balance</th>
-                              <th className="text-center py-3 px-4 font-medium text-gray-900 text-sm">Status</th>
+                    {/* Desktop Table */}
+                    <div className="hidden sm:block table-container">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-gray-200">
+                            <th className="text-left py-3 px-4 font-medium text-gray-900">Date</th>
+                            <th className="text-left py-3 px-4 font-medium text-gray-900">Description</th>
+                            <th className="text-left py-3 px-4 font-medium text-gray-900">Type</th>
+                            <th className="text-right py-3 px-4 font-medium text-gray-900">Amount</th>
+                            <th className="text-right py-3 px-4 font-medium text-gray-900">Balance</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {transactionsWithBalance.map((transaction) => (
+                            <tr key={transaction.id} className="border-b border-gray-100 hover:bg-gray-50">
+                              <td className="py-3 px-4 text-sm text-gray-600">
+                                {new Date(transaction.timestamp).toLocaleDateString()}
+                              </td>
+                              <td className="py-3 px-4">
+                                <div className="font-medium text-gray-900">{transaction.description}</div>
+                                {transaction.payoutReference && (
+                                  <div className="text-xs text-gray-500">Ref: {transaction.payoutReference}</div>
+                                )}
+                              </td>
+                              <td className="py-3 px-4">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  transaction.type === 'sale' ? 'bg-green-100 text-green-700' :
+                                  transaction.type === 'payout' ? 'bg-blue-100 text-blue-700' :
+                                  'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {transaction.type}
+                                </span>
+                              </td>
+                              <td className={`py-3 px-4 text-right font-medium ${
+                                transaction.netAmount >= 0 ? 'text-green-600' : 'text-red-600'
+                              }`}>
+                                {transaction.netAmount >= 0 ? '+' : ''}R{Math.abs(transaction.netAmount)}
+                              </td>
+                              <td className="py-3 px-4 text-right font-medium text-gray-900">
+                                R{transaction.balance}
+                              </td>
                             </tr>
-                          </thead>
-                          <tbody>
-                            {transactionsWithBalance.map((transaction) => (
-                              <tr key={transaction.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                <td className="py-3 px-4">
-                                  <div className="text-sm text-gray-900">
-                                    {formatTransactionDate(transaction.timestamp)}
-                                  </div>
-                                  <div className="text-xs text-gray-600">
-                                    {formatTransactionTime(transaction.timestamp)}
-                                  </div>
-                                </td>
-                                <td className="py-3 px-4">
-                                  <div className="text-sm text-gray-900">
-                                    {transaction.description}
-                                  </div>
-                                  {transaction.type === 'sale' && (
-                                    <div className="text-xs text-gray-500">
-                                      Gross: R{transaction.grossAmount} | Fee: R{transaction.platformFee}
-                                    </div>
-                                  )}
-                                </td>
-                                <td className="py-3 px-4">
-                                  <div className="flex items-center space-x-2">
-                                    {getTransactionIcon(transaction.type)}
-                                    <span className={`text-sm font-medium capitalize ${getTransactionColor(transaction.type)}`}>
-                                      {transaction.type}
-                                    </span>
-                                  </div>
-                                </td>
-                                <td className="py-3 px-4 text-right">
-                                  <div className={`text-sm font-medium ${getTransactionColor(transaction.type)}`}>
-                                    {transaction.type === 'payout' ? '-' : '+'}R{Math.abs(transaction.netAmount)}
-                                  </div>
-                                </td>
-                                <td className="py-3 px-4 text-right">
-                                  <div className="text-sm font-medium text-gray-900">
-                                    R{transaction.balance || 0}
-                                  </div>
-                                </td>
-                                <td className="py-3 px-4 text-center">
-                                  <div className="flex items-center justify-center">
-                                    {getStatusIcon(transaction.status)}
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
-                  </div>
+                  </>
                 ) : (
                   <div className="text-center py-12">
                     <Receipt className="h-12 w-12 text-gray-400 mx-auto mb-4" />
