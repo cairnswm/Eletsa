@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import { useEvents } from '../contexts/EventContext';
+import { useTransactions } from '../contexts/TransactionContext';
 import { 
   Plus, 
   Search, 
@@ -21,7 +22,8 @@ import {
 
 export function MyEvents() {
   const { user } = useUser();
-  const { events, tickets, isPastEvent, getAverageRating, getEventReviews, getEventComments } = useEvents();
+  const { events, isPastEvent, getAverageRating, getEventReviews, getEventComments } = useEvents();
+  const { getEventTransactions } = useTransactions();
   const navigate = useNavigate();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -80,9 +82,13 @@ export function MyEvents() {
   // Calculate stats
   const upcomingEvents = userEvents.filter(event => !isPastEvent(event));
   const pastEvents = userEvents.filter(event => isPastEvent(event));
-  const totalRevenue = tickets
-    .filter(ticket => userEvents.some(event => event.id === ticket.eventId))
-    .reduce((sum, ticket) => sum + ticket.price, 0);
+  
+  // Calculate total revenue from transactions
+  const totalRevenue = userEvents.reduce((sum, event) => {
+    const eventTransactions = getEventTransactions(event.id);
+    const salesTransactions = eventTransactions.filter(t => t.type === 'sale');
+    return sum + salesTransactions.reduce((eventSum, t) => eventSum + t.netAmount, 0);
+  }, 0);
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -137,58 +143,58 @@ export function MyEvents() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Calendar className="h-6 w-6 text-blue-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
               </div>
-              <div className="ml-4">
-                <div className="text-2xl font-bold text-gray-900">{userEvents.length}</div>
-                <div className="text-sm text-gray-600">Total Events</div>
+              <div className="ml-3 sm:ml-4">
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">{userEvents.length}</div>
+                <div className="text-xs sm:text-sm text-gray-600">Total Events</div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <BarChart3 className="h-6 w-6 text-green-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
               </div>
-              <div className="ml-4">
-                <div className="text-2xl font-bold text-gray-900">{upcomingEvents.length}</div>
-                <div className="text-sm text-gray-600">Upcoming</div>
+              <div className="ml-3 sm:ml-4">
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">{upcomingEvents.length}</div>
+                <div className="text-xs sm:text-sm text-gray-600">Upcoming</div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Star className="h-6 w-6 text-purple-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Star className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
               </div>
-              <div className="ml-4">
-                <div className="text-2xl font-bold text-gray-900">{pastEvents.length}</div>
-                <div className="text-sm text-gray-600">Completed</div>
+              <div className="ml-3 sm:ml-4">
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">{pastEvents.length}</div>
+                <div className="text-xs sm:text-sm text-gray-600">Completed</div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-yellow-600" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600" />
               </div>
-              <div className="ml-4">
-                <div className="text-2xl font-bold text-gray-900">R{totalRevenue}</div>
-                <div className="text-sm text-gray-600">Total Revenue</div>
+              <div className="ml-3 sm:ml-4">
+                <div className="text-lg sm:text-2xl font-bold text-gray-900">R{totalRevenue}</div>
+                <div className="text-xs sm:text-sm text-gray-600">Total Revenue</div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Search and Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-8">
           <div className="flex flex-col lg:flex-row gap-4">
             {/* Search */}
             <div className="flex-1">
@@ -286,8 +292,9 @@ export function MyEvents() {
               const averageRating = getAverageRating(event.id);
               const reviewCount = getEventReviews(event.id).length;
               const commentCount = getEventComments(event.id).length;
-              const eventTickets = tickets.filter(ticket => ticket.eventId === event.id);
-              const eventRevenue = eventTickets.reduce((sum, ticket) => sum + ticket.price, 0);
+              const eventTransactions = getEventTransactions(event.id);
+              const salesTransactions = eventTransactions.filter(t => t.type === 'sale');
+              const eventRevenue = salesTransactions.reduce((sum, t) => sum + t.netAmount, 0);
               const availableSpots = event.maxParticipants - event.sold;
               const isSoldOut = availableSpots <= 0;
 
@@ -347,7 +354,7 @@ export function MyEvents() {
                     </div>
                   </div>
 
-                  <div className="p-6">
+                  <div className="p-4 sm:p-6">
                     <div className="flex items-start justify-between mb-3">
                       <h3 className="text-lg font-semibold text-gray-900 line-clamp-2">
                         {event.title}
@@ -357,11 +364,11 @@ export function MyEvents() {
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center text-sm text-gray-600">
                         <Calendar className="h-4 w-4 mr-2 text-blue-500" />
-                        <span>{formatDate(event.date)} at {formatTime(event.date)}</span>
+                        <span className="truncate">{formatDate(event.date)} at {formatTime(event.date)}</span>
                       </div>
                       <div className="flex items-center text-sm text-gray-600">
                         <MapPin className="h-4 w-4 mr-2 text-blue-500" />
-                        <span>{event.location}</span>
+                        <span className="truncate">{event.location}</span>
                       </div>
                       <div className="flex items-center text-sm text-gray-600">
                         <Users className="h-4 w-4 mr-2 text-blue-500" />
@@ -371,13 +378,15 @@ export function MyEvents() {
 
                     {/* Revenue and Stats */}
                     <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-600">Revenue:</span>
-                        <span className="font-semibold text-gray-900">R{eventRevenue}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-sm mt-1">
-                        <span className="text-gray-600">Tickets Sold:</span>
-                        <span className="font-semibold text-gray-900">{eventTickets.length}</span>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-600">Revenue:</span>
+                          <div className="font-semibold text-gray-900">R{eventRevenue}</div>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Tickets:</span>
+                          <div className="font-semibold text-gray-900">{salesTransactions.length}</div>
+                        </div>
                       </div>
                     </div>
 
