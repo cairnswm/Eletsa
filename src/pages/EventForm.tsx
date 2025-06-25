@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import { useEvents } from '../contexts/EventContext';
+import { LocationPicker } from '../components/LocationPicker';
 import { 
   ArrowLeft, 
   Save, 
@@ -23,6 +24,7 @@ interface EventFormData {
   description: string;
   agenda: string;
   location: string;
+  coordinates?: { lat: number; lng: number };
   date: string;
   time: string;
   category: string;
@@ -46,6 +48,7 @@ export function EventForm() {
     description: '',
     agenda: '',
     location: '',
+    coordinates: undefined,
     date: '',
     time: '',
     category: '',
@@ -60,6 +63,7 @@ export function EventForm() {
   const [imagePreview, setImagePreview] = useState<string>('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
 
   // Check permissions
   const canEditEvent = (event: any) => {
@@ -83,6 +87,7 @@ export function EventForm() {
           description: event.description,
           agenda: event.agenda,
           location: event.location,
+          coordinates: event.coordinates,
           date: eventDate.toISOString().split('T')[0],
           time: eventDate.toTimeString().slice(0, 5),
           category: event.category,
@@ -111,6 +116,19 @@ export function EventForm() {
     // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleLocationSelect = (address: string, coordinates?: { lat: number; lng: number }) => {
+    setFormData(prev => ({
+      ...prev,
+      location: address,
+      coordinates
+    }));
+    
+    // Clear location error
+    if (errors.location) {
+      setErrors(prev => ({ ...prev, location: '' }));
     }
   };
 
@@ -201,6 +219,7 @@ export function EventForm() {
         description: formData.description.trim(),
         agenda: formData.agenda.trim(),
         location: formData.location.trim(),
+        coordinates: formData.coordinates,
         date: eventDateTime.toISOString(),
         category: formData.category,
         tags: formData.tags,
@@ -330,7 +349,7 @@ export function EventForm() {
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Date, Time & Location</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div>
                 <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
                   Date *
@@ -364,24 +383,57 @@ export function EventForm() {
                 />
                 {errors.time && <p className="mt-1 text-sm text-red-600">{errors.time}</p>}
               </div>
+            </div>
 
-              <div>
-                <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
-                  Location *
-                </label>
-                <input
-                  type="text"
-                  id="location"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.location ? 'border-red-300' : 'border-gray-300'
-                  }`}
-                  placeholder="Event location"
-                />
-                {errors.location && <p className="mt-1 text-sm text-red-600">{errors.location}</p>}
+            {/* Location Section */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Event Location *
+              </label>
+              
+              {/* Location Display */}
+              <div className="mb-4">
+                {formData.location ? (
+                  <div className="bg-gray-50 border border-gray-300 rounded-lg p-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <MapPin className="h-4 w-4 text-blue-600" />
+                          <span className="text-sm font-medium text-gray-900">Selected Location</span>
+                        </div>
+                        <p className="text-sm text-gray-700">{formData.location}</p>
+                        {formData.coordinates && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Coordinates: {formData.coordinates.lat.toFixed(6)}, {formData.coordinates.lng.toFixed(6)}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowLocationPicker(true)}
+                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                      >
+                        Change
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <MapPin className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-600 mb-4">No location selected</p>
+                    <button
+                      type="button"
+                      onClick={() => setShowLocationPicker(true)}
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <MapPin className="h-4 w-4 mr-2" />
+                      Select Location
+                    </button>
+                  </div>
+                )}
               </div>
+              
+              {errors.location && <p className="text-sm text-red-600">{errors.location}</p>}
             </div>
           </div>
 
@@ -576,6 +628,14 @@ export function EventForm() {
           </div>
         </form>
       </div>
+
+      {/* Location Picker Modal */}
+      <LocationPicker
+        isOpen={showLocationPicker}
+        onClose={() => setShowLocationPicker(false)}
+        onLocationSelect={handleLocationSelect}
+        initialAddress={formData.location}
+      />
     </div>
   );
 }

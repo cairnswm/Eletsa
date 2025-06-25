@@ -2,6 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Leaflet CSS overrides */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+}
+
+.leaflet-control-container {
+  z-index: 10;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+}
+
+.leaflet-popup-tip {
+  background: white;
+}
+
 /* Custom scrollbar styles for better mobile experience */
 .scrollbar-hide {
   -ms-overflow-style: none;
