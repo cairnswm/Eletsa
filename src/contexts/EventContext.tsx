@@ -10,6 +10,7 @@ interface Event {
   id: string;
   title: string;
   location: string;
+  coordinates?: { lat: number; lng: number };
   date: string;
   tags: string[];
   category: string;
@@ -207,6 +208,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
       id: `event-${Date.now()}`,
       title: eventData.title || '',
       location: eventData.location || '',
+      coordinates: eventData.coordinates,
       date: eventData.date || '',
       tags: eventData.tags || [],
       category: eventData.category || '',
