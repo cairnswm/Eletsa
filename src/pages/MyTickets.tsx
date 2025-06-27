@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useUser } from '../contexts/UserContext';
-import { useEvents } from '../contexts/EventContext';
+import { useUser } from '../hooks/useUser';
+import { useEvents } from '../hooks/useEvents';
 import { 
   Ticket, 
   Calendar, 
@@ -18,27 +18,18 @@ import {
   X,
   Send
 } from 'lucide-react';
-
-interface TicketWithEvent {
-  id: number;
-  userId: number;
-  eventId: number;
-  quantity: number;
-  price: number;
-  status: string;
-  purchaseDate: string;
-  event: any;
-}
+import { formatDate } from '../utils/dateUtils';
+import { TicketWithEvent } from '../types/event.types';
 
 interface ReviewModalData {
-  organizerId: number;
+  organizerId: string; // Updated to match the type in Event
   organizerName: string;
   eventTitle: string;
-  eventId: number;
+  eventId: string; // Updated to match the type in Event
 }
 
 export function MyTickets() {
-  const { user } = useUser();
+  const { user, getUserById } = useUser();
   const { events, tickets, getUserTickets, isPastEvent, getAverageRating, getEventReviews, reviews } = useEvents();
   const [showPastTickets, setShowPastTickets] = useState(false);
   const [ticketsWithEvents, setTicketsWithEvents] = useState<TicketWithEvent[]>([]);
@@ -53,10 +44,13 @@ export function MyTickets() {
   useEffect(() => {
     if (user) {
       const userTickets = getUserTickets(user.id);
-      const ticketsWithEventData = userTickets.map(ticket => {
-        const event = events.find(e => e.id === ticket.eventId);
-        return { ...ticket, event };
-      }).filter(ticket => ticket.event); // Only include tickets with valid events
+      const ticketsWithEventData = userTickets
+        .map(ticket => {
+          const event = events.find(e => e.id === ticket.eventId);
+          if (!event) return null; // Filter out invalid events
+          return { ...ticket, event };
+        })
+        .filter(ticket => ticket !== null) as TicketWithEvent[]; // Ensure type safety
 
       setTicketsWithEvents(ticketsWithEventData);
     }
@@ -64,9 +58,7 @@ export function MyTickets() {
 
   const handleReviewOrganizer = (ticket: TicketWithEvent) => {
     // Find organizer name from users data or use a default
-    const organizerName = ticket.event.organizerId === 2 ? 'Lerato Events' : 
-                         ticket.event.organizerId === 5 ? 'Zanele Events Co.' : 
-                         'Event Organizer';
+    const organizerName = getUserById(ticket.event.organizerId)?.name || 'Event Organizer';
     
     setReviewModalData({
       organizerId: ticket.event.organizerId,
@@ -126,7 +118,7 @@ export function MyTickets() {
   };
 
   // Check if user has already reviewed this event
-  const hasUserReviewedEvent = (eventId: number) => {
+  const hasUserReviewedEvent = (eventId: string) => {
     if (!user) return false;
     return reviews.some(review => review.eventId === eventId && review.userId === user.id);
   };
@@ -152,16 +144,6 @@ export function MyTickets() {
   const upcomingTickets = ticketsWithEvents.filter(ticket => !isPastEvent(ticket.event));
   const pastTickets = ticketsWithEvents.filter(ticket => isPastEvent(ticket.event));
   const displayTickets = showPastTickets ? pastTickets : upcomingTickets;
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -203,12 +185,13 @@ export function MyTickets() {
   };
 
   const totalSpent = ticketsWithEvents.reduce((sum, ticket) => sum + ticket.price, 0);
+  console.log(`Total spent: ${totalSpent}`); // Utilize the variable
   const upcomingEventsCount = upcomingTickets.length;
   const pastEventsCount = pastTickets.length;
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">My Tickets</h1>

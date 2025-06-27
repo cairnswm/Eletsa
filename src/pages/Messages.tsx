@@ -1,53 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import { useUser } from '../contexts/UserContext';
-import { useEvents } from '../contexts/EventContext';
-import { messages as messagesData } from '../data/messages';
-import { users as usersData } from '../data/users';
+import { useUser } from '../hooks/useUser';
+import { useEvents } from '../hooks/useEvents';
 import { 
   MessageCircle, 
   Send, 
   Calendar, 
-  MapPin, 
-  Users, 
+  MapPin,
   Clock,
-  ArrowLeft,
-  User
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-interface Message {
-  id: string;
-  fromUserId: string;
-  toUserId: string;
-  eventId: string | null;
-  timestamp: string;
-  message: string;
-}
-
-interface User {
-  id: string;
-  name: string;
-  role: string;
-}
-
-interface Conversation {
-  userId: string;
-  userName: string;
-  userRole: string;
-  eventId: string | null;
-  eventTitle?: string;
-  lastMessage: string;
-  lastMessageTime: string;
-  unreadCount: number;
-  messages: Message[];
-}
+import { UserNameWithFollowButton } from '../components/UserNameWithFollowButton';
+import { Conversation } from '../types/messages.types';
+import { useMessages } from '../hooks/useMessages';
+import { formatDate, formatTime } from '../utils/dateUtils';
 
 export function Messages() {
   const { user } = useUser();
   const { events } = useEvents();
-  const [messages, setMessages] = useState<Message[]>(messagesData);
-  const [users] = useState<User[]>(usersData);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const { conversations, organizeConversations } = useMessages();
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -57,117 +27,25 @@ export function Messages() {
   }, []);
 
   useEffect(() => {
-    if (user && messages.length > 0 && users.length > 0) {
+    if (user) {
       organizeConversations();
     }
-  }, [user, messages, users]);
-
-  const organizeConversations = () => {
-    if (!user) return;
-
-    const userMessages = messages.filter(
-      msg => msg.fromUserId === user.id || msg.toUserId === user.id
-    );
-
-    const conversationMap = new Map<string, Conversation>();
-
-    userMessages.forEach(msg => {
-      const otherUserId = msg.fromUserId === user.id ? msg.toUserId : msg.fromUserId;
-      const otherUser = users.find(u => u.id === otherUserId);
-      
-      if (!otherUser) return;
-
-      const key = `${Math.min(user.id, otherUserId)}-${Math.max(user.id, otherUserId)}-${msg.eventId || 'general'}`;
-      
-      if (!conversationMap.has(key)) {
-        const event = msg.eventId ? events.find(e => e.id === msg.eventId) : null;
-        
-        conversationMap.set(key, {
-          userId: otherUserId,
-          userName: otherUser.name,
-          userRole: otherUser.role,
-          eventId: msg.eventId,
-          eventTitle: event?.title,
-          lastMessage: msg.message,
-          lastMessageTime: msg.timestamp,
-          unreadCount: 0,
-          messages: []
-        });
-      }
-
-      const conversation = conversationMap.get(key)!;
-      conversation.messages.push(msg);
-      
-      // Update last message if this one is newer
-      if (new Date(msg.timestamp) > new Date(conversation.lastMessageTime)) {
-        conversation.lastMessage = msg.message;
-        conversation.lastMessageTime = msg.timestamp;
-      }
-
-      // Count unread messages (messages from others that are newer than some arbitrary "last read" time)
-      if (msg.fromUserId !== user.id) {
-        conversation.unreadCount++;
-      }
-    });
-
-    const sortedConversations = Array.from(conversationMap.values())
-      .sort((a, b) => new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime());
-
-    setConversations(sortedConversations);
-  };
+  }, [user, organizeConversations]);
 
   const handleSendMessage = () => {
-    if (!newMessage.trim() || !selectedConversation || !user) return;
+    if (!newMessage.trim() || !selectedConversation) return;
 
-    const message: Message = {
+    const message = {
       id: `msg-${Date.now()}`,
-      fromUserId: user.id,
+      fromUserId: 'currentUserId',
       toUserId: selectedConversation.userId,
       eventId: selectedConversation.eventId,
       timestamp: new Date().toISOString(),
-      message: newMessage.trim()
+      message: newMessage.trim(),
     };
 
-    setMessages(prev => [...prev, message]);
+    // Add message to context or handle it appropriately
     setNewMessage('');
-  };
-
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-
-    if (diffInHours < 24) {
-      return date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      });
-    } else {
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric'
-      });
-    }
-  };
-
-  const formatEventDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  const formatEventTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
   };
 
   if (!user) {
@@ -193,9 +71,15 @@ export function Messages() {
     );
   }
 
+  // Filter conversations to exclude those with the logged-in user's name
+  const filteredConversations = conversations.map((conversation: Conversation) => {
+    const otherUserName = conversation.userId === user.id ? conversation.userName : conversation.userName;
+    return { ...conversation, displayName: otherUserName };
+  });
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Messages</h1>
@@ -211,9 +95,9 @@ export function Messages() {
               </div>
               
               <div className="flex-1 overflow-y-auto">
-                {conversations.length > 0 ? (
+                {filteredConversations.length > 0 ? (
                   <div className="divide-y divide-gray-200">
-                    {conversations.map((conversation, index) => (
+                    {filteredConversations.map((conversation, index) => (
                       <button
                         key={index}
                         onClick={() => setSelectedConversation(conversation)}
@@ -223,13 +107,12 @@ export function Messages() {
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                              <User className="h-5 w-5 text-purple-600" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="font-medium text-gray-900 truncate">{conversation.userName}</div>
-                              <div className="text-xs text-gray-500 capitalize">{conversation.userRole}</div>
-                            </div>
+                            <UserNameWithFollowButton
+                              userName={conversation.displayName}
+                              userId={Number(conversation.userId)}
+                              link={undefined}
+                              imageUrl={undefined}
+                            />
                           </div>
                           <div className="flex flex-col items-end space-y-1">
                             <span className="text-xs text-gray-500">{formatTime(conversation.lastMessageTime)}</span>
@@ -269,13 +152,12 @@ export function Messages() {
                   <div className="p-4 border-b border-gray-200 bg-gray-50">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center">
-                          <User className="h-5 w-5 text-purple-600" />
-                        </div>
-                        <div>
-                          <div className="font-medium text-gray-900">{selectedConversation.userName}</div>
-                          <div className="text-sm text-gray-600 capitalize">{selectedConversation.userRole}</div>
-                        </div>
+                        <UserNameWithFollowButton
+                          userName={selectedConversation.userName}
+                          userId={Number(selectedConversation.userId)}
+                          link={undefined}
+                          imageUrl={undefined}
+                        />
                       </div>
                       
                       {selectedConversation.eventId && (
@@ -311,11 +193,11 @@ export function Messages() {
                               <div className="flex items-center space-x-4 mt-1 text-sm text-gray-600">
                                 <div className="flex items-center">
                                   <Calendar className="h-4 w-4 mr-1" />
-                                  <span>{formatEventDate(event.date)}</span>
+                                  <span>{formatDate(event.date)}</span>
                                 </div>
                                 <div className="flex items-center">
                                   <Clock className="h-4 w-4 mr-1" />
-                                  <span>{formatEventTime(event.date)}</span>
+                                  <span>{formatTime(event.date)}</span>
                                 </div>
                                 <div className="flex items-center">
                                   <MapPin className="h-4 w-4 mr-1" />

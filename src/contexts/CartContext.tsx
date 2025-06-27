@@ -1,27 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-interface CartItem {
-  id: string;
-  eventId: string;
-  eventTitle: string;
-  eventDate: string;
-  eventLocation: string;
-  eventImage?: string;
-  quantity: number;
-  price: number;
-  totalPrice: number;
-}
-
-interface CartContextType {
-  cartItems: CartItem[];
-  addToCart: (eventId: string, quantity: number) => void;
-  removeFromCart: (itemId: string) => void;
-  updateQuantity: (itemId: string, quantity: number) => void;
-  clearCart: () => void;
-  getCartTotal: () => number;
-  getCartItemCount: () => number;
-  isInCart: (eventId: string) => boolean;
-}
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import { CartItem, CartContextType } from '../types/cart.types';
+import { loadFromLocalStorage, saveToLocalStorage } from '../utils/localStorageUtils';
+import { getCurrentTimestamp } from '../utils/dateUtils';
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -30,19 +10,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Load cart from localStorage on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem('eventCart');
+    const savedCart = loadFromLocalStorage<CartItem[]>('eventCart');
     if (savedCart) {
-      try {
-        setCartItems(JSON.parse(savedCart));
-      } catch (error) {
-        console.error('Error loading cart from localStorage:', error);
-      }
+      setCartItems(savedCart);
     }
   }, []);
 
   // Save cart to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('eventCart', JSON.stringify(cartItems));
+    saveToLocalStorage('eventCart', cartItems);
   }, [cartItems]);
 
   const addToCart = (eventId: string, quantity: number) => {
@@ -67,7 +43,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       } else {
         // Add new item
         const newItem: CartItem = {
-          id: `cart-${eventId}-${Date.now()}`,
+          id: `cart-${eventId}-${getCurrentTimestamp()}`,
           eventId,
           eventTitle: event.title,
           eventDate: event.date,
@@ -135,10 +111,4 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useCart() {
-  const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
-  return context;
-}
+export { CartContext };

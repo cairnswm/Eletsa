@@ -1,99 +1,13 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { events as eventsData } from '../data/events';
 import { reviews as reviewsData } from '../data/reviews';
 import { tickets as ticketsData } from '../data/tickets';
 import { categories as categoriesData } from '../data/categories';
 import { comments as commentsData } from '../data/comments';
 import { favorites as favoritesData } from '../data/favorites';
-
-interface Event {
-  id: string;
-  title: string;
-  location: string;
-  coordinates?: { lat: number; lng: number };
-  date: string;
-  tags: string[];
-  category: string;
-  organizerId: string;
-  agenda: string;
-  maxParticipants: number;
-  price: number;
-  sold: number;
-  description: string;
-  image?: string;
-}
-
-interface Review {
-  id: string;
-  eventId: string;
-  userId: string;
-  rating: number;
-  comment: string;
-  date: string;
-  isTestimonial?: boolean;
-}
-
-interface Ticket {
-  id: string;
-  userId: string;
-  eventId: string;
-  quantity: number;
-  price: number;
-  status: string;
-  purchaseDate: string;
-}
-
-interface Comment {
-  id: string;
-  eventId: string;
-  userId: string;
-  userName: string;
-  userRole: string;
-  comment: string;
-  timestamp: string;
-  parentId: string | null;
-}
-
-interface Favorite {
-  id: string;
-  userId: string;
-  eventId: string;
-  timestamp: string;
-}
-
-interface Category {
-  id: string;
-  label: string;
-}
-
-interface EventContextType {
-  events: Event[];
-  reviews: Review[];
-  tickets: Ticket[];
-  categories: Category[];
-  comments: Comment[];
-  favorites: Favorite[];
-  activeEventId: string | null;
-  activeEvent: Event | null;
-  setActiveEventId: (id: string | null) => void;
-  getEventReviews: (eventId: string) => Review[];
-  getUserTickets: (userId: string) => Ticket[];
-  purchaseTicket: (eventId: string, quantity: number, userId: string) => void;
-  isPastEvent: (event: Event) => boolean;
-  getAverageRating: (eventId: string) => number;
-  getEventComments: (eventId: string) => Comment[];
-  addComment: (eventId: string, userId: string, userName: string, userRole: string, comment: string, parentId?: string | null) => void;
-  deleteComment: (commentId: string) => Promise<void>;
-  toggleFavorite: (eventId: string, userId: string) => void;
-  isEventFavorited: (eventId: string, userId: string) => boolean;
-  getEventFavoriteCount: (eventId: string) => number;
-  getUserFavorites: (userId: string) => string[];
-  addEvent: (eventData: Partial<Event>) => Promise<void>;
-  updateEvent: (eventId: string, eventData: Partial<Event>) => Promise<void>;
-  toggleReviewTestimonial: (reviewId: string) => void;
-  getOrganizerTestimonials: (organizerId: string) => Review[];
-  getOrganizerCompletedEvents: (organizerId: string) => Event[];
-}
+import { Event, Review, Ticket, Comment, Favorite, Category, EventContextType } from '../types/event.types';
+import { formatDate, isPastDate, getCurrentTimestamp } from '../utils/dateUtils';
+import { addComment, getEventComments, setInitialComments } from '../utils/commentsUtils';
 
 const EventContext = createContext<EventContextType | undefined>(undefined);
 
@@ -105,6 +19,8 @@ export function EventProvider({ children }: { children: ReactNode }) {
   const [comments, setComments] = useState<Comment[]>(commentsData);
   const [favorites, setFavorites] = useState<Favorite[]>(favoritesData);
   const [activeEventId, setActiveEventId] = useState<string | null>(null);
+
+  setInitialComments(commentsData);
 
   const activeEvent = activeEventId ? events.find(e => e.id === activeEventId) || null : null;
 
@@ -120,16 +36,16 @@ export function EventProvider({ children }: { children: ReactNode }) {
     const event = events.find(e => e.id === eventId);
     if (event) {
       const newTicket: Ticket = {
-        id: `ticket-${Date.now()}`,
+        id: `ticket-${getCurrentTimestamp()}`,
         userId,
         eventId,
         quantity,
         price: event.price * quantity,
         status: 'active',
-        purchaseDate: new Date().toISOString().split('T')[0]
+        purchaseDate: formatDate(new Date().toISOString())
       };
       setTickets(prev => [...prev, newTicket]);
-      
+
       // Update event sold count
       setEvents(prev => prev.map(e => 
         e.id === eventId ? { ...e, sold: e.sold + quantity } : e
@@ -138,7 +54,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
   };
 
   const isPastEvent = (event: Event) => {
-    return new Date(event.date) < new Date();
+    return isPastDate(event.date);
   };
 
   const getAverageRating = (eventId: string) => {
@@ -146,24 +62,6 @@ export function EventProvider({ children }: { children: ReactNode }) {
     if (eventReviews.length === 0) return 0;
     const sum = eventReviews.reduce((acc, review) => acc + review.rating, 0);
     return sum / eventReviews.length;
-  };
-
-  const getEventComments = (eventId: string) => {
-    return comments.filter(comment => comment.eventId === eventId);
-  };
-
-  const addComment = (eventId: string, userId: string, userName: string, userRole: string, comment: string, parentId: string | null = null) => {
-    const newComment: Comment = {
-      id: `comment-${Date.now()}`,
-      eventId,
-      userId,
-      userName,
-      userRole,
-      comment,
-      timestamp: new Date().toISOString(),
-      parentId
-    };
-    setComments(prev => [...prev, newComment]);
   };
 
   const deleteComment = async (commentId: string) => {
@@ -175,17 +73,17 @@ export function EventProvider({ children }: { children: ReactNode }) {
 
   const toggleFavorite = (eventId: string, userId: string) => {
     const existingFavorite = favorites.find(fav => fav.eventId === eventId && fav.userId === userId);
-    
+
     if (existingFavorite) {
       // Remove favorite
       setFavorites(prev => prev.filter(fav => fav.id !== existingFavorite.id));
     } else {
       // Add favorite
       const newFavorite: Favorite = {
-        id: `favorite-${Date.now()}`,
+        id: `favorite-${getCurrentTimestamp()}`,
         userId,
         eventId,
-        timestamp: new Date().toISOString()
+        timestamp: getCurrentTimestamp()
       };
       setFavorites(prev => [...prev, newFavorite]);
     }
@@ -266,13 +164,13 @@ export function EventProvider({ children }: { children: ReactNode }) {
       activeEventId,
       activeEvent,
       setActiveEventId,
+      addComment,
+      getEventComments,
       getEventReviews,
       getUserTickets,
       purchaseTicket,
       isPastEvent,
       getAverageRating,
-      getEventComments,
-      addComment,
       deleteComment,
       toggleFavorite,
       isEventFavorited,
@@ -289,10 +187,12 @@ export function EventProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useEvents() {
+export const useEvents = () => {
   const context = useContext(EventContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useEvents must be used within an EventProvider');
   }
   return context;
-}
+};
+
+export { EventContext };

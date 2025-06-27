@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useUser } from '../contexts/UserContext';
-import { RegisterModal } from '../components/RegisterModal';
-import { ForgotPasswordModal } from '../components/ForgotPasswordModal';
-import { Calendar, AlertCircle, Eye, EyeOff, UserPlus, HelpCircle } from 'lucide-react';
+import { useUser } from '../hooks/useUser';
+import { RegisterModal } from '../components/modals/RegisterModal';
+import { ForgotPasswordModal } from '../components/modals/ForgotPasswordModal';
+import { Calendar, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 export function Login() {
   const [username, setUsername] = useState('');

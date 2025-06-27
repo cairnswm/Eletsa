@@ -1,20 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useUser } from '../contexts/UserContext';
-import { useEvents } from '../contexts/EventContext';
-import { useTransactions } from '../contexts/TransactionContext';
+import { useUser } from '../hooks/useUser';
+import { useEvents } from '../hooks/useEvents';
+import { useTransactions } from '../hooks/useTransactions';
 import { users as usersData } from '../data/users';
 import { FollowButton } from '../components/FollowButton';
-import { BecomeOrganizerModal } from '../components/BecomeOrganizerModal';
-import { ChangePasswordModal } from '../components/ChangePasswordModal';
+import { BecomeOrganizerModal } from '../components/modals/BecomeOrganizerModal';
+import { ChangePasswordModal } from '../components/modals/ChangePasswordModal';
 import { 
-  User, 
-  Mail, 
-  Phone, 
+  User,  
   CreditCard, 
   Calendar, 
   TrendingUp,
   DollarSign,
-  Users,
   Star,
   Edit,
   Save,
@@ -24,11 +21,10 @@ import {
   ArrowLeftRight,
   Quote,
   Award,
-  Shield,
-  Settings,
   Receipt,
   Briefcase
 } from 'lucide-react';
+import { UserNameWithFollowButton } from '../components/UserNameWithFollowButton';
 
 export function Profile() {
   const { 
@@ -136,7 +132,7 @@ export function Profile() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">My Profile</h1>
@@ -584,10 +580,11 @@ export function Profile() {
                             <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-pink-100 rounded-full flex items-center justify-center">
                               <User className="h-6 w-6 text-blue-600" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-medium text-gray-900 truncate">{followedUser.name}</h3>
-                              <p className="text-sm text-gray-600 capitalize">{followedUser.role}</p>
-                            </div>
+                            <UserNameWithFollowButton
+                              userName={followedUser.name}
+                              userId={followedUser.id}
+                              link={followedUser.role === 'organizer' ? `/profile/${followedUser.username}` : undefined}
+                            />
                           </div>
                           
                           <div className="flex items-center justify-between">
@@ -633,10 +630,11 @@ export function Profile() {
                             <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-pink-100 rounded-full flex items-center justify-center">
                               <User className="h-6 w-6 text-blue-600" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="font-medium text-gray-900 truncate">{follower.name}</h3>
-                              <p className="text-sm text-gray-600 capitalize">{follower.role}</p>
-                            </div>
+                            <UserNameWithFollowButton
+                              userName={follower.name}
+                              userId={follower.id}
+                              link={follower.role === 'organizer' ? `/profile/${follower.username}` : undefined}
+                            />
                           </div>
                           
                           <div className="flex items-center justify-between">

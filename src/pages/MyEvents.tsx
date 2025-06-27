@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useUser } from '../contexts/UserContext';
-import { useEvents } from '../contexts/EventContext';
-import { useTransactions } from '../contexts/TransactionContext';
+import { useUser } from '../hooks/useUser';
+import { useEvents } from '../hooks/useEvents';
+import { useTransactions } from '../hooks/useTransactions';
 import { 
   Plus, 
   Search, 
@@ -19,12 +19,12 @@ import {
   X,
   Settings
 } from 'lucide-react';
+import { formatDate, formatTime } from '../utils/dateUtils';
 
 export function MyEvents() {
   const { user } = useUser();
   const { events, isPastEvent, getAverageRating, getEventReviews, getEventComments } = useEvents();
   const { getEventTransactions } = useTransactions();
-  const navigate = useNavigate();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
@@ -97,28 +97,9 @@ export function MyEvents() {
 
   const hasActiveFilters = searchTerm || selectedLocation;
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
           <div>

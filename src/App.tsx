@@ -17,6 +17,7 @@ import { WhatsUp } from './pages/WhatsUp';
 import { Checkout } from './pages/Checkout';
 import { MyEvents } from './pages/MyEvents';
 import { EventForm } from './pages/EventForm';
+import { MessagesProvider } from './contexts/MessagesContext';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -34,6 +35,7 @@ function App() {
       <EventProvider>
         <CartProvider>
           <TransactionProvider>
+            <MessagesProvider>
             <Router>
               <ScrollToTop />
               <div className="min-h-screen bg-gray-50">
@@ -55,6 +57,7 @@ function App() {
                 </Routes>
               </div>
             </Router>
+            </MessagesProvider>
           </TransactionProvider>
         </CartProvider>
       </EventProvider>

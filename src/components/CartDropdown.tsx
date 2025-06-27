@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useCart } from '../contexts/CartContext';
+import { useCart } from '../hooks/useCart';
 import { 
   ShoppingCart, 
   X, 
@@ -11,6 +11,7 @@ import {
   CreditCard,
   Trash2
 } from 'lucide-react';
+import { formatDate, formatTime } from '../utils/dateUtils';
 
 export function CartDropdown() {
   const { cartItems, removeFromCart, updateQuantity, getCartTotal, getCartItemCount } = useCart();
@@ -37,24 +38,6 @@ export function CartDropdown() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
 
   return (
     <div className="relative">

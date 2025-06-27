@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useUser } from '../contexts/UserContext';
+import { useUser } from '../hooks/useUser';
 import { messages as messagesData } from '../data/messages';
 import { CartDropdown } from './CartDropdown';
 import { Calendar, User, LogOut, Menu, X, MessageCircle, Ticket, TrendingUp, Settings, Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export function Header() {
   const { user, logout } = useUser();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);const navigate = useNavigate();
+    
 
   useEffect(() => {
     if (user) {
@@ -47,9 +49,14 @@ export function Header() {
 
   const isActive = (path: string) => location.pathname === path;
 
+  const doLogout = () => {
+    logout();
+    navigate("/");
+  }
+
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
@@ -144,7 +151,7 @@ export function Header() {
 
                 {/* Logout - Desktop only */}
                 <button
-                  onClick={logout}
+                  onClick={doLogout}
                   className="hidden sm:flex items-center space-x-1 text-sm text-gray-700 hover:text-red-600 transition-colors p-2"
                 >
                   <LogOut className="h-4 w-4" />

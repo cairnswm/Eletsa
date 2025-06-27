@@ -1,159 +1,70 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useState, useEffect, ReactNode, useContext } from 'react';
+
 import { users as usersData } from '../data/users';
 import { follows as followsData } from '../data/follows';
-
-interface User {
-  id: string;
-  username: string;
-  name: string;
-  role: 'attendee' | 'organizer' | 'admin';
-  email?: string;
-  bio?: string;
-  phone?: string;
-  credits?: number;
-  fee: number; // Platform fee percentage (0-100)
-  verified: boolean; // Verification status
-}
-
-interface Follow {
-  id: string;
-  followerId: string;
-  followingId: string;
-  timestamp: string;
-}
-
-interface RegisterData {
-  username: string;
-  name: string;
-  email: string;
-  password: string;
-}
-
-interface UserContextType {
-  user: User | null;
-  login: (username: string, password: string) => Promise<boolean>;
-  register: (data: RegisterData) => Promise<boolean>;
-  logout: () => void;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<boolean>;
-  isOrganizer: boolean;
-  isAdmin: boolean;
-  isAttendee: boolean;
-  updateUser: (updates: Partial<User>) => void;
-  toggleFollow: (targetUserId: string) => void;
-  isFollowing: (targetUserId: string) => boolean;
-  getFollowers: (userId: string) => User[];
-  getFollowing: (userId: string) => User[];
-  isFollowMutual: (userId: string, targetUserId: string) => boolean;
-  checkVerificationStatus: (userId: string) => boolean;
-  updateVerificationStatus: (userId: string) => void;
-  calculateNetRevenue: (grossRevenue: number, userId: string) => number;
-  getPlatformFee: (grossRevenue: number, userId: string) => number;
-}
+import { User, Follow, RegisterData, UserContextType } from '../types/user.types';
+import { loadFromLocalStorage, saveToLocalStorage } from '../utils/localStorageUtils';
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [users, setUsers] = useState(usersData);
-  const [follows, setFollows] = useState<Follow[]>(followsData);
+  const [follows, setFollows] = useState<Follow[]>(followsData);    
 
   useEffect(() => {
-    // Check for stored user session
     const storedUser = localStorage.getItem('currentUser');
     if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      // Ensure the user ID is a string (for backward compatibility)
-      if (typeof parsedUser.id === 'number') {
-        // Convert old numeric IDs to UUID format
-        const userWithStringId = users.find(u => u.username === parsedUser.username);
-        if (userWithStringId) {
-          const { password: _, ...userWithoutPassword } = userWithStringId;
-          setUser(userWithoutPassword);
-          localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
-        }
-      } else {
-        setUser(parsedUser);
-      }
+      setUser(storedUser as User);
     }
-  }, [users]);
+  }, []);
 
-  const login = async (username: string, password: string): Promise<boolean> => {
-    const userData = users.find(u => u.username === username && u.password === password);
+  const login = async (username: string): Promise<boolean> => {
+    const userData = users.find(u => u.username === username);
     if (userData) {
-      const { password: _, ...userWithoutPassword } = userData;
-      setUser(userWithoutPassword);
-      localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
+      setUser(userData as User);
+      saveToLocalStorage('currentUser', userData);
       return true;
     }
     return false;
   };
 
   const register = async (data: RegisterData): Promise<boolean> => {
-    // Check if username or email already exists
-    const existingUser = users.find(u => 
-      u.username === data.username || u.email === data.email
-    );
-    
+    const existingUser = users.find(u => u.username === data.username || u.email === data.email);
     if (existingUser) {
       return false;
     }
 
-    // Create new user
-    const newUser = {
+    const newUser: User = {
       id: `user-${Date.now()}`,
       username: data.username,
-      password: data.password,
       name: data.name,
-      email: data.email,
-      role: 'attendee' as const,
-      credits: 100, // Welcome bonus
-      fee: 0, // Attendees don't pay fees
-      verified: false
+      email: data.email || '', // Ensure email is defined
+      role: 'attendee',
+      credits: 100,
+      fee: 0,
+      verified: false,
+      password: data.password, // Added missing property
+      bio: '',
+      phone: ''
     };
 
-    // Add to users array
     setUsers(prev => [...prev, newUser]);
-
-    // Log in the new user
-    const { password: _, ...userWithoutPassword } = newUser;
-    setUser(userWithoutPassword);
-    localStorage.setItem('currentUser', JSON.stringify(userWithoutPassword));
-
-    return true;
-  };
-
-  const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
-    if (!user) return false;
-
-    // Find user with current password
-    const userData = users.find(u => u.id === user.id && u.password === currentPassword);
-    if (!userData) {
-      return false; // Current password is incorrect
-    }
-
-    // Update password in users array
-    setUsers(prev => prev.map(u => 
-      u.id === user.id ? { ...u, password: newPassword } : u
-    ));
-
+    setUser(newUser);
+    saveToLocalStorage('currentUser', newUser);
     return true;
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('currentUser');
+    saveToLocalStorage('currentUser', null);
   };
 
   const updateUser = (updates: Partial<User>) => {
     if (user) {
       const updatedUser = { ...user, ...updates };
       setUser(updatedUser);
-      localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-      
-      // Also update in the users array
-      setUsers(prev => prev.map(u => 
-        u.id === user.id ? { ...u, ...updates } : u
-      ));
+      saveToLocalStorage('currentUser', updatedUser);
     }
   };
 
@@ -165,10 +76,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
     );
 
     if (existingFollow) {
-      // Unfollow
       setFollows(prev => prev.filter(follow => follow.id !== existingFollow.id));
     } else {
-      // Follow
       const newFollow: Follow = {
         id: `follow-${Date.now()}`,
         followerId: user.id,
@@ -186,77 +95,76 @@ export function UserProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  const getFollowers = (userId: string) => {
+  const getFollowers = (userId: string): User[] => {
     const followerIds = follows
       .filter(follow => follow.followingId === userId)
       .map(follow => follow.followerId);
-    
-    return users.filter(user => followerIds.includes(user.id));
+    return users.filter(user => followerIds.includes(user.id)) as User[];
   };
 
-  const getFollowing = (userId: string) => {
+  const getFollowing = (userId: string): User[] => {
     const followingIds = follows
       .filter(follow => follow.followerId === userId)
       .map(follow => follow.followingId);
-    
-    return users.filter(user => followingIds.includes(user.id));
+    return users.filter(user => followingIds.includes(user.id)) as User[];
   };
 
-  const isFollowMutual = (userId: string, targetUserId: string) => {
-    const userFollowsTarget = follows.some(
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<boolean> => {
+    if (user && user.password === currentPassword) {
+      const updatedUser = { ...user, password: newPassword };
+      setUser(updatedUser);
+      saveToLocalStorage('currentUser', updatedUser);
+      return true;
+    }
+    return false;
+  };
+
+  const updateVerificationStatus = (userId: string): void => {
+    const targetUser = users.find(u => u.id === userId);
+    if (targetUser) {
+      const updatedUser: User = {
+        ...targetUser,
+        verified: true,
+        email: targetUser.email || '', // Ensure email is defined
+        role: targetUser.role as 'attendee' | 'organizer' | 'admin'
+      };
+      setUsers(prev => prev.map(u => (u.id === userId ? updatedUser : u)));
+      if (user?.id === userId) {
+        setUser(updatedUser);
+        saveToLocalStorage('currentUser', updatedUser);
+      }
+    }
+  };
+
+  const isFollowMutual = (userId: string, targetUserId: string): boolean => {
+    return follows.some(
       follow => follow.followerId === userId && follow.followingId === targetUserId
-    );
-    const targetFollowsUser = follows.some(
+    ) && follows.some(
       follow => follow.followerId === targetUserId && follow.followingId === userId
     );
-    
-    return userFollowsTarget && targetFollowsUser;
   };
 
-  const checkVerificationStatus = (userId: string) => {
-    const userData = users.find(u => u.id === userId);
-    if (!userData) return false;
-    
-    // Admins are always verified
-    if (userData.role === 'admin') return true;
-    
-    // For organizers, check if they have at least 2 completed events
-    if (userData.role === 'organizer') {
-      // This would need to be implemented with actual event data
-      // For now, we'll use the verified status from the user data
-      return userData.verified;
+  const checkVerificationStatus = (userId: string): boolean => {
+    const targetUser = users.find(u => u.id === userId);
+    return targetUser?.verified ?? false;
+  };
+
+  const calculateNetRevenue = (grossRevenue: number, userId: string): number => {
+    const targetUser = users.find(u => u.id === userId);
+    if (targetUser) {
+      return grossRevenue - targetUser.fee;
     }
-    
-    // Attendees can be verified but don't need special requirements
-    return userData.verified;
+    return grossRevenue;
   };
 
-  const updateVerificationStatus = (userId: string) => {
-    // This function would be called when an organizer reaches 2 completed events
-    // It would update the user's verified status in the database
-    if (user && user.id === userId) {
-      updateUser({ verified: true });
-    }
+  const getPlatformFee = (grossRevenue: number, userId: string): number => {
+    const targetUser = users.find(u => u.id === userId);
+    return targetUser ? grossRevenue * (targetUser.fee / 100) : 0; // Use grossRevenue in calculation
   };
 
-  const calculateNetRevenue = (grossRevenue: number, userId: string) => {
-    const userData = users.find(u => u.id === userId);
-    if (!userData) return grossRevenue;
-    
-    const platformFee = (grossRevenue * userData.fee) / 100;
-    return grossRevenue - platformFee;
+  const getUserById = (userId: string): User | undefined => {
+    return users.find(user => user.id === userId);
   };
-
-  const getPlatformFee = (grossRevenue: number, userId: string) => {
-    const userData = users.find(u => u.id === userId);
-    if (!userData) return 0;
-    
-    return (grossRevenue * userData.fee) / 100;
-  };
-
-  const isOrganizer = user?.role === 'organizer';
-  const isAdmin = user?.role === 'admin';
-  const isAttendee = user?.role === 'attendee';
 
   return (
     <UserContext.Provider value={{
@@ -265,9 +173,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
       register,
       logout,
       changePassword,
-      isOrganizer,
-      isAdmin,
-      isAttendee,
+      isOrganizer: user?.role === 'organizer',
+      isAdmin: user?.role === 'admin',
+      isAttendee: user?.role === 'attendee',
       updateUser,
       toggleFollow,
       isFollowing,
@@ -277,17 +185,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
       checkVerificationStatus,
       updateVerificationStatus,
       calculateNetRevenue,
-      getPlatformFee
+      getPlatformFee,
+      getUserById,
     }}>
       {children}
     </UserContext.Provider>
   );
 }
 
-export function useUser() {
+export const useUser = () => {
   const context = useContext(UserContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useUser must be used within a UserProvider');
   }
   return context;
-}
+};
+
+export { UserContext };

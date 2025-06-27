@@ -1,24 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Calendar, Users, Star, MessageCircle, Heart } from 'lucide-react';
-import { useEvents } from '../contexts/EventContext';
-import { useUser } from '../contexts/UserContext';
-
-interface Event {
-  id: number;
-  title: string;
-  location: string;
-  date: string;
-  tags: string[];
-  category: string;
-  organizerId: number;
-  agenda: string;
-  maxParticipants: number;
-  price: number;
-  sold: number;
-  description: string;
-  image?: string;
-}
+import { useEvents } from '../hooks/useEvents';
+import { useUser } from '../hooks/useUser';
+import { Event } from '../types/event.types';
+import { formatTime, getDateParts } from '../utils/dateUtils';
 
 interface EventCardProps {
   event: Event;
@@ -41,34 +27,6 @@ export function EventCard({ event }: EventCardProps) {
   const commentCount = getEventComments(event.id).length;
   const favoriteCount = getEventFavoriteCount(event.id);
   const isFavorited = user ? isEventFavorited(event.id, user.id) : false;
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
-
-  const getDateParts = (dateString: string) => {
-    const date = new Date(dateString);
-    return {
-      month: date.toLocaleDateString('en-US', { month: 'short' }),
-      day: date.getDate(),
-      weekday: date.toLocaleDateString('en-US', { weekday: 'short' })
-    };
-  };
 
   const availableSpots = event.maxParticipants - event.sold;
   const isAlmostFull = availableSpots <= event.maxParticipants * 0.1;

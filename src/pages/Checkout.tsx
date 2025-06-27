@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCart } from '../contexts/CartContext';
-import { useUser } from '../contexts/UserContext';
-import { useEvents } from '../contexts/EventContext';
+import { useCart } from '../hooks/useCart';
+import { useUser } from '../hooks/useUser';
+import { useEvents } from '../hooks/useEvents';
 import { 
   ArrowLeft, 
   CreditCard, 
@@ -14,6 +14,7 @@ import {
   CheckCircle,
   ShoppingCart
 } from 'lucide-react';
+import { formatDate, formatTime } from '../utils/dateUtils';
 
 export function Checkout() {
   const navigate = useNavigate();
@@ -24,25 +25,6 @@ export function Checkout() {
   const [showSuccess, setShowSuccess] = useState(false);
 
   const total = getCartTotal();
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
 
   const handlePayment = async () => {
     if (!user || cartItems.length === 0 || isProcessing) return;
@@ -111,7 +93,7 @@ export function Checkout() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Success Overlay */}
         {showSuccess && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

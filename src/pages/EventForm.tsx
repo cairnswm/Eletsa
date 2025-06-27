@@ -1,21 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useUser } from '../contexts/UserContext';
-import { useEvents } from '../contexts/EventContext';
+import { useUser } from '../hooks/useUser';
+import { useEvents } from '../hooks/useEvents';
 import { LocationPicker } from '../components/LocationPicker';
 import { 
   ArrowLeft, 
   Save, 
-  Calendar, 
   MapPin, 
-  Users, 
-  DollarSign, 
   Upload, 
   X, 
   AlertCircle,
   Tag,
-  FileText,
-  Clock,
   Image as ImageIcon
 } from 'lucide-react';
 
@@ -66,7 +61,7 @@ export function EventForm() {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
 
   // Check permissions
-  const canEditEvent = (event: any) => {
+  const canEditEvent = (event) => {
     if (!user) return false;
     if (user.role === 'admin') return true;
     return event.organizerId === user.id;
@@ -258,7 +253,7 @@ export function EventForm() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex items-center mb-8">
           <button

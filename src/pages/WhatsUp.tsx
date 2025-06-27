@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useUser } from '../contexts/UserContext';
-import { useEvents } from '../contexts/EventContext';
+import { useUser } from '../hooks/useUser';
+import { useEvents } from '../hooks/useEvents';
 import { FollowButton } from '../components/FollowButton';
 import { 
   Heart, 
@@ -9,14 +9,13 @@ import {
   Ticket, 
   Calendar, 
   MapPin, 
-  Clock,
   User,
-  MessageCircle,
   TrendingUp,
   Users,
   Search,
   X
 } from 'lucide-react';
+import { formatEventDate, formatEventTime } from '../utils/dateUtils';
 
 interface Activity {
   id: string;
@@ -156,66 +155,6 @@ export function WhatsUp() {
     return filtered;
   }, [activities, filter, searchTerm]);
 
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    
-    // Check if the date is valid
-    if (isNaN(date.getTime())) {
-      return 'recently';
-    }
-    
-    const diffInMilliseconds = now.getTime() - date.getTime();
-    
-    // If the timestamp is in the future, show "just now"
-    if (diffInMilliseconds < 0) {
-      return 'just now';
-    }
-    
-    const diffInMinutes = Math.floor(diffInMilliseconds / (1000 * 60));
-    const diffInHours = Math.floor(diffInMilliseconds / (1000 * 60 * 60));
-    const diffInDays = Math.floor(diffInMilliseconds / (1000 * 60 * 60 * 24));
-
-    if (diffInMinutes < 1) {
-      return 'just now';
-    } else if (diffInMinutes < 60) {
-      return `${diffInMinutes}m ago`;
-    } else if (diffInHours < 24) {
-      return `${diffInHours}h ago`;
-    } else if (diffInDays === 1) {
-      return '1 day ago';
-    } else if (diffInDays < 7) {
-      return `${diffInDays} days ago`;
-    } else if (diffInDays < 30) {
-      const weeks = Math.floor(diffInDays / 7);
-      return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
-    } else if (diffInDays < 365) {
-      const months = Math.floor(diffInDays / 30);
-      return months === 1 ? '1 month ago' : `${months} months ago`;
-    } else {
-      const years = Math.floor(diffInDays / 365);
-      return years === 1 ? '1 year ago' : `${years} years ago`;
-    }
-  };
-
-  const formatEventDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  const formatEventTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
-
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'favorite':
@@ -263,7 +202,7 @@ export function WhatsUp() {
   if (following.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">What's Up</h1>
             <p className="text-gray-600">See what people you follow are up to</p>
@@ -294,7 +233,7 @@ export function WhatsUp() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">What's Up</h1>
@@ -406,7 +345,7 @@ export function WhatsUp() {
                           </span>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-500">{formatTime(activity.timestamp)}</p>
+                      <p className="text-sm text-gray-500">{`${formatEventDate(activity.timestamp)} ${formatEventTime(activity.timestamp)}`}</p>
                     </div>
                   </div>
                 </div>

@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { useEvents } from '../contexts/EventContext';
-import { EventCard } from '../components/EventCard';
-import { Search, Filter, Calendar, MapPin, Tag, Ticket } from 'lucide-react';
+import { useEvents } from '../hooks/useEvents';
+import { Search, Filter, Ticket } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useUser } from '../contexts/UserContext';
+import { useUser } from '../hooks/useUser';
+import { EventsGrid } from '../components/EventsGrid';
 
 export function Discover() {
   const { events, categories, isPastEvent, getUserFavorites } = useEvents();
@@ -90,7 +90,7 @@ export function Discover() {
     setSelectedDateRange('');
   };
 
-  const hasActiveFilters = searchTerm || selectedCategory || selectedCity || selectedDateRange;
+  const hasActiveFilters = Boolean(searchTerm || selectedCategory || selectedCity || selectedDateRange);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -112,15 +112,6 @@ export function Discover() {
             </Link>
           )}
         </div>
-
-        {/* Favorites Notice */}
-        {user && userFavorites.length > 0 && (
-          <div className="bg-gradient-to-r from-blue-50 to-pink-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p className="text-blue-800">
-              <span className="font-medium">Your favorite events appear first!</span> You have {userFavorites.length} favorited event{userFavorites.length !== 1 ? 's' : ''}.
-            </p>
-          </div>
-        )}
 
         {/* Search and Filters */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
@@ -235,29 +226,11 @@ export function Discover() {
         </div>
 
         {/* Events Grid */}
-        {filteredEvents.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredEvents.map(event => (
-              <EventCard key={event.id} event={event} />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No upcoming events found</h3>
-            <p className="text-gray-600 mb-4">
-              Try adjusting your search criteria or check back later for new events.
-            </p>
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-pink-600 text-white rounded-lg hover:from-blue-700 hover:to-pink-700 transition-all duration-200"
-              >
-                Clear All Filters
-              </button>
-            )}
-          </div>
-        )}
+        <EventsGrid 
+          events={filteredEvents} 
+          hasActiveFilters={hasActiveFilters} 
+          clearFilters={clearFilters} 
+        />
       </div>
     </div>
   );

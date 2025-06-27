@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useEvents } from '../contexts/EventContext';
-import { useUser } from '../contexts/UserContext';
-import { useCart } from '../contexts/CartContext';
+import { useEvents } from '../hooks/useEvents';
+import { useUser } from '../hooks/useUser';
+import { useCart } from '../hooks/useCart';
 import { organizers as organizersData } from '../data/organizers';
 import { CommentsSection } from '../components/CommentsSection';
 import { OrganizerCommentsSection } from '../components/OrganizerCommentsSection';
@@ -10,13 +10,8 @@ import {
   Calendar, 
   MapPin, 
   Users, 
-  Clock, 
   Star, 
   ArrowLeft, 
-  MessageCircle,
-  Ticket,
-  CreditCard,
-  User,
   Heart,
   ShoppingCart,
   LogIn,
@@ -28,22 +23,12 @@ import {
   Award,
   CheckCircle
 } from 'lucide-react';
-
-interface Organizer {
-  id: string;
-  name: string;
-  bio: string;
-  eventCount: number;
-  averageRating: number;
-  testimonials: number[];
-  avatar?: string;
-}
+import {UserNameWithFollowButton} from '../components/UserNameWithFollowButton';
+import { Organizer } from '../types/user.types';
 
 export function EventDetails() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { 
-    events, 
     setActiveEventId, 
     activeEvent, 
     getEventReviews, 
@@ -245,7 +230,7 @@ export function EventDetails() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
         <div className="flex items-center justify-between mb-6">
           <Link
@@ -282,7 +267,7 @@ export function EventDetails() {
               
               {/* Event Title Overlay */}
               <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-                <div className="max-w-4xl">
+                <div className="">
                   <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 drop-shadow-lg">
                     {activeEvent.title}
                   </h1>
@@ -530,18 +515,10 @@ export function EventDetails() {
               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Event Organizer</h3>
                 <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <User className="h-6 w-6 text-blue-600" />
-                  </div>
-                  <div className="flex-1">
-                    <Link
-                      to={`/organizer/${organizer.id}`}
-                      className="font-medium text-gray-900 hover:text-blue-600 transition-colors"
-                    >
-                      {organizer.name}
-                    </Link>
-                    <p className="text-sm text-gray-600 mt-1 leading-relaxed">{organizer.bio}</p>
-                    <div className="flex items-center mt-3 text-sm text-gray-500">
+                    <div className="flex-1 -ml-4">
+                    <UserNameWithFollowButton userId={organizer.id} userName={organizer.name} imageUrl={organizer.image} link={`/organizer/${organizer.id}`} />
+                    <p className="text-sm text-gray-600 ms-8 mt-1 leading-relaxed">{organizer.bio}</p>
+                    <div className="flex items-center ms-8 mt-3 text-sm text-gray-500">
                       <span>{organizer.eventCount} events</span>
                       <span className="mx-2">•</span>
                       <div className="flex items-center">

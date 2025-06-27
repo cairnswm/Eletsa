@@ -1,22 +1,13 @@
 import React, { useState } from 'react';
-import { useUser } from '../contexts/UserContext';
-import { useEvents } from '../contexts/EventContext';
+import { useUser } from '../hooks/useUser';
+import { useEvents } from '../hooks/useEvents';
 import { FollowButton } from './FollowButton';
 import { MessageCircle, Send, Reply, User, Trash2, AlertTriangle } from 'lucide-react';
-
-interface Comment {
-  id: number;
-  eventId: number;
-  userId: number;
-  userName: string;
-  userRole: string;
-  comment: string;
-  timestamp: string;
-  parentId: number | null;
-}
+import { Comment } from '../types/event.types';
+import { formatTime } from '../utils/dateUtils';
 
 interface OrganizerCommentsSectionProps {
-  eventId: number;
+  eventId: string; // Changed from number to string
   canModerate?: boolean;
 }
 
@@ -24,32 +15,16 @@ export function OrganizerCommentsSection({ eventId, canModerate = false }: Organ
   const { user } = useUser();
   const { getEventComments, addComment, deleteComment } = useEvents();
   const [newComment, setNewComment] = useState('');
-  const [replyingTo, setReplyingTo] = useState<number | null>(null);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState('');
-  const [deletingComment, setDeletingComment] = useState<number | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
+  const [deletingComment, setDeletingComment] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   const comments = getEventComments(eventId);
   const topLevelComments = comments.filter(comment => comment.parentId === null);
 
-  const getReplies = (commentId: number) => {
+  const getReplies = (commentId: string) => {
     return comments.filter(comment => comment.parentId === commentId);
-  };
-
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
-
-    if (diffInHours < 1) {
-      const diffInMinutes = Math.floor(diffInHours * 60);
-      return `${diffInMinutes}m ago`;
-    } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}h ago`;
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return `${diffInDays}d ago`;
-    }
   };
 
   const handleSubmitComment = (e: React.FormEvent) => {
@@ -60,7 +35,7 @@ export function OrganizerCommentsSection({ eventId, canModerate = false }: Organ
     setNewComment('');
   };
 
-  const handleSubmitReply = (e: React.FormEvent, parentId: number) => {
+  const handleSubmitReply = (e: React.FormEvent, parentId: string) => {
     e.preventDefault();
     if (!user || !replyText.trim()) return;
 
@@ -69,7 +44,7 @@ export function OrganizerCommentsSection({ eventId, canModerate = false }: Organ
     setReplyingTo(null);
   };
 
-  const handleDeleteComment = async (commentId: number) => {
+  const handleDeleteComment = async (commentId: string) => {
     setDeletingComment(commentId);
     try {
       await deleteComment(commentId);
