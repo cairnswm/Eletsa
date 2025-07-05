@@ -22,6 +22,10 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
+  // FIXED: Add tracking for what data has been fetched for each event
+  const [commentsFetched, setCommentsFetched] = useState<Set<number>>(new Set());
+  const [organizersFetched, setOrganizersFetched] = useState<Set<number>>(new Set());
+  
   // FIXED: Add caching for ticket types to prevent redundant fetches
   const [ticketTypesCache, setTicketTypesCache] = useState<{ [eventId: number]: TicketType[] }>({});
   const [ticketTypesFetched, setTicketTypesFetched] = useState<Set<number>>(new Set());
@@ -126,20 +130,58 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return fetchEventTicketTypes(eventId);
   };
 
-  const fetchEventComments = async (eventId: number) => {
+  // FIXED: Method to invalidate ticket types cache for an event
+  const invalidateEventTicketTypes = (eventId: number) => {
+    console.log(`Invalidating ticket types cache for event ${eventId}`);
+    
+    // Clear cache and fetched status
+    setTicketTypesFetched(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(eventId);
+      return newSet;
+    });
+    
+    setTicketTypesCache(prev => {
+      const newCache = { ...prev };
+      delete newCache[eventId];
+      return newCache;
+    });
+    
+    // Clear current ticket types if this is the active event
+    if (activeEventId === eventId) {
+      setTicketTypes([]);
+    }
+  };
+
+  // FIXED: Only fetch comments if not already fetched for this event
+  const fetchEventComments = async (eventId: number, force: boolean = false) => {
+    if (!force && commentsFetched.has(eventId)) {
+      console.log(`Comments for event ${eventId} already fetched, skipping`);
+      return;
+    }
+
     try {
       setError(null);
+      console.log(`Fetching comments for event ${eventId}...`);
       const commentsData = await eventsApi.fetchEventComments(eventId);
       setComments(commentsData);
+      setCommentsFetched(prev => new Set([...prev, eventId]));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch comments');
       console.error('Failed to fetch comments:', err);
     }
   };
 
-  const fetchOrganizer = async (organizerId: number) => {
+  // FIXED: Only fetch organizer if not already fetched
+  const fetchOrganizer = async (organizerId: number, force: boolean = false) => {
+    if (!force && organizersFetched.has(organizerId)) {
+      console.log(`Organizer ${organizerId} already fetched, skipping`);
+      return;
+    }
+
     try {
       setError(null);
+      console.log(`Fetching organizer ${organizerId}...`);
       // Mock organizer data since the API endpoint wasn't provided
       const mockOrganizer: Organizer = {
         id: organizerId,
@@ -152,6 +194,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         events_count: 12,
       };
       setOrganizer(mockOrganizer);
+      setOrganizersFetched(prev => new Set([...prev, organizerId]));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch organizer');
       console.error('Failed to fetch organizer:', err);
@@ -169,22 +212,24 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return;
     }
 
+    // FIXED: Only proceed if the active event ID is actually changing
+    if (activeEventId === id) {
+      console.log(`Event ${id} is already active, skipping fetch`);
+      return;
+    }
+
     // Check if event exists in current events list
     const existingEvent = events.find(event => event.id === id);
     
     if (existingEvent) {
       setActiveEvent(existingEvent);
       
-      // Set ticket types from cache if available
-      const cachedTicketTypes = ticketTypesCache[id];
-      if (cachedTicketTypes) {
-        console.log(`Using cached ticket types for event ${id}`);
-        setTicketTypes(cachedTicketTypes);
-      }
+      // Always fetch ticket types when setting active event (they change frequently)
+      console.log(`Setting active event ${id}, fetching related data...`);
       
-      // Fetch related data (only fetch ticket types if not cached)
+      // Fetch related data (comments and organizer only if not cached)
       await Promise.all([
-        cachedTicketTypes ? Promise.resolve(cachedTicketTypes) : fetchEventTicketTypes(id),
+        fetchEventTicketTypes(id),
         fetchEventComments(id),
         fetchOrganizer(existingEvent.organizer_id),
       ]);
@@ -225,7 +270,18 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Clear ticket types cache when events are refreshed
     setTicketTypesCache({});
     setTicketTypesFetched(new Set());
+    // FIXED: Also clear comments and organizer caches
+    setCommentsFetched(new Set());
+    setOrganizersFetched(new Set());
   }, [events.length]); // Only clear when the number of events changes
+
+  // FIXED: Clear comments and organizer when active event changes to null
+  useEffect(() => {
+    if (activeEventId === null) {
+      setComments([]);
+      setOrganizer(null);
+    }
+  }, [activeEventId]);
 
   useEffect(() => {
     fetchEvents();
@@ -245,6 +301,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     fetchEventTicketTypes,
     getEventTicketTypes, // ADDED: New method to get cached ticket types
     refreshEventTicketTypes, // ADDED: New method to force refresh
+    invalidateEventTicketTypes, // ADDED: New method to invalidate cache
     fetchEventComments,
     fetchOrganizer,
     addEventToCache,

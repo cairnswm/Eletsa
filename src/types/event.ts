@@ -70,6 +70,7 @@ export interface EventContextType {
   fetchEventTicketTypes: (eventId: number) => Promise<TicketType[]>;
   getEventTicketTypes: (eventId: number) => TicketType[]; // ADDED: Get cached ticket types
   refreshEventTicketTypes: (eventId: number) => Promise<TicketType[]>; // ADDED: Force refresh
+  invalidateEventTicketTypes: (eventId: number) => void; // ADDED: Invalidate cache
   fetchEventComments: (eventId: number) => Promise<void>;
   fetchOrganizer: (organizerId: number) => Promise<void>;
   addEventToCache: (newEvent: Event) => void;

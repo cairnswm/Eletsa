@@ -176,6 +176,30 @@ export const eventsApi = {
     };
   },
 
+  async updateTicketType(ticketTypeId: number, ticketData: {
+    name?: string;
+    description?: string;
+    price?: number;
+    quantity?: number;
+    refundable?: boolean;
+  }) {
+    const response = await fetch(`${EVENTS_API}/api.php/ticket_type/${ticketTypeId}`, {
+      method: 'PUT',
+      headers: createHeaders(true),
+      body: JSON.stringify(ticketData),
+    });
+
+    const data = await handleApiResponse(response);
+    
+    // FIXED: Convert string prices to numbers for the returned ticket type
+    return {
+      ...data,
+      price: data.price ? Number(data.price) : 0,
+      quantity: data.quantity ? Number(data.quantity) : 0,
+      quantity_sold: data.quantity_sold ? Number(data.quantity_sold) : 0,
+    };
+  },
+
   async createComment(commentData: {
     event_id: number;
     user_id: number;
