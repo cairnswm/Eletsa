@@ -6,6 +6,8 @@ import { useOrganizer } from '../contexts/OrganizerContext';
 import { useEvent } from '../contexts/EventContext';
 import { eventsApi } from '../services/events';
 import { LocationPicker } from '../components/location/LocationPicker';
+import { ImageUpload } from '../components/common/ImageUpload';
+import { useImageUpload } from '../hooks/useImageUpload';
 
 interface TicketTypeForm {
   id: string; // temporary ID for form management
@@ -21,6 +23,7 @@ export const CreateEvent: React.FC = () => {
   const { user } = useAuth();
   const { getOrganizerByUserId, refreshOrganizerEvents } = useOrganizer();
   const { fetchEvents } = useEvent(); // Re-add this to refresh main events list
+  const { uploadImages, uploading: imageUploading } = useImageUpload();
   
   // Get organizer data
   const userOrganizer = user ? getOrganizerByUserId(user.id) : null;
@@ -28,6 +31,7 @@ export const CreateEvent: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [selectedImageFiles, setSelectedImageFiles] = useState<File[]>([]);
 
   // Event form data
   const [eventData, setEventData] = useState({
@@ -41,7 +45,6 @@ export const CreateEvent: React.FC = () => {
     start_datetime: '',
     end_datetime: '',
     max_attendees: 0,
-    images: '',
     videos: '',
   });
 
@@ -147,6 +150,21 @@ export const CreateEvent: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
+      
+      let imageUrls: string[] = [];
+      
+      // Upload images first if any are selected
+      if (selectedImageFiles.length > 0) {
+        console.log('Uploading images before creating event...');
+        try {
+          imageUrls = await uploadImages(selectedImageFiles);
+          console.log('Images uploaded successfully:', imageUrls);
+        } catch (uploadError) {
+          setError('Failed to upload images. Please try again.');
+          console.error('Image upload failed:', uploadError);
+          return;
+        }
+      }
 
       console.log('Creating event with user ID as organizer_id:', user.id);
 
@@ -165,7 +183,7 @@ export const CreateEvent: React.FC = () => {
         end_datetime: eventData.end_datetime,
         max_attendees: eventData.max_attendees,
         status: 'active', // FIXED: Explicitly set status to 'active'
-        images: eventData.images.trim(),
+        images: imageUrls.length > 0 ? JSON.stringify(imageUrls) : '',
         videos: eventData.videos.trim(),
       });
 
@@ -500,27 +518,20 @@ export const CreateEvent: React.FC = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Images */}
-              <div>
-                <label htmlFor="images" className="block text-sm font-medium text-gray-700 mb-2">
+              <div className="lg:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Event Images
                 </label>
-                <div className="relative">
-                  <Image className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    id="images"
-                    name="images"
-                    type="url"
-                    value={eventData.images}
-                    onChange={handleEventChange}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200"
-                    placeholder="https://example.com/image.jpg"
-                  />
-                </div>
-                <p className="mt-1 text-xs text-gray-500">Enter image URL or JSON array of URLs</p>
+                <ImageUpload
+                  onFilesChange={setSelectedImageFiles}
+                  maxImages={5}
+                  className="w-full"
+                />
+                <p className="mt-1 text-xs text-gray-500">Select up to 5 images for your event. Images will be uploaded when you save the event. Large images will be automatically resized.</p>
               </div>
 
               {/* Videos */}
-              <div>
+              <div className="lg:col-span-2">
                 <label htmlFor="videos" className="block text-sm font-medium text-gray-700 mb-2">
                   Event Videos
                 </label>
@@ -675,11 +686,13 @@ export const CreateEvent: React.FC = () => {
             </button>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || imageUploading}
               className="bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
             >
               <Save className="w-5 h-5" />
-              <span>{loading ? 'Creating Event...' : 'Create Event'}</span>
+              <span>
+                {imageUploading ? 'Uploading Images...' : loading ? 'Creating Event...' : 'Create Event'}
+              </span>
             </button>
           </div>
         </form>
