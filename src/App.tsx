@@ -1,67 +1,114 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { UserProvider } from './contexts/UserContext';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { TenantProvider } from './contexts/TenantContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { EventProvider } from './contexts/EventContext';
-import { CartProvider } from './contexts/CartContext';
-import { TransactionProvider } from './contexts/TransactionContext';
+import { UserProvider } from './contexts/UserContext';
+import { OrganizerProvider } from './contexts/OrganizerContext';
 import { Header } from './components/Header';
 import { Landing } from './pages/Landing';
+import { Home } from './pages/Home';
 import { Login } from './pages/Login';
-import { Discover } from './pages/Discover';
-import { EventDetails } from './pages/EventDetails';
-import { OrganizerProfile } from './pages/OrganizerProfile';
-import { MyTickets } from './pages/MyTickets';
+import { Register } from './pages/Register';
 import { Profile } from './pages/Profile';
-import { Messages } from './pages/Messages';
-import { WhatsUp } from './pages/WhatsUp';
-import { Checkout } from './pages/Checkout';
+import { Tickets } from './pages/Tickets';
 import { MyEvents } from './pages/MyEvents';
-import { EventForm } from './pages/EventForm';
-import { MessagesProvider } from './contexts/MessagesContext';
+import { CreateEvent } from './pages/CreateEvent';
+import { EditEvent } from './pages/EditEvent';
+import { useAuth } from './contexts/AuthContext';
 
-function ScrollToTop() {
-  const { pathname } = useLocation();
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#1E30FF]/10 via-white to-[#FF2D95]/10 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1E30FF]"></div>
+      </div>
+    );
+  }
 
-  return null;
-}
+  return user ? <>{children}</> : <Navigate to="/login" replace />;
+};
+
+const AppContent: React.FC = () => {
+  const { user } = useAuth();
+
+  return (
+    <div className="min-h-screen">
+      {user && <Header />}
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tickets"
+          element={
+            <ProtectedRoute>
+              <Tickets />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-events"
+          element={
+            <ProtectedRoute>
+              <MyEvents />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-event"
+          element={
+            <ProtectedRoute>
+              <CreateEvent />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/edit-event/:eventId"
+          element={
+            <ProtectedRoute>
+              <EditEvent />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </div>
+  );
+};
 
 function App() {
   return (
-    <UserProvider>
-      <EventProvider>
-        <CartProvider>
-          <TransactionProvider>
-            <MessagesProvider>
-            <Router>
-              <ScrollToTop />
-              <div className="min-h-screen bg-gray-50">
-                <Header />
-                <Routes>
-                  <Route path="/" element={<Landing />} />
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/discover" element={<Discover />} />
-                  <Route path="/event/new" element={<EventForm />} />
-                  <Route path="/event/:id" element={<EventDetails />} />
-                  <Route path="/event/:id/edit" element={<EventForm />} />
-                  <Route path="/organizer/:id" element={<OrganizerProfile />} />
-                  <Route path="/my-events" element={<MyEvents />} />
-                  <Route path="/my-tickets" element={<MyTickets />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/messages" element={<Messages />} />
-                  <Route path="/whats-up" element={<WhatsUp />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                </Routes>
-              </div>
-            </Router>
-            </MessagesProvider>
-          </TransactionProvider>
-        </CartProvider>
-      </EventProvider>
-    </UserProvider>
+    <Router>
+      <TenantProvider>
+        <AuthProvider>
+          <UserProvider>
+            <OrganizerProvider>
+              <EventProvider>
+                <AppContent />
+              </EventProvider>
+            </OrganizerProvider>
+          </UserProvider>
+        </AuthProvider>
+      </TenantProvider>
+    </Router>
   );
 }
 

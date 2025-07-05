@@ -1,261 +1,227 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useUser } from '../hooks/useUser';
-import { messages as messagesData } from '../data/messages';
-import { CartDropdown } from './CartDropdown';
-import { Calendar, User, LogOut, Menu, X, MessageCircle, Ticket, TrendingUp, Settings, Search } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { User, LogOut, ChevronDown, Search, Ticket, Calendar, Menu, X } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { useOrganizer } from '../contexts/OrganizerContext';
+import { useTenant } from '../contexts/TenantContext';
 
-export function Header() {
-  const { user, logout } = useUser();
-  const location = useLocation();
+export const Header: React.FC = () => {
+  const { user, logout } = useAuth();
+  const { getOrganizerByUserId } = useOrganizer();
+  const { tenant } = useTenant();
+  const navigate = useNavigate();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);const navigate = useNavigate();
-    
 
-  useEffect(() => {
-    if (user) {
-      fetchUnreadCount();
-    }
-  }, [user]);
+  // Check if user is an organizer
+  const userOrganizer = user ? getOrganizerByUserId(user.id) : null;
+  const isOrganizer = !!userOrganizer;
 
-  const fetchUnreadCount = () => {
-    // Count messages where current user is the recipient and message is "unread"
-    // For demo purposes, we'll count messages to the current user from the last 24 hours
-    const now = new Date();
-    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    
-    const unread = messagesData.filter((msg: any) => 
-      msg.toUserId === user?.id && 
-      new Date(msg.timestamp) > yesterday
-    ).length;
-    
-    setUnreadCount(unread);
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+    setDropdownOpen(false);
+    setMobileMenuOpen(false);
   };
 
-  const navigation = [
-    { name: 'Discover', href: '/discover', icon: Search },
-    { name: 'What\'s Up', href: '/whats-up', protected: true, icon: TrendingUp },
-    { name: 'My Tickets', href: '/my-tickets', protected: true, icon: Ticket },
+  const getDisplayName = () => {
+    if (user?.firstname && user?.lastname) {
+      return `${user.firstname} ${user.lastname}`;
+    }
+    if (user?.username) {
+      return user.username;
+    }
+    return user?.email || 'User';
+  };
+
+  const handleNavClick = () => {
+    setMobileMenuOpen(false);
+  };
+
+  if (!user) return null;
+
+  const navigationItems = [
+    {
+      name: 'Discover',
+      href: '/home',
+      icon: Search,
+      description: 'Find amazing events',
+    },
+    {
+      name: 'My Tickets',
+      href: '/tickets',
+      icon: Ticket,
+      description: 'View your tickets',
+    },
+    ...(isOrganizer ? [{
+      name: 'My Events',
+      href: '/my-events',
+      icon: Calendar,
+      description: 'Manage your events',
+    }] : []),
   ];
-
-  const organizerNavigation = [
-    { name: 'My Events', href: '/my-events', roles: ['organizer', 'admin'], icon: Settings }
-  ];
-
-  const adminNavigation = [
-    { name: 'Admin', href: '/admin', icon: Settings }
-  ];
-
-  const isActive = (path: string) => location.pathname === path;
-
-  const doLogout = () => {
-    logout();
-    navigate("/");
-  }
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <Calendar className="h-8 w-8 text-blue-600" />
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-pink-600 bg-clip-text text-transparent">Eletsa</span>
-          </Link>
+          {/* Logo/Brand */}
+          <div className="flex items-center">
+            <Link to="/home" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">E</span>
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] bg-clip-text text-transparent">
+                {tenant?.name || 'Eletsa'}
+              </span>
+            </Link>
+          </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            {navigation.map((item) => {
-              if (item.protected && !user) return null;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`text-sm font-medium transition-colors ${
-                    isActive(item.href)
-                      ? 'text-blue-600'
-                      : 'text-gray-700 hover:text-blue-600'
-                  }`}
-                >
-                  {item.name}
-                </Link>
-              );
-            })}
-            
-            {user && (user.role === 'organizer' || user.role === 'admin') && organizerNavigation.map((item) => (
+            {navigationItems.map((item) => (
               <Link
                 key={item.name}
                 to={item.href}
-                className={`text-sm font-medium transition-colors ${
-                  isActive(item.href)
-                    ? 'text-blue-600'
-                    : 'text-gray-700 hover:text-blue-600'
-                }`}
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-700 hover:text-[#1E30FF] hover:bg-gray-50 transition-all duration-200 group"
               >
-                {item.name}
-              </Link>
-            ))}
-            
-            {user?.role === 'admin' && adminNavigation.map((item) => (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={`text-sm font-medium transition-colors ${
-                  isActive(item.href)
-                    ? 'text-blue-600'
-                    : 'text-gray-700 hover:text-blue-600'
-                }`}
-              >
-                {item.name}
+                <item.icon className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+                <span className="font-medium">{item.name}</span>
               </Link>
             ))}
           </nav>
 
-          {/* User Menu */}
-          <div className="flex items-center">
-            {user ? (
-              <div className="flex items-center space-x-1 sm:space-x-4">
-                {/* Cart Icon */}
-                <CartDropdown />
-
-                {/* Messages Icon with Badge */}
-                <Link
-                  to="/messages"
-                  className="relative p-2 text-gray-700 hover:text-blue-600 transition-colors"
-                >
-                  <MessageCircle className="h-5 w-5" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  )}
-                </Link>
-
-                {/* Profile Link - Desktop */}
-                <Link
-                  to="/profile"
-                  className="hidden sm:flex items-center space-x-2 text-sm text-gray-700 hover:text-blue-600 transition-colors p-2"
-                >
-                  <User className="h-4 w-4" />
-                  <span>{user.name}</span>
-                </Link>
-
-                {/* Profile Icon - Mobile */}
-                <Link
-                  to="/profile"
-                  className="sm:hidden p-2 text-gray-700 hover:text-blue-600 transition-colors"
-                >
-                  <User className="h-5 w-5" />
-                </Link>
-
-                {/* Logout - Desktop only */}
-                <button
-                  onClick={doLogout}
-                  className="hidden sm:flex items-center space-x-1 text-sm text-gray-700 hover:text-red-600 transition-colors p-2"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
-                </button>
-              </div>
-            ) : (
-              <Link
-                to="/login"
-                className="bg-gradient-to-r from-blue-600 to-pink-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-blue-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+          {/* Right Side - Desktop */}
+          <div className="hidden md:flex items-center space-x-4">
+            {/* User Menu */}
+            <div className="relative">
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors duration-200"
               >
-                Login
-              </Link>
-            )}
+                <div className="w-8 h-8 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] rounded-full flex items-center justify-center">
+                  {user.avatar ? (
+                    <img src={user.avatar} alt="Avatar" className="w-8 h-8 rounded-full" />
+                  ) : (
+                    <User className="w-4 h-4 text-white" />
+                  )}
+                </div>
+                <span className="text-sm font-medium text-gray-700">
+                  {getDisplayName()}
+                </span>
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              </button>
 
-            {/* Mobile menu button */}
+              {/* Desktop Dropdown Menu */}
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                  <Link
+                    to="/profile"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    <User className="w-4 h-4 mr-2" />
+                    Profile
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 ml-2"
+              className="p-2 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
             >
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
             </button>
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden border-t border-gray-200 py-4">
             <div className="space-y-2">
-              {navigation.map((item) => {
-                if (item.protected && !user) return null;
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
-                      isActive(item.href)
-                        ? 'text-blue-600 bg-blue-50'
-                        : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4 mr-3" />
-                    {item.name}
-                  </Link>
-                );
-              })}
-
-              {user && (user.role === 'organizer' || user.role === 'admin') && organizerNavigation.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
-                      isActive(item.href)
-                        ? 'text-blue-600 bg-blue-50'
-                        : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4 mr-3" />
-                    {item.name}
-                  </Link>
-                );
-              })}
-              
-              {user?.role === 'admin' && adminNavigation.map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center px-3 py-2 rounded-md text-base font-medium ${
-                      isActive(item.href)
-                        ? 'text-blue-600 bg-blue-50'
-                        : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    <Icon className="h-4 w-4 mr-3" />
-                    {item.name}
-                  </Link>
-                );
-              })}
-
-              {/* Logout for mobile */}
-              {user && (
-                <button
-                  onClick={() => {
-                    logout();
-                    setMobileMenuOpen(false);
-                  }}
-                  className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-red-600 hover:bg-gray-50"
+              {/* Navigation Items */}
+              {navigationItems.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  onClick={handleNavClick}
+                  className="flex items-center space-x-3 px-3 py-3 rounded-lg text-gray-700 hover:text-[#1E30FF] hover:bg-gray-50 transition-all duration-200"
                 >
-                  <LogOut className="h-4 w-4 mr-3" />
-                  Logout
-                </button>
-              )}
+                  <item.icon className="w-5 h-5" />
+                  <div>
+                    <div className="font-medium">{item.name}</div>
+                    <div className="text-xs text-gray-500">{item.description}</div>
+                  </div>
+                </Link>
+              ))}
+
+              {/* Divider */}
+              <div className="border-t border-gray-200 my-2"></div>
+
+              {/* User Section */}
+              <div className="px-3 py-2">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] rounded-full flex items-center justify-center">
+                    {user.avatar ? (
+                      <img src={user.avatar} alt="Avatar" className="w-10 h-10 rounded-full" />
+                    ) : (
+                      <User className="w-5 h-5 text-white" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-900">{getDisplayName()}</div>
+                    <div className="text-sm text-gray-500">{user.email}</div>
+                    {isOrganizer && (
+                      <div className="text-xs text-[#489707] font-medium">Event Organizer</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Link
+                    to="/profile"
+                    onClick={handleNavClick}
+                    className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    <User className="w-4 h-4" />
+                    <span>Profile</span>
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* Desktop Backdrop */}
+      {dropdownOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setDropdownOpen(false)}
+        />
+      )}
     </header>
   );
-}
+};

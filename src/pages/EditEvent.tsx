@@ -1,0 +1,780 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, Calendar, MapPin, Users, Clock, Image, Tag, Plus, Trash2, Save, AlertCircle, DollarSign, RefreshCw, Map } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { useOrganizer } from '../contexts/OrganizerContext';
+import { useEvent } from '../contexts/EventContext';
+import { eventsApi } from '../services/events';
+import { LocationPicker } from '../components/location/LocationPicker';
+
+interface TicketTypeForm {
+  id: string | number; // Can be string for new ones or number for existing
+  name: string;
+  description: string;
+  price: number;
+  quantity: number;
+  refundable: boolean;
+  isNew?: boolean; // Track if this is a new ticket type
+}
+
+export const EditEvent: React.FC = () => {
+  const navigate = useNavigate();
+  const { eventId } = useParams<{ eventId: string }>();
+  const { user } = useAuth();
+  const { getOrganizerByUserId, getOrganizerEvents } = useOrganizer();
+  const { getEventTicketTypes } = useEvent(); // FIXED: Use cached getter instead of fetcher
+  
+  // Get organizer data
+  const userOrganizer = user ? getOrganizerByUserId(user.id) : null;
+
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+
+  // Event form data
+  const [eventData, setEventData] = useState({
+    title: '',
+    description: '',
+    category: '',
+    tags: '',
+    location_name: '',
+    location_latitude: 0,
+    location_longitude: 0,
+    start_datetime: '',
+    end_datetime: '',
+    max_attendees: 0,
+    images: '',
+    videos: '',
+    status: 'active',
+  });
+
+  // Ticket types
+  const [ticketTypes, setTicketTypes] = useState<TicketTypeForm[]>([]);
+
+  const categories = [
+    'Workshop', 'Social', 'Sports', 'Music', 'Food', 'Business', 'Arts', 'Technology', 'Health', 'Education'
+  ];
+
+  // Load event data from context (already loaded in organizer events)
+  useEffect(() => {
+    const loadEventData = async () => {
+      if (!eventId || !userOrganizer || !user) return;
+
+      try {
+        setInitialLoading(true);
+        setError(null);
+
+        // FIXED: Get event from organizer events context instead of fetching
+        const organizerEvents = getOrganizerEvents(user.id);
+        const event = organizerEvents.find(e => e.id === parseInt(eventId));
+
+        if (!event) {
+          setError('Event not found. Please make sure you have access to this event.');
+          return;
+        }
+
+        // Check if user owns this event (organizer_id should match user.id)
+        if (event.organizer_id !== user.id) {
+          setError('You do not have permission to edit this event');
+          return;
+        }
+
+        console.log('Loading event data for editing:', event);
+
+        // Set event data
+        setEventData({
+          title: event.title,
+          description: event.description,
+          category: event.category,
+          tags: event.tags || '',
+          location_name: event.location_name,
+          location_latitude: event.location_latitude,
+          location_longitude: event.location_longitude,
+          start_datetime: event.start_datetime.slice(0, 16), // Format for datetime-local input
+          end_datetime: event.end_datetime.slice(0, 16),
+          max_attendees: event.max_attendees,
+          images: event.images || '',
+          videos: event.videos || '',
+          status: event.status || 'active',
+        });
+
+        // FIXED: Get ticket types from cache instead of fetching
+        // This prevents redundant API calls since ticket types are already loaded
+        const cachedTicketTypes = getEventTicketTypes(parseInt(eventId));
+        
+        if (cachedTicketTypes.length > 0) {
+          console.log('Using cached ticket types:', cachedTicketTypes);
+          const formattedTicketTypes = cachedTicketTypes.map(tt => ({
+            id: tt.id,
+            name: tt.name,
+            description: tt.description,
+            price: tt.price,
+            quantity: tt.quantity,
+            refundable: tt.refundable,
+            isNew: false,
+          }));
+          setTicketTypes(formattedTicketTypes);
+        } else {
+          console.log('No cached ticket types found, setting default');
+          // Set default ticket type if none exist
+          setTicketTypes([{
+            id: 'default-1',
+            name: 'General Admission',
+            description: '',
+            price: 0,
+            quantity: 50,
+            refundable: false,
+            isNew: true,
+          }]);
+        }
+
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load event data');
+        console.error('Failed to load event data:', err);
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    loadEventData();
+  }, [eventId, userOrganizer?.id, user?.id, getOrganizerEvents, getEventTicketTypes]); // FIXED: Use getEventTicketTypes instead of fetchEventTicketTypes
+
+  const handleEventChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    setEventData(prev => ({
+      ...prev,
+      [name]: type === 'number' ? parseFloat(value) || 0 : value,
+    }));
+  };
+
+  const handleTicketTypeChange = (id: string | number, field: keyof TicketTypeForm, value: string | number | boolean) => {
+    setTicketTypes(prev => prev.map(ticket => 
+      ticket.id === id ? { ...ticket, [field]: value } : ticket
+    ));
+  };
+
+  const addTicketType = () => {
+    const newTicketType: TicketTypeForm = {
+      id: `new-${Date.now()}`,
+      name: '',
+      description: '',
+      price: 0,
+      quantity: 50,
+      refundable: false,
+      isNew: true,
+    };
+    setTicketTypes(prev => [...prev, newTicketType]);
+  };
+
+  const removeTicketType = (id: string | number) => {
+    if (ticketTypes.length > 1) {
+      setTicketTypes(prev => prev.filter(ticket => ticket.id !== id));
+    }
+  };
+
+  const handleLocationSelect = (location: {
+    name: string;
+    latitude: number;
+    longitude: number;
+  }) => {
+    setEventData(prev => ({
+      ...prev,
+      location_name: location.name,
+      location_latitude: location.latitude,
+      location_longitude: location.longitude,
+    }));
+  };
+
+  const validateForm = (): string | null => {
+    if (!eventData.title.trim()) return 'Event title is required';
+    if (!eventData.description.trim()) return 'Event description is required';
+    if (!eventData.category) return 'Event category is required';
+    if (!eventData.location_name.trim()) return 'Event location is required';
+    if (!eventData.start_datetime) return 'Start date and time is required';
+    if (!eventData.end_datetime) return 'End date and time is required';
+    
+    const startDate = new Date(eventData.start_datetime);
+    const endDate = new Date(eventData.end_datetime);
+    if (endDate <= startDate) return 'End date must be after start date';
+    
+    if (eventData.max_attendees <= 0) return 'Maximum attendees must be greater than 0';
+
+    // Validate ticket types
+    for (const ticket of ticketTypes) {
+      if (!ticket.name.trim()) return 'All ticket types must have a name';
+      if (ticket.quantity <= 0) return 'All ticket types must have a quantity greater than 0';
+      if (ticket.price < 0) return 'Ticket prices cannot be negative';
+    }
+
+    return null;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!userOrganizer || !eventId || !user) {
+      setError('Invalid event or organizer');
+      return;
+    }
+
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      console.log('Updating event with data:', eventData);
+
+      // Update the event
+      await eventsApi.updateEvent(parseInt(eventId), {
+        title: eventData.title.trim(),
+        description: eventData.description.trim(),
+        category: eventData.category,
+        tags: eventData.tags.trim(),
+        location_name: eventData.location_name.trim(),
+        location_latitude: eventData.location_latitude,
+        location_longitude: eventData.location_longitude,
+        start_datetime: eventData.start_datetime,
+        end_datetime: eventData.end_datetime,
+        max_attendees: eventData.max_attendees,
+        status: eventData.status,
+        images: eventData.images.trim(),
+        videos: eventData.videos.trim(),
+      });
+
+      console.log('Event updated successfully');
+
+      // Handle ticket types (this would require additional API endpoints for updating ticket types)
+      // For now, we'll just show a success message
+      
+      // Navigate back to my events page
+      navigate('/my-events');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update event');
+      console.error('Failed to update event:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-ZA', {
+      style: 'currency',
+      currency: 'ZAR',
+    }).format(amount);
+  };
+
+  if (!userOrganizer) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#1E30FF]/5 via-white to-[#FF2D95]/5 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Calendar className="w-8 h-8 text-gray-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Organizer Access Required</h2>
+          <p className="text-gray-600 mb-6">You need to be an event organizer to edit events.</p>
+          <button
+            onClick={() => navigate('/profile')}
+            className="bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-all duration-200"
+          >
+            Become an Organizer
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#1E30FF]/5 via-white to-[#FF2D95]/5 flex items-center justify-center">
+        <div className="flex items-center space-x-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1E30FF]"></div>
+          <span className="text-gray-600">Loading event data...</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#1E30FF]/5 via-white to-[#FF2D95]/5">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <button
+            onClick={() => navigate('/my-events')}
+            className="flex items-center space-x-2 text-gray-600 hover:text-[#1E30FF] transition-colors duration-200"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            <span className="font-medium">Back to My Events</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Page Header */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] rounded-2xl mb-6">
+            <Calendar className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] bg-clip-text text-transparent mb-4">
+            Edit Event
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Update your event details and settings
+          </p>
+        </div>
+
+        {/* Debug Info - Remove in production */}
+        {/* {process.env.NODE_ENV === 'development' && user && (
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-blue-800 text-sm">
+              <strong>Debug Info:</strong> Event ID: {eventId}, User ID: {user.id}
+              <br />
+              <strong>Event Data Source:</strong> Loaded from organizer events context (no API fetch)
+              <br />
+              <strong>Ticket Types Source:</strong> Loaded from cached ticket types (no redundant API fetch)
+              <br />
+              <strong>Event Title:</strong> {eventData.title || 'Not loaded'}
+              <br />
+              <strong>Ticket Types Count:</strong> {ticketTypes.length}
+            </p>
+          </div>
+        )} */}
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
+            <AlertCircle className="w-5 h-5 text-red-600" />
+            <span className="text-red-600 text-sm">{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Basic Information */}
+          <div className="bg-white rounded-xl shadow-md p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+              <Calendar className="w-6 h-6 text-[#1E30FF]" />
+              <span>Basic Information</span>
+            </h2>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Event Title */}
+              <div className="lg:col-span-2">
+                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                  Event Title *
+                </label>
+                <input
+                  id="title"
+                  name="title"
+                  type="text"
+                  required
+                  value={eventData.title}
+                  onChange={handleEventChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200"
+                  placeholder="Enter your event title"
+                />
+              </div>
+
+              {/* Category */}
+              <div>
+                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+                  Category *
+                </label>
+                <select
+                  id="category"
+                  name="category"
+                  required
+                  value={eventData.category}
+                  onChange={handleEventChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200"
+                >
+                  <option value="">Select a category</option>
+                  {categories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Status */}
+              <div>
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+                  Status *
+                </label>
+                <select
+                  id="status"
+                  name="status"
+                  required
+                  value={eventData.status}
+                  onChange={handleEventChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200"
+                >
+                  <option value="active">Active</option>
+                  <option value="draft">Draft</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              {/* Tags */}
+              <div className="lg:col-span-2">
+                <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-2">
+                  Tags
+                </label>
+                <div className="relative">
+                  <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    id="tags"
+                    name="tags"
+                    type="text"
+                    value={eventData.tags}
+                    onChange={handleEventChange}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200"
+                    placeholder="e.g., networking, beginner-friendly, outdoor"
+                  />
+                </div>
+                <p className="mt-1 text-xs text-gray-500">Separate tags with commas</p>
+              </div>
+
+              {/* Description */}
+              <div className="lg:col-span-2">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                  Event Description *
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  required
+                  rows={4}
+                  value={eventData.description}
+                  onChange={handleEventChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200 resize-none"
+                  placeholder="Describe your event in detail..."
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Location & Time */}
+          <div className="bg-white rounded-xl shadow-md p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+              <MapPin className="w-6 h-6 text-[#FF2D95]" />
+              <span>Location & Time</span>
+            </h2>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Location */}
+              <div className="lg:col-span-2">
+                <label htmlFor="location_name" className="block text-sm font-medium text-gray-700 mb-2">
+                  Event Location *
+                </label>
+                <div className="flex space-x-3">
+                  <div className="flex-1 relative">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      id="location_name"
+                      name="location_name"
+                      type="text"
+                      required
+                      value={eventData.location_name}
+                      onChange={handleEventChange}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200"
+                      placeholder="Enter venue name and address"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowLocationPicker(true)}
+                    className="flex items-center space-x-2 px-4 py-3 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white rounded-lg hover:opacity-90 transition-all duration-200"
+                  >
+                    <Map className="w-4 h-4" />
+                    <span className="hidden sm:inline">Select on Map</span>
+                  </button>
+                </div>
+                {eventData.location_latitude !== 0 && eventData.location_longitude !== 0 && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    Coordinates: {eventData.location_latitude.toFixed(6)}, {eventData.location_longitude.toFixed(6)}
+                  </p>
+                )}
+              </div>
+
+              {/* Start Date & Time */}
+              <div>
+                <label htmlFor="start_datetime" className="block text-sm font-medium text-gray-700 mb-2">
+                  Start Date & Time *
+                </label>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    id="start_datetime"
+                    name="start_datetime"
+                    type="datetime-local"
+                    required
+                    value={eventData.start_datetime}
+                    onChange={handleEventChange}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200"
+                  />
+                </div>
+              </div>
+
+              {/* End Date & Time */}
+              <div>
+                <label htmlFor="end_datetime" className="block text-sm font-medium text-gray-700 mb-2">
+                  End Date & Time *
+                </label>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    id="end_datetime"
+                    name="end_datetime"
+                    type="datetime-local"
+                    required
+                    value={eventData.end_datetime}
+                    onChange={handleEventChange}
+                    min={eventData.start_datetime}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200"
+                  />
+                </div>
+              </div>
+
+              {/* Max Attendees */}
+              <div>
+                <label htmlFor="max_attendees" className="block text-sm font-medium text-gray-700 mb-2">
+                  Maximum Attendees *
+                </label>
+                <div className="relative">
+                  <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    id="max_attendees"
+                    name="max_attendees"
+                    type="number"
+                    required
+                    min="1"
+                    value={eventData.max_attendees || ''}
+                    onChange={handleEventChange}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200"
+                    placeholder="50"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Media */}
+          <div className="bg-white rounded-xl shadow-md p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center space-x-2">
+              <Image className="w-6 h-6 text-[#489707]" />
+              <span>Media</span>
+            </h2>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Images */}
+              <div>
+                <label htmlFor="images" className="block text-sm font-medium text-gray-700 mb-2">
+                  Event Images
+                </label>
+                <div className="relative">
+                  <Image className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    id="images"
+                    name="images"
+                    type="url"
+                    value={eventData.images}
+                    onChange={handleEventChange}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
+                <p className="mt-1 text-xs text-gray-500">Enter image URL or JSON array of URLs</p>
+              </div>
+
+              {/* Videos */}
+              <div>
+                <label htmlFor="videos" className="block text-sm font-medium text-gray-700 mb-2">
+                  Event Videos
+                </label>
+                <input
+                  id="videos"
+                  name="videos"
+                  type="url"
+                  value={eventData.videos}
+                  onChange={handleEventChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200"
+                  placeholder="https://youtube.com/watch?v=..."
+                />
+                <p className="mt-1 text-xs text-gray-500">Enter video URL or JSON array of URLs</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Ticket Types */}
+          <div className="bg-white rounded-xl shadow-md p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center space-x-2">
+                <DollarSign className="w-6 h-6 text-[#f0900a]" />
+                <span>Ticket Types</span>
+              </h2>
+              <button
+                type="button"
+                onClick={addTicketType}
+                className="bg-gradient-to-r from-[#489707] to-[#1E30FF] text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-all duration-200 flex items-center space-x-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Ticket Type</span>
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              {ticketTypes.map((ticket, index) => (
+                <div key={ticket.id} className="border border-gray-200 rounded-lg p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Ticket Type {index + 1}
+                      {ticket.isNew && <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">New</span>}
+                    </h3>
+                    {ticketTypes.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeTicketType(ticket.id)}
+                        className="text-red-600 hover:text-red-800 transition-colors duration-200"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Ticket Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Ticket Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={ticket.name}
+                        onChange={(e) => handleTicketTypeChange(ticket.id, 'name', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200"
+                        placeholder="e.g., General Admission, VIP, Early Bird"
+                      />
+                    </div>
+
+                    {/* Price */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Price (ZAR) *
+                      </label>
+                      <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          required
+                          value={ticket.price}
+                          onChange={(e) => handleTicketTypeChange(ticket.id, 'price', parseFloat(e.target.value) || 0)}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200"
+                          placeholder="0.00"
+                        />
+                      </div>
+                      {ticket.price > 0 && (
+                        <p className="mt-1 text-xs text-gray-600">
+                          Price: {formatCurrency(ticket.price)}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Quantity */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Available Quantity *
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        required
+                        value={ticket.quantity}
+                        onChange={(e) => handleTicketTypeChange(ticket.id, 'quantity', parseInt(e.target.value) || 1)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200"
+                        placeholder="50"
+                      />
+                    </div>
+
+                    {/* Refundable */}
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="checkbox"
+                        id={`refundable-${ticket.id}`}
+                        checked={ticket.refundable}
+                        onChange={(e) => handleTicketTypeChange(ticket.id, 'refundable', e.target.checked)}
+                        className="w-4 h-4 text-[#1E30FF] border-gray-300 rounded focus:ring-[#1E30FF]"
+                      />
+                      <label htmlFor={`refundable-${ticket.id}`} className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+                        <RefreshCw className="w-4 h-4" />
+                        <span>Refundable</span>
+                      </label>
+                    </div>
+
+                    {/* Description */}
+                    <div className="lg:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Description
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={ticket.description}
+                        onChange={(e) => handleTicketTypeChange(ticket.id, 'description', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200 resize-none"
+                        placeholder="Optional description for this ticket type"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="flex justify-end space-x-4">
+            <button
+              type="button"
+              onClick={() => navigate('/my-events')}
+              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors duration-200"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+            >
+              <Save className="w-5 h-5" />
+              <span>{loading ? 'Updating Event...' : 'Update Event'}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Location Picker Modal */}
+      <LocationPicker
+        isOpen={showLocationPicker}
+        onClose={() => setShowLocationPicker(false)}
+        onLocationSelect={handleLocationSelect}
+        initialLocation={
+          eventData.location_latitude !== 0 && eventData.location_longitude !== 0
+            ? {
+                name: eventData.location_name,
+                latitude: eventData.location_latitude,
+                longitude: eventData.longitude,
+              }
+            : undefined
+        }
+      />
+    </div>
+  );
+};
