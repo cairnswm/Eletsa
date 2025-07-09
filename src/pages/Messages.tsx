@@ -63,8 +63,18 @@ export const Messages: React.FC = () => {
 
   const getConversationTitle = (conversation: Conversation) => {
     // Check if metadata has a title
+    if (conversation.metadata?.name) {
+      return conversation.metadata.name;
+    }
+    
+    // Check for other metadata fields that might contain the title
     if (conversation.metadata?.title) {
       return conversation.metadata.title;
+    }
+    
+    // For event type conversations, use the event name
+    if (conversation.type === 'event' && conversation.metadata?.name) {
+      return `Event: ${conversation.metadata.name}`;
     }
 
     // Get other users in the conversation
