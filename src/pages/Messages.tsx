@@ -5,6 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useUser } from '../contexts/UserContext';
 import { UserInitials } from '../components/user/UserInitials';
 import { UserName } from '../components/user/UserName';
+import { UserName } from '../components/user/UserName';
 import { Conversation, Message } from '../types/messaging';
 
 export const Messages: React.FC = () => {
@@ -41,7 +42,11 @@ export const Messages: React.FC = () => {
       
       // After sending a message, ensure the conversation is marked as read
       if (activeConversationId) {
-        markAsRead(activeConversationId);
+        // Mark as read with the latest message ID after sending
+        const latestMessage = conversationMessages[conversationMessages.length - 1];
+        if (latestMessage) {
+          markAsRead(activeConversationId, latestMessage.id);
+        }
       }
     } catch (err) {
       console.error('Failed to send message:', err);
@@ -271,22 +276,20 @@ export const Messages: React.FC = () => {
                           <span>Chatting with:</span>
                           <div className="flex items-center space-x-1">
                             {getOtherUsers(activeConversation).map((otherUser, index) => (
-                              <span key={otherUser?.id || index}>
+                              <div key={otherUser?.id || index} className="flex items-center">
                                 {otherUser ? (
-                                  <>
-                                    {otherUser.firstname && otherUser.lastname 
-                                      ? `${otherUser.firstname} ${otherUser.lastname}`
-                                      : otherUser.username || otherUser.email || `User ${otherUser.id}`
-                                    }
-                                    {index < getOtherUsers(activeConversation).length - 1 && ', '}
-                                  </>
+                                  <UserName 
+                                    userId={otherUser.id} 
+                                    showFollowButton={false}
+                                    className="text-xs"
+                                  />
                                 ) : (
-                                  <>
-                                    Loading...
-                                    {index < getOtherUsers(activeConversation).length - 1 && ', '}
-                                  </>
+                                  <span className="text-xs text-gray-500">Loading...</span>
                                 )}
-                              </span>
+                                {index < getOtherUsers(activeConversation).length - 1 && (
+                                  <span className="text-gray-400 mx-1">,</span>
+                                )}
+                              </div>
                             ))}
                           </div>
                         </div>

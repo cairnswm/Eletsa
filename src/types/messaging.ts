@@ -64,7 +64,7 @@ export interface MessagingContextType {
   setActiveConversationId: (id: number | null) => void;
   sendMessage: (text: string, toUserId?: number) => Promise<void>;
   startConversation: (toUserId: number, text: string, type?: string, typeId?: number, metadata?: Record<string, any>) => Promise<Conversation | undefined>;
-  markAsRead: (conversationId: number) => void;
+  markAsRead: (conversationId: number, messageId?: number) => void;
   clearError: () => void;
   fetchSpecificConversation: (conversationId: number) => Promise<void>;
 }

@@ -294,7 +294,7 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const markAsRead = (conversationId: number) => {
+  const markAsRead = (conversationId: number, messageId?: number) => {
     if (!user || !window.Messages) return;
 
     // Find the conversation
@@ -303,17 +303,23 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
       return; // No unread messages to mark
     }
 
-    // Get the latest message in the conversation to use as lastReadMessageId
-    const latestMessage = conversationMessages.length > 0 
-      ? conversationMessages[conversationMessages.length - 1]
-      : null;
-
-    if (!latestMessage) {
-      console.log('No messages to mark as read');
-      return;
+    // Use provided messageId or get the latest message in the conversation
+    let lastReadMessageId = messageId;
+    
+    if (!lastReadMessageId) {
+      const latestMessage = conversationMessages.length > 0 
+        ? conversationMessages[conversationMessages.length - 1]
+        : null;
+      
+      if (!latestMessage) {
+        console.log('No messages to mark as read');
+        return;
+      }
+      
+      lastReadMessageId = latestMessage.id;
     }
 
-    console.log(`Marking conversation ${conversationId} as read up to message ${latestMessage.id}`);
+    console.log(`Marking conversation ${conversationId} as read up to message ${lastReadMessageId}`);
 
     // Optimistically update the local state
     setConversations(prev => prev.map(conv => 
@@ -326,7 +332,7 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
     setUnreadCount(prev => Math.max(0, prev - (conversation.unread_messages || 0)));
 
     // Call the API to mark messages as read
-    window.Messages.markMessagesRead(user.id, conversationId, latestMessage.id)
+    window.Messages.markMessagesRead(user.id, conversationId, lastReadMessageId)
       .then(() => {
         console.log(`Successfully marked conversation ${conversationId} as read`);
       })
@@ -383,12 +389,16 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
       // Mark messages as read when viewing a conversation
       // Add a small delay to ensure messages are loaded first
       const markReadTimer = setTimeout(() => {
-        markAsRead(activeConversationId);
+        // Get the latest message to mark as read
+        if (conversationMessages.length > 0) {
+          const latestMessage = conversationMessages[conversationMessages.length - 1];
+          markAsRead(activeConversationId, latestMessage.id);
+        }
       }, 500);
       
       return () => clearTimeout(markReadTimer);
     }
-  }, [activeConversationId]);
+  }, [activeConversationId, conversationMessages]);
 
   const value: MessagingContextType = {
     conversations,
