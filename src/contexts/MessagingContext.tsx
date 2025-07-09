@@ -140,6 +140,8 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
         // Set messages in the new state
         setConversationMessages(messages || []);
 
+        markAsRead(conservationId, messages[messages.count-1].id);
+
         // Extract user IDs from messages for bulk user fetching
         const userIds = new Set<number>();
         messages?.forEach((message: Message) => {
