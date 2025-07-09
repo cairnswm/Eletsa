@@ -295,8 +295,54 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const markAsRead = (conversationId: number) => {
-    // TODO: Implement read status when API supports it
-    console.log("Mark as read:", conversationId);
+    if (!user || !window.Messages) return;
+
+    // Find the conversation
+    const conversation = conversations.find(conv => conv.id === conversationId);
+    if (!conversation || !conversation.unread_messages || conversation.unread_messages === 0) {
+      return; // No unread messages to mark
+    }
+
+    // Get the latest message in the conversation to use as lastReadMessageId
+    const latestMessage = conversationMessages.length > 0 
+      ? conversationMessages[conversationMessages.length - 1]
+      : null;
+
+    if (!latestMessage) {
+      console.log('No messages to mark as read');
+      return;
+    }
+
+    console.log(`Marking conversation ${conversationId} as read up to message ${latestMessage.id}`);
+
+    // Optimistically update the local state
+    setConversations(prev => prev.map(conv => 
+      conv.id === conversationId 
+        ? { ...conv, unread_messages: 0 }
+        : conv
+    ));
+
+    // Update total unread count
+    setUnreadCount(prev => Math.max(0, prev - (conversation.unread_messages || 0)));
+
+    // Call the API to mark messages as read
+    window.Messages.markMessagesRead(user.id, conversationId, latestMessage.id)
+      .then(() => {
+        console.log(`Successfully marked conversation ${conversationId} as read`);
+      })
+      .catch(err => {
+        console.error('Failed to mark messages as read:', err);
+        
+        // Revert the optimistic update on error
+        setConversations(prev => prev.map(conv => 
+          conv.id === conversationId 
+            ? { ...conv, unread_messages: conversation.unread_messages }
+            : conv
+        ));
+        
+        // Revert unread count
+        setUnreadCount(prev => prev + (conversation.unread_messages || 0));
+      });
   };
 
   useEffect(() => {
@@ -333,8 +379,16 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     if (activeConversationId) {
       fetchSpecificConversation(activeConversationId);
+      
+      // Mark messages as read when viewing a conversation
+      // Add a small delay to ensure messages are loaded first
+      const markReadTimer = setTimeout(() => {
+        markAsRead(activeConversationId);
+      }, 500);
+      
+      return () => clearTimeout(markReadTimer);
     }
-  }, [activeConversationId, fetchSpecificConversation]);
+  }, [activeConversationId, fetchSpecificConversation, markAsRead]);
 
   const value: MessagingContextType = {
     conversations,

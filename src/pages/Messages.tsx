@@ -38,6 +38,11 @@ export const Messages: React.FC = () => {
       setSending(true);
       await sendMessage(newMessage);
       setNewMessage('');
+      
+      // After sending a message, ensure the conversation is marked as read
+      if (activeConversationId) {
+        markAsRead(activeConversationId);
+      }
     } catch (err) {
       console.error('Failed to send message:', err);
     } finally {
