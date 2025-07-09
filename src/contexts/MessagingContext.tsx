@@ -142,7 +142,7 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
 
         markAsRead(conversationId, messages[messages.length-1].id);
 
-        setConversations(prev.map(con => con.id === conversationId ? { ...con, unread_messages: 0}  : con))
+        setConversations(prevConversations => prevConversations.map(con => con.id === conversationId ? { ...con, unread_messages: 0}  : con))
 
         // Extract user IDs from messages for bulk user fetching
         const userIds = new Set<number>();
@@ -343,8 +343,15 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
       .catch(err => {
         console.error('Failed to mark messages as read:', err);
         
+        // Check if the error is due to invalid JSON response (HTML error page)
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        if (errorMessage.includes('Unexpected token') && errorMessage.includes('<')) {
+          console.error('Server returned HTML error page instead of JSON for markMessagesRead');
+          setError('Unable to mark messages as read due to server error');
+        }
+        
         // Revert the optimistic update on error
-        setConversations(prev => prev.map(conv => 
+        setConversations(prevConversations => prevConversations.map(conv => 
           conv.id === conversationId 
             ? { ...conv, unread_messages: conversation.unread_messages }
             : conv

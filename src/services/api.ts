@@ -19,7 +19,21 @@ const createHeaders = (includeAuth = false): HeadersInit => {
 };
 
 const handleApiResponse = async (response: Response) => {
-  const data = await response.json();
+  let data;
+  try {
+    data = await response.json();
+  } catch (jsonError) {
+    // If JSON parsing fails, try to read as text to get more info
+    try {
+      const textResponse = await response.text();
+      if (textResponse.includes('<html>') || textResponse.includes('<br />')) {
+        throw new Error(`Server returned HTML error page instead of JSON. Status: ${response.status}`);
+      }
+      throw new Error(`Invalid JSON response: ${textResponse.substring(0, 100)}...`);
+    } catch (textError) {
+      throw new Error(`Failed to parse response as JSON. Status: ${response.status}`);
+    }
+  }
   
   // Check if the response contains errors
   if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
