@@ -398,7 +398,7 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
       
       return () => clearTimeout(markReadTimer);
     }
-  }, [activeConversationId, conversationMessages]);
+  }, [activeConversationId]);
 
   const value: MessagingContextType = {
     conversations,
