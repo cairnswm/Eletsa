@@ -5,6 +5,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { EventProvider } from './contexts/EventContext';
 import { UserProvider } from './contexts/UserContext';
 import { OrganizerProvider } from './contexts/OrganizerContext';
+import { MessagingProvider } from './contexts/MessagingContext';
 import { Header } from './components/Header';
 import { Landing } from './pages/Landing';
 import { Home } from './pages/Home';
@@ -13,6 +14,7 @@ import { Register } from './pages/Register';
 import { Profile } from './pages/Profile';
 import { Tickets } from './pages/Tickets';
 import { MyEvents } from './pages/MyEvents';
+import { Messages } from './pages/Messages';
 import { CreateEvent } from './pages/CreateEvent';
 import { EditEvent } from './pages/EditEvent';
 import { useAuth } from './contexts/AuthContext';
@@ -74,6 +76,14 @@ const AppContent: React.FC = () => {
           }
         />
         <Route
+          path="/messages"
+          element={
+            <ProtectedRoute>
+              <Messages />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/create-event"
           element={
             <ProtectedRoute>
@@ -100,11 +110,13 @@ function App() {
       <TenantProvider>
         <AuthProvider>
           <UserProvider>
-            <OrganizerProvider>
-              <EventProvider>
-                <AppContent />
-              </EventProvider>
-            </OrganizerProvider>
+            <MessagingProvider>
+              <OrganizerProvider>
+                <EventProvider>
+                  <AppContent />
+                </EventProvider>
+              </OrganizerProvider>
+            </MessagingProvider>
           </UserProvider>
         </AuthProvider>
       </TenantProvider>

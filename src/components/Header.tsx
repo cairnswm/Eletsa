@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, LogOut, ChevronDown, Search, Ticket, Calendar, Menu, X } from 'lucide-react';
+import { User, LogOut, ChevronDown, Search, Ticket, Calendar, Menu, X, MessageCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganizer } from '../contexts/OrganizerContext';
+import { useMessaging } from '../contexts/MessagingContext';
 import { useTenant } from '../contexts/TenantContext';
 
 export const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const { getOrganizerByUserId } = useOrganizer();
+  const { unreadCount } = useMessaging();
   const { tenant } = useTenant();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -53,6 +55,12 @@ export const Header: React.FC = () => {
       icon: Ticket,
       description: 'View your tickets',
     },
+    {
+      name: 'Messages',
+      href: '/messages',
+      icon: MessageCircle,
+      description: 'Chat with others',
+    },
     ...(isOrganizer ? [{
       name: 'My Events',
       href: '/my-events',
@@ -83,10 +91,15 @@ export const Header: React.FC = () => {
               <Link
                 key={item.name}
                 to={item.href}
-                className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-700 hover:text-[#1E30FF] hover:bg-gray-50 transition-all duration-200 group"
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg text-gray-700 hover:text-[#1E30FF] hover:bg-gray-50 transition-all duration-200 group relative"
               >
                 <item.icon className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
                 <span className="font-medium">{item.name}</span>
+                {item.name === 'Messages' && unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
               </Link>
             ))}
           </nav>
@@ -160,13 +173,18 @@ export const Header: React.FC = () => {
                   key={item.name}
                   to={item.href}
                   onClick={handleNavClick}
-                  className="flex items-center space-x-3 px-3 py-3 rounded-lg text-gray-700 hover:text-[#1E30FF] hover:bg-gray-50 transition-all duration-200"
+                  className="flex items-center space-x-3 px-3 py-3 rounded-lg text-gray-700 hover:text-[#1E30FF] hover:bg-gray-50 transition-all duration-200 relative"
                 >
                   <item.icon className="w-5 h-5" />
                   <div>
                     <div className="font-medium">{item.name}</div>
                     <div className="text-xs text-gray-500">{item.description}</div>
                   </div>
+                  {item.name === 'Messages' && unreadCount > 0 && (
+                    <span className="absolute top-2 right-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
                 </Link>
               ))}
 
