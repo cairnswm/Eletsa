@@ -102,7 +102,7 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setError(null);
       
       console.log(`Fetching conversation ${conversationId} with messages...`);
-      const conversationData = await window.Messages.Conversations.get({ id: conversationId });
+      const conversationData = await window.Messages.Conversations.get(conversationId);
       
       // The API returns a single conversation object with messages when ID is provided
       const conversation = Array.isArray(conversationData) ? conversationData[0] : conversationData;
