@@ -237,6 +237,15 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
       setLoading(true);
       setError(null);
 
+      console.log('Starting conversation with:', {
+        toUserId,
+        text,
+        type,
+        typeId,
+        metadata,
+        currentUserId: user.id
+      });
+
       const startResponse = await window.Messages.startConversation({
         type,
         typeId,
@@ -249,18 +258,19 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const { conversation, message } = startResponse;
 
+      console.log('Conversation started successfully:', { conversation, message });
+
       // Add conversation to list
       const conversationWithMessages = {
         ...conversation,
         messages: [message],
+        users: [user.id, toUserId], // Ensure users array is set
       };
 
       setConversations((prev) => [conversationWithMessages, ...prev]);
 
       // Set as active conversation
-      if (conversation && conversation.id) {
-        setActiveConversationId(conversation.id);
-      }
+      setActiveConversationId(conversation.id);
 
       return conversation;
     } catch (err) {
