@@ -142,6 +142,8 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
 
         markAsRead(conversationId, messages[messages.length-1].id);
 
+        setConversations(prev.map(con => con.id === conversationId ? { ...con, unread_messages: 0}  : con))
+
         // Extract user IDs from messages for bulk user fetching
         const userIds = new Set<number>();
         messages?.forEach((message: Message) => {
