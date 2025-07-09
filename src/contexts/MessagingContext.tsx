@@ -258,7 +258,9 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
       setConversations((prev) => [conversationWithMessages, ...prev]);
 
       // Set as active conversation
-      setActiveConversationId(conversation.id);
+      if (conversation && conversation.id) {
+        setActiveConversationId(conversation.id);
+      }
 
       return conversation;
     } catch (err) {
