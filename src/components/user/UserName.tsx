@@ -99,7 +99,7 @@ export const UserName: React.FC<UserNameProps> = ({
           className={`flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
             isCurrentUserFollowing
               ? 'bg-[#489707] text-white hover:bg-[#489707]/90'
-              : 'bg-blue text-white hover:opacity-90'
+              : 'bg-[#1E30FF] text-white hover:bg-[#1E30FF]/90'
           } disabled:opacity-50 disabled:cursor-not-allowed`}
           title={isCurrentUserFollowing ? 'Unfollow user' : 'Follow user'}
         >
