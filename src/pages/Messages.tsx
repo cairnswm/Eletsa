@@ -197,9 +197,9 @@ export const Messages: React.FC = () => {
                           </div>
                           <div className="flex flex-col items-end space-y-1">
                             <span className="text-xs text-gray-400">{getLastMessageTime(conversation)}</span>
-                            {conversation.unread_count && conversation.unread_count > 0 && (
+                            {conversation.unread_messages && conversation.unread_messages > 0 && (
                               <div className="w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
-                                {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
+                                {conversation.unread_messages > 99 ? '99+' : conversation.unread_messages}
                               </div>
                             )}
                           </div>

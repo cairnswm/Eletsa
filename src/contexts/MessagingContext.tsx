@@ -64,7 +64,7 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Calculate total unread count from all conversations
       const totalUnread = conversationsData.reduce((total, conversation) => {
-        return total + (conversation.unread_count || 0);
+        return total + (conversation.unread_messages || 0);
       }, 0);
       
       console.log("Total unread messages:", totalUnread);

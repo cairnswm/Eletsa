@@ -24,7 +24,7 @@ export interface Conversation {
   updated_at: string;
   messages: Message[]; // Associated messages
   users: number[]; // List of user IDs in the conversation
-  unread_count?: number; // Number of unread messages in this conversation
+  unread_messages?: number; // Number of unread messages in this conversation
 }
 
 // Application API Response
