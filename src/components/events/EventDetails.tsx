@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Calendar, MapPin, Users, Clock, Star, Shield, CreditCard, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Users, Clock, Star, Shield, CreditCard, ChevronLeft, ChevronRight, X, MessageCircle } from 'lucide-react';
 import { useEvent } from '../../contexts/EventContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
