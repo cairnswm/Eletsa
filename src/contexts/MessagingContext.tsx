@@ -231,7 +231,17 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
     typeId: number = 0,
     metadata: Record<string, any> = {}
   ) => {
-    if (!user || !window.Messages) return;
+    if (!user) {
+      console.error('Cannot start conversation: user is not logged in');
+      setError('You must be logged in to start a conversation');
+      return;
+    }
+    
+    if (!window.Messages) {
+      console.error('Cannot start conversation: Messages API not available');
+      setError('Messaging service is not available');
+      return;
+    }
 
     try {
       setLoading(true);
