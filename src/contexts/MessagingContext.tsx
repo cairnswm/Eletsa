@@ -228,7 +228,8 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
     toUserId: number,
     text: string,
     type: string = "direct",
-    typeId: number = 0
+    typeId: number = 0,
+    metadata: Record<string, any> = {}
   ) => {
     if (!user || !window.Messages) return;
 
@@ -239,7 +240,7 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
       const startResponse = await window.Messages.startConversation({
         type,
         typeId,
-        metadata: {},
+        metadata,
         status: "active",
         userId: user.id,
         toUserId,

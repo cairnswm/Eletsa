@@ -1,12 +1,12 @@
 import React from 'react';
-import { ArrowLeft, Calendar, MapPin, Users, Clock, Star, Shield, CreditCard, ChevronLeft, ChevronRight, X, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Users, Clock, Star, Shield, CreditCard, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useEvent } from '../../contexts/EventContext';
-import { useMessaging } from '../../contexts/MessagingContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { TicketTypeCard } from './TicketTypeCard';
 import { CommentSection } from './CommentSection';
 import { OrganizerCard } from './OrganizerCard';
+import { ContactOrganizerModal } from './ContactOrganizerModal';
 
 interface EventDetailsProps {
   onBack: () => void;
@@ -14,12 +14,11 @@ interface EventDetailsProps {
 
 export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
   const { activeEvent, ticketTypes, comments, organizer, loading } = useEvent();
-  const { startConversation } = useMessaging();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
   const [showImageModal, setShowImageModal] = React.useState(false);
-  const [startingConversation, setStartingConversation] = React.useState(false);
+  const [showContactModal, setShowContactModal] = React.useState(false);
 
   if (loading) {
     return (
@@ -99,35 +98,11 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
     }
   };
 
-  const handleContactOrganizer = async () => {
-    if (!user || !activeEvent || !organizer || startingConversation) return;
-
-    // Don't allow contacting yourself
-    if (user.id === activeEvent.organizer_id) {
-      return;
-    }
-
-    try {
-      setStartingConversation(true);
-      
-      const initialMessage = `Hi! I'm interested in your event "${activeEvent.title}". Could you provide more information?`;
-      
-      await startConversation(
-        activeEvent.organizer_id,
-        initialMessage,
-        'event_inquiry',
-        activeEvent.id
-      );
-      
-      // Navigate to messages page
-      navigate('/messages');
-      
-    } catch (error) {
-      console.error('Failed to start conversation:', error);
-    } finally {
-      setStartingConversation(false);
-    }
+  const handleContactSuccess = () => {
+    // Navigate to messages page after successful contact
+    navigate('/messages');
   };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1E30FF]/5 via-white to-[#FF2D95]/5">
       {/* Back Button */}
@@ -385,12 +360,10 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
                   Have questions about this event? Send a message to the organizer.
                 </p>
                 <button
-                  onClick={handleContactOrganizer}
-                  disabled={startingConversation}
+                  onClick={() => setShowContactModal(true)}
                   className="w-full bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
-                  <MessageCircle className="w-5 h-5" />
-                  <span>{startingConversation ? 'Starting conversation...' : 'Contact Organizer'}</span>
+                  <span>Contact Organizer</span>
                 </button>
               </div>
             )}
@@ -438,6 +411,16 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
           </div>
         </div>
       </div>
+
+      {/* Contact Organizer Modal */}
+      {activeEvent && (
+        <ContactOrganizerModal
+          isOpen={showContactModal}
+          onClose={() => setShowContactModal(false)}
+          event={activeEvent}
+          onSuccess={handleContactSuccess}
+        />
+      )}
     </div>
   );
 };
