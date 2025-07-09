@@ -94,7 +94,12 @@ export const Messages: React.FC = () => {
 
   const getLastMessage = (conversation: Conversation) => {
     if (!conversation.messages || conversation.messages.length === 0) {
-      return 'No messages yet';
+      // Check if metadata has a name field
+      if (conversation.metadata?.name) {
+        return conversation.metadata.name;
+      }
+      // If no metadata name, return empty string (don't display anything)
+      return '';
     }
     const lastMessage = conversation.messages[conversation.messages.length - 1];
     return lastMessage.text;
