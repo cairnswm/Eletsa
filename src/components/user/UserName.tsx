@@ -96,19 +96,15 @@ export const UserName: React.FC<UserNameProps> = ({
         <button
           onClick={handleFollowToggle}
           disabled={followLoading || loading}
-          className={`flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 ${
-            isCurrentUserFollowing
-              ? 'bg-[#489707] text-white hover:bg-[#489707]/90'
-              : 'text-[#1E30FF] hover:bg-gray-100'
-          } disabled:opacity-50 disabled:cursor-not-allowed`}
+          className="flex items-center space-x-1 px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 text-[#1E30FF] hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
           title={isCurrentUserFollowing ? 'Unfollow user' : 'Follow user'}
         >
           {followLoading ? (
             <Loader2 className="w-3 h-3 animate-spin" />
           ) : isCurrentUserFollowing ? (
-            <UserCheck className="w-3 h-3" />
+            <UserCheck className="w-3 h-3 text-[#489707]" />
           ) : (
-            <UserPlus className="w-3 h-3" />
+            <UserPlus className="w-3 h-3 text-[#1E30FF]" />
           )}
           
         </button>
