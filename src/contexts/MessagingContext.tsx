@@ -273,14 +273,10 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
       // Add conversation to list
       const conversationWithMessages = {
         ...conversation,
-        messages: [message],
         users: [user.id, toUserId], // Ensure users array is set
       };
 
       setConversations((prev) => [conversationWithMessages, ...prev]);
-
-      // Set as active conversation
-      setActiveConversationId(conversation.id);
 
       return conversation;
     } catch (err) {
