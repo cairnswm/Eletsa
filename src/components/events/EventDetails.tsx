@@ -361,8 +361,10 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
                 </p>
                 <button
                   onClick={() => setShowContactModal(true)}
+                  type="button"
                   className="w-full bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                 >
+                  <MessageCircle className="w-5 h-5" />
                   <span>Contact Organizer</span>
                 </button>
               </div>

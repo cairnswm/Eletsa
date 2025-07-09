@@ -23,8 +23,14 @@ export const ContactOrganizerModal: React.FC<ContactOrganizerModalProps> = ({
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('ContactOrganizerModal props:', { isOpen, event: event?.title, user: user?.id });
+  }, [isOpen, event, user]);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('Form submitted with message:', message);
     
     if (!message.trim() || !user || sending) return;
     
@@ -38,12 +44,29 @@ export const ContactOrganizerModal: React.FC<ContactOrganizerModalProps> = ({
       setSending(true);
       setError(null);
       
+      console.log('Starting conversation with:', {
+        organizerId: event.organizer_id,
+        message: message.trim(),
+        type: 'event',
+        typeId: event.id,
+        metadata: {
+          name: event.title,
+          details: event.description
+        }
+      });
+      
       await startConversation(
         event.organizer_id,
         message.trim(),
         'event',
-        event.id
+        event.id,
+        {
+          name: event.title,
+          details: event.description
+        }
       );
+      
+      console.log('Conversation started successfully');
       
       // Reset form and close modal
       setMessage('');
@@ -51,18 +74,21 @@ export const ContactOrganizerModal: React.FC<ContactOrganizerModalProps> = ({
       onSuccess();
       
     } catch (err) {
+      console.error('Error starting conversation:', err);
       setError(err instanceof Error ? err.message : 'Failed to start conversation');
-      console.error('Failed to start conversation:', err);
     } finally {
       setSending(false);
     }
   };
 
   const handleClose = () => {
+    console.log('Modal closing');
     setMessage('');
     setError(null);
     onClose();
   };
+
+  console.log('Modal render - isOpen:', isOpen);
 
   if (!isOpen) return null;
 
