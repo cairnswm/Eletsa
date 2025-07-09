@@ -5,7 +5,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useUser } from '../contexts/UserContext';
 import { UserInitials } from '../components/user/UserInitials';
 import { UserName } from '../components/user/UserName';
-import { UserName } from '../components/user/UserName';
 import { Conversation, Message } from '../types/messaging';
 
 export const Messages: React.FC = () => {
