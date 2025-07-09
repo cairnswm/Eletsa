@@ -62,9 +62,13 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setConversations(conversationsData);
 
-      // Calculate unread count (assuming we need to implement read status)
-      // For now, we'll set it to 0 as we don't have read status in the API
-      setUnreadCount(0);
+      // Calculate total unread count from all conversations
+      const totalUnread = conversationsData.reduce((total, conversation) => {
+        return total + (conversation.unread_count || 0);
+      }, 0);
+      
+      console.log("Total unread messages:", totalUnread);
+      setUnreadCount(totalUnread);
 
       // Extract all user IDs from conversations for bulk user fetching
       const userIds = new Set<number>();

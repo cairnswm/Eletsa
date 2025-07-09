@@ -181,7 +181,7 @@ export const Messages: React.FC = () => {
                           activeConversationId === conversation.id ? 'bg-[#1E30FF]/5 border-r-2 border-[#1E30FF]' : ''
                         }`}
                       >
-                        <div className="flex items-start space-x-3">
+                        <div className="flex items-start space-x-3 relative">
                           <div className="w-12 h-12 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] rounded-full flex items-center justify-center flex-shrink-0">
                             <MessageCircle className="w-6 h-6 text-white" />
                           </div>
@@ -195,7 +195,14 @@ export const Messages: React.FC = () => {
                             </h3>
                             <p className="text-sm text-gray-500">{getLastMessage(conversation)}</p>
                           </div>
-                          <span className="text-xs text-gray-400">{getLastMessageTime(conversation)}</span>
+                          <div className="flex flex-col items-end space-y-1">
+                            <span className="text-xs text-gray-400">{getLastMessageTime(conversation)}</span>
+                            {conversation.unread_count && conversation.unread_count > 0 && (
+                              <div className="w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                                {conversation.unread_count > 99 ? '99+' : conversation.unread_count}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}
