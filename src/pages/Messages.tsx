@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { MessageCircle, Send, ArrowLeft, Plus, Search, Users, Clock } from 'lucide-react';
+import { MessageCircle, Send, ArrowLeft, Plus, Search } from 'lucide-react';
 import { useMessaging } from '../contexts/MessagingContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useUser } from '../contexts/UserContext';
+import { UserInitials } from '../components/user/UserInitials';
 import { UserName } from '../components/user/UserName';
+import { Conversation, Message } from '../types/messaging';
 
 export const Messages: React.FC = () => {
   const { user } = useAuth();
@@ -12,13 +14,17 @@ export const Messages: React.FC = () => {
     conversations,
     activeConversationId,
     activeConversation,
-    messages,
+    conversationMessages,
     loading,
     error,
     setActiveConversationId,
     sendMessage,
     clearError,
   } = useMessaging();
+
+  console.log("activeConversationId:", activeConversationId);
+  console.log("activeConversation:", activeConversation);
+  console.log("conversationMessages:", conversationMessages);
 
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -50,7 +56,7 @@ export const Messages: React.FC = () => {
     return date.toLocaleDateString();
   };
 
-  const getConversationTitle = (conversation: any) => {
+  const getConversationTitle = (conversation: Conversation) => {
     // Check if metadata has a title
     if (conversation.metadata?.title) {
       return conversation.metadata.title;
@@ -58,12 +64,12 @@ export const Messages: React.FC = () => {
 
     // Get other users in the conversation
     const otherUserIds = new Set<number>();
-    conversation.messages?.forEach((message: any) => {
-      if (message.userId !== user?.id) {
-        otherUserIds.add(message.userId);
+    conversation.messages?.forEach((message: Message) => {
+      if (message.user_id !== user?.id) {
+        otherUserIds.add(message.user_id);
       }
-      if (message.toUserId !== user?.id) {
-        otherUserIds.add(message.toUserId);
+      if (message.to_user_id !== user?.id) {
+        otherUserIds.add(message.to_user_id);
       }
     });
 
@@ -86,7 +92,7 @@ export const Messages: React.FC = () => {
     return `Group Chat (${otherUserIds.size} people)`;
   };
 
-  const getLastMessage = (conversation: any) => {
+  const getLastMessage = (conversation: Conversation) => {
     if (!conversation.messages || conversation.messages.length === 0) {
       return 'No messages yet';
     }
@@ -94,12 +100,12 @@ export const Messages: React.FC = () => {
     return lastMessage.text;
   };
 
-  const getLastMessageTime = (conversation: any) => {
+  const getLastMessageTime = (conversation: Conversation) => {
     if (!conversation.messages || conversation.messages.length === 0) {
       return '';
     }
     const lastMessage = conversation.messages[conversation.messages.length - 1];
-    return formatMessageTime(lastMessage.createdAt);
+    return formatMessageTime(lastMessage.created_at);
   };
 
   const filteredConversations = conversations.filter(conversation => {
@@ -174,25 +180,17 @@ export const Messages: React.FC = () => {
                           <div className="w-12 h-12 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] rounded-full flex items-center justify-center flex-shrink-0">
                             <MessageCircle className="w-6 h-6 text-white" />
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1">
-                              <h3 className="text-sm font-semibold text-gray-900 truncate">
-                                {getConversationTitle(conversation)}
-                              </h3>
-                              <span className="text-xs text-gray-500 flex-shrink-0">
-                                {getLastMessageTime(conversation)}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-600 truncate">
-                              {getLastMessage(conversation)}
-                            </p>
-                            {loading && activeConversationId === conversation.id && (
-                              <div className="flex items-center space-x-1 mt-1">
-                                <div className="animate-spin rounded-full h-3 w-3 border-b border-[#1E30FF]"></div>
-                                <span className="text-xs text-gray-500">Loading messages...</span>
-                              </div>
-                            )}
+                          <div className="flex-1">
+                            <h3 className="text-sm font-medium text-gray-900">
+                              {conversation.users && conversation.users.some((id) => id !== user?.id) ? (
+                                <UserName userId={conversation.users.find((id) => id !== user?.id) as number} />
+                              ) : (
+                                'Unknown User'
+                              )}
+                            </h3>
+                            <p className="text-sm text-gray-500">{getLastMessage(conversation)}</p>
                           </div>
+                          <span className="text-xs text-gray-400">{getLastMessageTime(conversation)}</span>
                         </div>
                       </div>
                     ))}
@@ -238,18 +236,18 @@ export const Messages: React.FC = () => {
 
                   {/* Messages */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {loading && messages.length === 0 ? (
+                    {loading && conversationMessages.length === 0 ? (
                       <div className="flex items-center justify-center py-12">
                         <div className="flex items-center space-x-3">
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1E30FF]"></div>
                           <span className="text-gray-600">Loading messages...</span>
                         </div>
                       </div>
-                    ) : messages.length > 0 ? (
-                      messages.map((message, index) => {
-                        const isOwnMessage = message.userId === user.id;
-                        const showAvatar = index === 0 || messages[index - 1].userId !== message.userId;
-                        
+                    ) : conversationMessages.length > 0 ? (
+                      conversationMessages.map((message, index) => {
+                        const isOwnMessage = message.user_id === user.id;
+                        const showAvatar = index === 0 || conversationMessages[index - 1].user_id !== message.user_id;
+
                         return (
                           <div
                             key={message.id}
@@ -257,16 +255,12 @@ export const Messages: React.FC = () => {
                           >
                             <div className={`flex items-end space-x-2 max-w-xs lg:max-w-md ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''}`}>
                               {!isOwnMessage && showAvatar && (
-                                <div className="w-8 h-8 bg-gradient-to-r from-[#489707] to-[#1E30FF] rounded-full flex items-center justify-center flex-shrink-0">
-                                  <span className="text-white text-xs font-medium">
-                                    {getUser(message.userId)?.firstname?.[0] || 'U'}
-                                  </span>
-                                </div>
+                                <UserInitials userId={message.user_id} className="w-8 h-8" />
                               )}
                               {!isOwnMessage && !showAvatar && (
                                 <div className="w-8 h-8 flex-shrink-0"></div>
                               )}
-                              
+
                               <div className={`px-4 py-2 rounded-2xl ${
                                 isOwnMessage
                                   ? 'bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white'
@@ -276,7 +270,7 @@ export const Messages: React.FC = () => {
                                 <p className={`text-xs mt-1 ${
                                   isOwnMessage ? 'text-white/70' : 'text-gray-500'
                                 }`}>
-                                  {formatMessageTime(message.createdAt)}
+                                  {formatMessageTime(message.created_at)}
                                 </p>
                               </div>
                             </div>

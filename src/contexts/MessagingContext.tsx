@@ -1,26 +1,46 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Conversation, Message, MessagingContextType, StartResponse } from '../types/messaging';
-import { useAuth } from './AuthContext';
-import { useUser } from './UserContext';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
+import {
+  Conversation,
+  Message,
+  MessagingContextType,
+} from "../types/messaging";
+import { useAuth } from "./AuthContext";
+import { useUser } from "./UserContext";
 
-const MessagingContext = createContext<MessagingContextType | undefined>(undefined);
+const MessagingContext = createContext<MessagingContextType | undefined>(
+  undefined
+);
 
 export const useMessaging = () => {
   const context = useContext(MessagingContext);
   if (context === undefined) {
-    throw new Error('useMessaging must be used within a MessagingProvider');
+    throw new Error("useMessaging must be used within a MessagingProvider");
   }
   return context;
 };
 
-export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { user } = useAuth();
   const { fetchBulkUsersFromRelations } = useUser();
-  
+
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [activeConversationId, setActiveConversationIdState] = useState<number | null>(null);
-  const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
+  const [activeConversationId, setActiveConversationIdState] = useState<
+    number | null
+  >(null);
+  const [activeConversation, setActiveConversation] =
+    useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [conversationMessages, setConversationMessages] = useState<Message[]>(
+    []
+  );
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,47 +55,47 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       setLoading(true);
       setError(null);
-      
-      console.log('Fetching conversations for user:', user.id);
+
+      console.log("Fetching conversations for user:", user.id);
       const conversationsData = await window.Messages.getConv(user.id);
-      console.log('Fetched conversations:', conversationsData);
-      
+      console.log("Fetched conversations:", conversationsData);
+
       setConversations(conversationsData);
-      
+
       // Calculate unread count (assuming we need to implement read status)
       // For now, we'll set it to 0 as we don't have read status in the API
       setUnreadCount(0);
-      
+
       // Extract all user IDs from conversations for bulk user fetching
       const userIds = new Set<number>();
-      conversationsData.forEach(conversation => {
-        conversation.messages?.forEach(message => {
+      conversationsData.forEach((conversation) => {
+        conversation.messages?.forEach((message) => {
           userIds.add(message.userId);
           userIds.add(message.toUserId);
         });
       });
-      
+
       // Create fake relations for bulk user fetching
       if (userIds.size > 0) {
-        const fakeRelations = Array.from(userIds).map(userId => ({
+        const fakeRelations = Array.from(userIds).map((userId) => ({
           id: 0,
           follower_user_id: userId,
           followed_user_id: userId,
-          created_at: '',
-          modified_at: '',
+          created_at: "",
+          modified_at: "",
         }));
-        
+
         try {
           await fetchBulkUsersFromRelations(fakeRelations);
         } catch (err) {
-          console.error('Failed to bulk fetch users for conversations:', err);
+          console.error("Failed to bulk fetch users for conversations:", err);
         }
       }
-      
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch conversations';
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to fetch conversations";
       setError(errorMessage);
-      console.error('Failed to fetch conversations:', err);
+      console.error("Failed to fetch conversations:", err);
     } finally {
       setLoading(false);
     }
@@ -83,7 +103,7 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const setActiveConversationId = (id: number | null) => {
     setActiveConversationIdState(id);
-    
+
     if (id === null) {
       setActiveConversation(null);
       setMessages([]);
@@ -94,160 +114,157 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     fetchSpecificConversation(id);
   };
 
-  const fetchSpecificConversation = async (conversationId: number) => {
-    if (!window.Messages) return;
+  const fetchSpecificConversation = useCallback(
+    async (conversationId: number) => {
+      if (!window.Messages) return;
 
-    try {
-      setLoading(true);
-      setError(null);
-      
-      console.log(`Fetching conversation ${conversationId} with messages...`);
-      const conversationData = await window.Messages.Conversations.get(conversationId);
-      
-      // The API returns a single conversation object with messages when ID is provided
-      const conversation = Array.isArray(conversationData) ? conversationData[0] : conversationData;
-      
-      console.log('Fetched conversation with messages:', conversation);
-      
-      setActiveConversation(conversation);
-      setMessages(conversation.messages || []);
-      
-      // Update conversations list if this conversation isn't in it
-      setConversations(prev => {
-        const exists = prev.some(conv => conv.id === conversationId);
-        if (!exists) {
-          return [...prev, conversation];
+      try {
+        setLoading(true);
+        setError(null);
+
+        console.log(`Fetching conversation ${conversationId} with messages...`);
+        const conversationData = await window.Messages.getConversations(
+          conversationId
+        );
+
+        const messages = Array.isArray(conversationData)
+          ? conversationData[0].messages
+          : conversationData.messages;
+
+        console.log("Fetched messages:", messages);
+
+        // Set messages in the new state
+        setConversationMessages(messages || []);
+
+        // Extract user IDs from messages for bulk user fetching
+        const userIds = new Set<number>();
+        messages?.forEach((message: Message) => {
+          userIds.add(message.user_id);
+          userIds.add(message.to_user_id);
+        });
+
+        // Bulk fetch user details for message participants
+        if (userIds.size > 0) {
+          const fakeRelations = Array.from(userIds).map((userId) => ({
+            id: 0,
+            follower_user_id: userId,
+            followed_user_id: userId,
+            created_at: "",
+            modified_at: "",
+          }));
+
+          try {
+            await fetchBulkUsersFromRelations(fakeRelations);
+          } catch (err) {
+            console.error(
+              "Failed to bulk fetch users for conversation messages:",
+              err
+            );
+          }
         }
-        // Update the existing conversation with the latest data
-        return prev.map(conv => conv.id === conversationId ? { ...conversation } : conv);
-      });
-      
-      // Extract user IDs from messages for bulk user fetching
-      const userIds = new Set<number>();
-      conversation.messages?.forEach(message => {
-        userIds.add(message.userId);
-        userIds.add(message.toUserId);
-      });
-      
-      // Bulk fetch user details for message participants
-      if (userIds.size > 0) {
-        const fakeRelations = Array.from(userIds).map(userId => ({
-          id: 0,
-          follower_user_id: userId,
-          followed_user_id: userId,
-          created_at: '',
-          modified_at: '',
-        }));
-        
-        try {
-          await fetchBulkUsersFromRelations(fakeRelations);
-        } catch (err) {
-          console.error('Failed to bulk fetch users for conversation messages:', err);
-        }
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to fetch conversation";
+        setError(errorMessage);
+        console.error("Failed to fetch conversation:", err);
+      } finally {
+        setLoading(false);
       }
-      
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch conversation';
-      setError(errorMessage);
-      console.error('Failed to fetch conversation:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+    [fetchBulkUsersFromRelations]
+  );
 
-  const sendMessage = async (text: string, toUserId?: number) => {
+  const sendMessage = async (text: string) => {
     if (!user || !window.Messages || !activeConversation) return;
 
     // Determine recipient
-    let recipientId = toUserId;
-    if (!recipientId && activeConversation.messages && activeConversation.messages.length > 0) {
-      // Find the other user in the conversation
-      const lastMessage = activeConversation.messages[activeConversation.messages.length - 1];
-      recipientId = lastMessage.userId === user.id ? lastMessage.toUserId : lastMessage.userId;
+    let recipientId;
+    if (activeConversation.messages && activeConversation.messages.length > 0) {
+      const lastMessage =
+        activeConversation.messages[activeConversation.messages.length - 1];
+      recipientId =
+        lastMessage.user_id === user.id
+          ? lastMessage.to_user_id
+          : lastMessage.user_id;
     }
-
     if (!recipientId) {
-      setError('Cannot determine message recipient');
-      return;
+      const otherUserId = activeConversation.users?.find((u) => u !== user.id);
+      if (otherUserId) {
+        recipientId = otherUserId;
+      } else {
+        setError("Cannot determine message recipient");
+        return;
+      }
     }
 
     try {
       setError(null);
-      
-      const newMessage = await window.Messages.Messages.create({
+
+      const newMessage = await window.Messages.createMessage({
         conversationId: activeConversation.id,
         userId: user.id,
         toUserId: recipientId,
-        type: 'text',
+        type: "text",
         typeId: 0,
         metadata: {},
         text: text.trim(),
       });
 
+      console.log("New message created:", newMessage);
+
       // Add message to current messages
-      setMessages(prev => [...prev, newMessage]);
-      
-      // Update conversation in conversations list
-      setConversations(prev => prev.map(conv => {
-        if (conv.id === activeConversation.id) {
-          return {
-            ...conv,
-            messages: [...(conv.messages || []), newMessage],
-          };
-        }
-        return conv;
-      }));
-      
-      // Update active conversation
-      setActiveConversation(prev => prev ? {
-        ...prev,
-        messages: [...(prev.messages || []), newMessage],
-      } : null);
-      
+      setMessages((prev) => [...prev, newMessage]);
+      setConversationMessages((prev) => [...prev, newMessage]);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to send message';
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to send message";
       setError(errorMessage);
-      console.error('Failed to send message:', err);
+      console.error("Failed to send message:", err);
       throw err;
     }
   };
 
-  const startConversation = async (toUserId: number, text: string, type: string = 'direct', typeId: number = 0) => {
+  const startConversation = async (
+    toUserId: number,
+    text: string,
+    type: string = "direct",
+    typeId: number = 0
+  ) => {
     if (!user || !window.Messages) return;
 
     try {
       setLoading(true);
       setError(null);
-      
-      const startResponse: StartResponse = await window.Messages.Start.create({
+
+      const startResponse = await window.Messages.startConversation({
         type,
         typeId,
         metadata: {},
-        status: 'active',
+        status: "active",
         userId: user.id,
         toUserId,
         text: text.trim(),
       });
 
       const { conversation, message } = startResponse;
-      
+
       // Add conversation to list
       const conversationWithMessages = {
         ...conversation,
         messages: [message],
       };
-      
-      setConversations(prev => [conversationWithMessages, ...prev]);
-      
+
+      setConversations((prev) => [conversationWithMessages, ...prev]);
+
       // Set as active conversation
       setActiveConversationId(conversation.id);
-      
+
       return conversation;
-      
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to start conversation';
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to start conversation";
       setError(errorMessage);
-      console.error('Failed to start conversation:', err);
+      console.error("Failed to start conversation:", err);
       throw err;
     } finally {
       setLoading(false);
@@ -256,15 +273,21 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const markAsRead = (conversationId: number) => {
     // TODO: Implement read status when API supports it
-    console.log('Mark as read:', conversationId);
+    console.log("Mark as read:", conversationId);
   };
+
+  useEffect(() => {
+    setActiveConversation(
+      conversations.find((conv) => conv.id === activeConversationId) || null
+    );
+  }, [activeConversationId]);
 
   // Fetch conversations when user changes
   useEffect(() => {
-    console.log("MessageContext, user", user)
-    console.log("MessageContext, window.Messages", window.Messages)
     if (user && window.Messages) {
-      fetchConversations();
+      if (conversations.length === 0 && !loading) {
+        fetchConversations();
+      }
     } else {
       setConversations([]);
       setActiveConversation(null);
@@ -273,7 +296,6 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [user]);
 
-  // Clear data when user logs out
   useEffect(() => {
     if (!user) {
       setConversations([]);
@@ -284,11 +306,19 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [user]);
 
+  // Fetch messages when activeConversationId changes
+  useEffect(() => {
+    if (activeConversationId) {
+      fetchSpecificConversation(activeConversationId);
+    }
+  }, [activeConversationId, fetchSpecificConversation]);
+
   const value: MessagingContextType = {
     conversations,
     activeConversationId,
     activeConversation,
     messages,
+    conversationMessages,
     unreadCount,
     loading,
     error,
@@ -298,7 +328,12 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     startConversation,
     markAsRead,
     clearError,
+    fetchSpecificConversation,
   };
 
-  return <MessagingContext.Provider value={value}>{children}</MessagingContext.Provider>;
+  return (
+    <MessagingContext.Provider value={value}>
+      {children}
+    </MessagingContext.Provider>
+  );
 };
