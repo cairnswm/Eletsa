@@ -133,6 +133,15 @@ export const Messages: React.FC = () => {
     return title.includes(searchTerm.toLowerCase());
   });
 
+  const getOtherUsers = (conversation: Conversation) => {
+    if (!conversation.users || !user) return [];
+    
+    // Get all user IDs except the current user
+    const otherUserIds = conversation.users.filter(userId => userId !== user.id);
+    
+    // Get user objects for display
+    return otherUserIds.map(userId => getUser(userId)).filter(Boolean);
+  };
   if (!user) return null;
 
   return (
@@ -257,6 +266,30 @@ export const Messages: React.FC = () => {
                         <p className="text-sm text-gray-500">
                           {activeConversation.status === 'active' ? 'Active' : activeConversation.status}
                         </p>
+                        {/* Chatting with section */}
+                        <div className="flex items-center space-x-1 text-xs text-gray-500 mt-1">
+                          <span>Chatting with:</span>
+                          <div className="flex items-center space-x-1">
+                            {getOtherUsers(activeConversation).map((otherUser, index) => (
+                              <span key={otherUser?.id || index}>
+                                {otherUser ? (
+                                  <>
+                                    {otherUser.firstname && otherUser.lastname 
+                                      ? `${otherUser.firstname} ${otherUser.lastname}`
+                                      : otherUser.username || otherUser.email || `User ${otherUser.id}`
+                                    }
+                                    {index < getOtherUsers(activeConversation).length - 1 && ', '}
+                                  </>
+                                ) : (
+                                  <>
+                                    Loading...
+                                    {index < getOtherUsers(activeConversation).length - 1 && ', '}
+                                  </>
+                                )}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
