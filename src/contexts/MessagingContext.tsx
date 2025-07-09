@@ -239,7 +239,7 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   // Fetch conversations when user changes
   useEffect(() => {
     console.log("MessageContext, user", user)
-    console.lof("MessageContext, window.Messages", window.Messages)
+    console.log("MessageContext, window.Messages", window.Messages)
     if (user && window.Messages) {
       fetchConversations();
     } else {
