@@ -37,7 +37,7 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setError(null);
       
       console.log('Fetching conversations for user:', user.id);
-      const conversationsData = await window.Messages.Conv.get(user.id);
+      const conversationsData = await window.Messages.getConv(user.id);
       console.log('Fetched conversations:', conversationsData);
       
       setConversations(conversationsData);
