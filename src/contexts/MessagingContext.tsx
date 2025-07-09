@@ -90,15 +90,8 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       return;
     }
 
-    // Find conversation in current list
-    const conversation = conversations.find(conv => conv.id === id);
-    if (conversation) {
-      setActiveConversation(conversation);
-      setMessages(conversation.messages || []);
-    } else {
-      // Fetch specific conversation if not found
-      fetchSpecificConversation(id);
-    }
+    // Always fetch the specific conversation to get the latest messages
+    fetchSpecificConversation(id);
   };
 
   const fetchSpecificConversation = async (conversationId: number) => {
@@ -108,8 +101,13 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setLoading(true);
       setError(null);
       
+      console.log(`Fetching conversation ${conversationId} with messages...`);
       const conversationData = await window.Messages.Conversations.get({ id: conversationId });
+      
+      // The API returns a single conversation object with messages when ID is provided
       const conversation = Array.isArray(conversationData) ? conversationData[0] : conversationData;
+      
+      console.log('Fetched conversation with messages:', conversation);
       
       setActiveConversation(conversation);
       setMessages(conversation.messages || []);
@@ -120,8 +118,33 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (!exists) {
           return [...prev, conversation];
         }
-        return prev.map(conv => conv.id === conversationId ? conversation : conv);
+        // Update the existing conversation with the latest data
+        return prev.map(conv => conv.id === conversationId ? { ...conversation } : conv);
       });
+      
+      // Extract user IDs from messages for bulk user fetching
+      const userIds = new Set<number>();
+      conversation.messages?.forEach(message => {
+        userIds.add(message.userId);
+        userIds.add(message.toUserId);
+      });
+      
+      // Bulk fetch user details for message participants
+      if (userIds.size > 0) {
+        const fakeRelations = Array.from(userIds).map(userId => ({
+          id: 0,
+          follower_user_id: userId,
+          followed_user_id: userId,
+          created_at: '',
+          modified_at: '',
+        }));
+        
+        try {
+          await fetchBulkUsersFromRelations(fakeRelations);
+        } catch (err) {
+          console.error('Failed to bulk fetch users for conversation messages:', err);
+        }
+      }
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch conversation';

@@ -186,6 +186,12 @@ export const Messages: React.FC = () => {
                             <p className="text-sm text-gray-600 truncate">
                               {getLastMessage(conversation)}
                             </p>
+                            {loading && activeConversationId === conversation.id && (
+                              <div className="flex items-center space-x-1 mt-1">
+                                <div className="animate-spin rounded-full h-3 w-3 border-b border-[#1E30FF]"></div>
+                                <span className="text-xs text-gray-500">Loading messages...</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -232,7 +238,14 @@ export const Messages: React.FC = () => {
 
                   {/* Messages */}
                   <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {messages.length > 0 ? (
+                    {loading && messages.length === 0 ? (
+                      <div className="flex items-center justify-center py-12">
+                        <div className="flex items-center space-x-3">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1E30FF]"></div>
+                          <span className="text-gray-600">Loading messages...</span>
+                        </div>
+                      </div>
+                    ) : messages.length > 0 ? (
                       messages.map((message, index) => {
                         const isOwnMessage = message.userId === user.id;
                         const showAvatar = index === 0 || messages[index - 1].userId !== message.userId;
