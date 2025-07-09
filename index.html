@@ -14,7 +14,9 @@
 <script>
   // Set the messages API key (same as app ID)
   window.addEventListener('load', () => {
+    console.log("Set messages API Key")
     if (window.Messages) {
+      
       window.Messages.setApiKey('e671937d-54c9-11f0-9ec0-1a220d8ac2c9');
     }
   });
