@@ -114,7 +114,7 @@ export const Home: React.FC = () => {
                 <EventCard
                   key={event.id}
                   event={event}
-                  onClick={() => setActiveEventId(event.id)}
+                  onClick={() => navigate(`/event/${event.id}`)}
                 />
               ))}
             </div>
