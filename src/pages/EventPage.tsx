@@ -21,6 +21,7 @@ export const EventPage: React.FC = () => {
   }, [eventId, setActiveEventId, navigate]);
 
   const handleBack = () => {
+    console.log('Back button clicked, navigating to home');
     setActiveEventId(null);
     navigate('/home');
   };

@@ -1,13 +1,19 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, MapPin, Users, Clock, Star } from 'lucide-react';
 import { Event } from '../../types/event';
 
 interface EventCardProps {
   event: Event;
-  onClick: () => void;
 }
 
-export const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
+export const EventCard: React.FC<EventCardProps> = ({ event }) => {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/event/${event.id}`);
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -46,7 +52,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
 
   return (
     <div
-      onClick={onClick}
+      onClick={handleClick}
       className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden group"
     >
       {/* Event Image */}
