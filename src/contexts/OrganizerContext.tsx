@@ -479,6 +479,10 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   }, [user?.id]);
 
+  const clearError = () => {
+    setError(null);
+  };
+
   const value: OrganizerContextType = {
     organizers,
     organizerEvents,
