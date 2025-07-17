@@ -16,7 +16,7 @@ export const EventDetailsPage: React.FC = () => {
       console.log(`Setting active event ID to: ${numericEventId}`);
       setActiveEventId(numericEventId);
     }
-  }, [eventId, setActiveEventId]);
+  }, [eventId]);
 
   const handleBack = () => {
     navigate(-1); // Go back to previous page

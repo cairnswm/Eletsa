@@ -201,7 +201,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const setActiveEventId = useCallback(async (id: number | null) => {
+  const setActiveEventId = async (id: number | null) => {
     setActiveEventIdState(id);
     
     if (id === null) {
@@ -247,7 +247,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         console.error('Failed to fetch event details:', err);
       }
     }
-  }, [activeEventId, events, fetchEventTicketTypes, fetchEventComments, fetchOrganizer]);
+  };
 
   // FIXED: Method to add a new event to the cache (for immediate display after creation)
   const addEventToCache = (newEvent: Event) => {
