@@ -41,7 +41,7 @@ export const CreateEvent: React.FC = () => {
   } = useEventForm();
 
   // Check if event has valid ticket types or is marked as free
-  const hasValidTicketTypes = ticketTypes.some(ticket => 
+  const hasValidTicketTypes = ticketTypes.length > 0 && ticketTypes.some(ticket => 
     ticket.name.trim() && ticket.quantity > 0 && ticket.price >= 0
   );
   
@@ -250,12 +250,12 @@ export const CreateEvent: React.FC = () => {
                 {imageUploading ? 'Uploading Images...' : loading ? 'Creating Event...' : 'Create Event'}
               </span>
             </button>
-            {!canSubmit && (
-              <p className="text-xs text-gray-500 mt-2 text-right">
-                Add ticket types or mark as free event to enable creation
-              </p>
-            )}
           </div>
+          {!canSubmit && (
+            <p className="text-xs text-gray-500 mt-2 text-right">
+              Add ticket types or mark as free event to enable creation
+            </p>
+          )}
         </form>
       </div>
 

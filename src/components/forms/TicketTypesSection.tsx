@@ -1,5 +1,6 @@
 import React from 'react';
 import { DollarSign, Plus, Trash2, RefreshCw } from 'lucide-react';
+import { DollarSign, Plus, Trash2, RefreshCw, Gift } from 'lucide-react';
 
 interface TicketTypeForm {
   id: string | number;
@@ -171,7 +172,7 @@ export const TicketTypesSection: React.FC<TicketTypesSectionProps> = ({
       </div>
 
       {/* Free event checkbox when no ticket types */}
-      {ticketTypes.length === 0 && onFreeEventChange && (
+      {ticketTypes.length === 0 && onFreeEventChange !== undefined && (
         <div className="mt-8 pt-6 border-t border-gray-200">
           <div className="flex items-center space-x-3">
             <input
