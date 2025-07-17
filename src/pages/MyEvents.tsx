@@ -170,23 +170,33 @@ export const MyEvents: React.FC = () => {
               </div>
             )}
           </div>
-          <button 
-            onClick={() => navigate('/create-event')}
-            disabled={!hasCompletedProfile}
-            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 ${
-              hasCompletedProfile 
-                ? 'bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white hover:opacity-90' 
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            <Plus className="w-5 h-5" />
-            <span>Create Event</span>
-          </button>
-          {!hasCompletedProfile && (
-            <p className="text-xs text-gray-500 mt-2 text-center">
-              Complete your profile to create events
-            </p>
-          )}
+          <div className="flex flex-col items-end">
+            <button 
+              onClick={() => navigate('/create-event')}
+              disabled={!hasCompletedProfile}
+              className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 ${
+                hasCompletedProfile 
+                  ? 'bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white hover:opacity-90' 
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              <Plus className="w-5 h-5" />
+              <span>Create Event</span>
+            </button>
+            {!hasCompletedProfile && (
+              <div className="mt-2 text-right">
+                <p className="text-xs text-gray-500">
+                  Complete your profile to create events
+                </p>
+                <button
+                  onClick={() => navigate('/profile')}
+                  className="text-xs text-[#1E30FF] hover:text-[#FF2D95] font-medium transition-colors duration-200"
+                >
+                  Go to Profile
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Stats Cards */}
