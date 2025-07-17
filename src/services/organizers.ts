@@ -15,7 +15,9 @@ import {
 } from '../types/organizer';
 import { Event } from '../types/event';
 
-const ORGANIZER_API = 'https://eletsa.cairns.co.za/php/organizer';
+let ORGANIZER_API = 'https://eletsa.cairns.co.za/php/organizer';
+
+ORGANIZER_API = "http://localhost/eletsa-api/php/organizer";
 
 export const organizersApi = {
   // Organizer endpoints
@@ -35,7 +37,10 @@ export const organizersApi = {
       headers: createHeaders(),
     });
 
-    const data = await handleApiResponse(response);
+    let data = await handleApiResponse(response);
+    if (Array.isArray(data) && data.length === 0) {
+      data = { id };
+    }
     return data;
   },
 

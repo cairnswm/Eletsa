@@ -88,8 +88,6 @@ export const ContactOrganizerModal: React.FC<ContactOrganizerModalProps> = ({
     onClose();
   };
 
-  console.log('Modal render - isOpen:', isOpen);
-
   if (!isOpen) return null;
 
   return (

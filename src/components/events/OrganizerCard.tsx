@@ -46,18 +46,17 @@ export const OrganizerCard: React.FC<OrganizerCardProps> = ({ organizerId }) => 
         
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-1">
-            {/* Use UserName component for the organizer's name */}
             <UserName 
               userId={organizer.user_id} 
               showFollowButton={true}
               showIcon={false}
               className="text-base font-semibold"
             />
-            {organizer.is_verified && (
+            {organizer.is_verified ? (
               <span className="bg-[#489707] text-white px-2 py-0.5 rounded-full text-xs font-medium">
                 Verified
               </span>
-            )}
+            ) : ""}
           </div>
           
           {organizer.positive_reviews > 0 && (

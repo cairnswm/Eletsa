@@ -103,6 +103,8 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
     navigate('/messages');
   };
 
+  console.log("TICKETTYPES:", ticketTypes);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1E30FF]/5 via-white to-[#FF2D95]/5">
       {/* Back Button */}

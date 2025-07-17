@@ -1,6 +1,7 @@
 import { createHeaders, handleApiResponse } from './api';
 
-const EVENTS_API = 'https://eletsa.cairns.co.za/php/events';
+let EVENTS_API = 'https://eletsa.cairns.co.za/php/events';
+EVENTS_API = "http://localhost/eletsa-api/php/events";
 
 export const eventsApi = {
   async fetchEvents() {

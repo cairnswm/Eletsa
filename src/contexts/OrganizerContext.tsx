@@ -84,42 +84,38 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       setLoading(true);
       setError(null);
-      
-      // Check if organizer already exists in state
+
       const existingOrganizer = organizers.find(org => org.id === id);
       if (existingOrganizer) {
-        console.log(`Organizer ${id} already in state, returning cached version`);
         return existingOrganizer;
       }
-      
-      console.log(`Fetching organizer ${id} from API...`);
-      
-      // Fetch from API
+
+      setOrganizers(prev => {
+        if (!prev.some(org => org.id === id)) {
+          return [...prev, { id, user_id: 0, name: '', email: '', phone: '', created_at: '', modified_at: '' }];
+        }
+        return prev;
+      });
+
       const organizerData = await organizersApi.fetchOrganizer(id);
-      
-      // Update organizers cache
+      console.log('Fetched organizer:', organizerData);
+
       setOrganizers(prev => {
         const existingIndex = prev.findIndex(org => org.id === id);
         if (existingIndex >= 0) {
-          // Update existing
           const updated = [...prev];
           updated[existingIndex] = organizerData;
           return updated;
         } else {
-          // Add new
           return [...prev, organizerData];
         }
       });
-      
-      // Fetch user details for the organizer
+
       await fetchOrganizerUsers([organizerData]);
-      
-      console.log(`Successfully fetched organizer ${id}`);
       return organizerData;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch organizer';
       setError(errorMessage);
-      console.error('Failed to fetch organizer:', err);
       throw err;
     } finally {
       setLoading(false);
@@ -127,7 +123,7 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const getOrganizer = (id: number): Organizer | null => {
-    const organizer = organizers.find(org => org.id === id);
+    const organizer = organizers.find(org => org.user_id === id);
     
     // If organizer doesn't exist in cache, automatically fetch it
     if (!organizer) {

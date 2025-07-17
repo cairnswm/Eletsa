@@ -50,6 +50,17 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
 
   const availableSpots = event.max_attendees > 0 ? event.max_attendees : null;
 
+  const formatEventDateTime = (start: string, end: string) => {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    if (startDate.toDateString() === endDate.toDateString()) {
+      return `${formatDate(start)} ${formatTime(start)} - ${formatTime(end)}`;
+    }
+
+    return `${formatDate(start)} ${formatTime(start)} - ${formatDate(end)} ${formatTime(end)}`;
+  };
+
   return (
     <div
       onClick={handleClick}
@@ -94,7 +105,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
           <div className="flex items-center text-sm text-gray-600">
             <Clock className="w-4 h-4 mr-2 text-[#489707]" />
             <span>
-              {formatTime(event.start_datetime)} - {formatTime(event.end_datetime)}
+              {formatEventDateTime(event.start_datetime, event.end_datetime)}
             </span>
           </div>
 

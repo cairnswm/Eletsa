@@ -1,7 +1,10 @@
 import { createHeaders, handleApiResponse } from './api';
 
-const USERS_API = 'https://eletsa.cairns.co.za/php/cairnsgames';
-const FOLLOW_API = 'https://eletsa.cairns.co.za/php/follow';
+let USERS_API = 'https://eletsa.cairns.co.za/php/cairnsgames';
+let FOLLOW_API = 'https://eletsa.cairns.co.za/php/follow';
+
+USERS_API = "http://localhost/eletsa-api/php/cairnsgames";
+FOLLOW_API = "http://localhost/eletsa-api/php/follow";
 
 export interface FollowRelation {
   id: number;

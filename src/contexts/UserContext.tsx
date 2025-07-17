@@ -42,10 +42,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const result = followRelations.some(
       relation => relation.follower_user_id === followerUserId && relation.followed_user_id === followedUserId
     );
-    
-    console.log(`isFollowing(${followerUserId}, ${followedUserId}):`, result);
-    console.log('Current follow relations:', followRelations);
-    
+        
     return result;
   };
 
