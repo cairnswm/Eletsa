@@ -212,9 +212,6 @@ export const Messages: React.FC = () => {
                         }`}
                       >
                         <div className="flex items-start space-x-3 relative">
-                          <div className="w-12 h-12 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] rounded-full flex items-center justify-center flex-shrink-0">
-                            <MessageCircle className="w-6 h-6 text-white" />
-                          </div>
                           <div className="flex-1">
                             <h3 className="text-sm font-medium text-gray-900">
                               {conversation.users && conversation.users.some((id) => id !== user?.id) ? (
