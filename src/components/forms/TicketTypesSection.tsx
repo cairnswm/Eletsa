@@ -13,6 +13,8 @@ interface TicketTypeForm {
 
 interface TicketTypesSectionProps {
   ticketTypes: TicketTypeForm[];
+  isFreeEvent?: boolean;
+  onFreeEventChange?: (isFree: boolean) => void;
   onTicketTypeChange: (id: string | number, field: keyof TicketTypeForm, value: string | number | boolean) => void;
   onAddTicketType: () => void;
   onRemoveTicketType: (id: string | number) => void;
@@ -20,6 +22,8 @@ interface TicketTypesSectionProps {
 
 export const TicketTypesSection: React.FC<TicketTypesSectionProps> = ({
   ticketTypes,
+  isFreeEvent = false,
+  onFreeEventChange,
   onTicketTypeChange,
   onAddTicketType,
   onRemoveTicketType,
@@ -47,6 +51,15 @@ export const TicketTypesSection: React.FC<TicketTypesSectionProps> = ({
           <span>Add Ticket Type</span>
         </button>
       </div>
+
+      {/* Warning message when no ticket types */}
+      {ticketTypes.length === 0 && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600 text-sm font-medium">
+            If no ticket types are entered the event will be free entry.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-6">
         {ticketTypes.map((ticket, index) => (
@@ -156,6 +169,28 @@ export const TicketTypesSection: React.FC<TicketTypesSectionProps> = ({
           </div>
         ))}
       </div>
+
+      {/* Free event checkbox when no ticket types */}
+      {ticketTypes.length === 0 && onFreeEventChange && (
+        <div className="mt-8 pt-6 border-t border-gray-200">
+          <div className="flex items-center space-x-3">
+            <input
+              type="checkbox"
+              id="free-event"
+              checked={isFreeEvent}
+              onChange={(e) => onFreeEventChange(e.target.checked)}
+              className="w-4 h-4 text-[#1E30FF] border-gray-300 rounded focus:ring-[#1E30FF]"
+            />
+            <label htmlFor="free-event" className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+              <Gift className="w-4 h-4 text-[#489707]" />
+              <span>This event is free</span>
+            </label>
+          </div>
+          <p className="mt-2 text-xs text-gray-500 ml-7">
+            Check this box to confirm that this event has free admission
+          </p>
+        </div>
+      )}
     </div>
   );
 };

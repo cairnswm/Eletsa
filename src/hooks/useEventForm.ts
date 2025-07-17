@@ -102,6 +102,7 @@ export const useEventForm = (initialData?: Partial<EventFormData>, initialTicket
   };
 
   const validateForm = (): string | null => {
+  const validateForm = (isFreeEvent: boolean = false): string | null => {
     if (!eventData.title.trim()) return 'Event title is required';
     if (!eventData.description.trim()) return 'Event description is required';
     if (!eventData.category) return 'Event category is required';
@@ -115,11 +116,18 @@ export const useEventForm = (initialData?: Partial<EventFormData>, initialTicket
     
     if (eventData.max_attendees <= 0) return 'Maximum attendees must be greater than 0';
 
-    // Validate ticket types
-    for (const ticket of ticketTypes) {
-      if (!ticket.name.trim()) return 'All ticket types must have a name';
-      if (ticket.quantity <= 0) return 'All ticket types must have a quantity greater than 0';
-      if (ticket.price < 0) return 'Ticket prices cannot be negative';
+    // Validate ticket types (only if not a free event or if ticket types exist)
+    if (!isFreeEvent || ticketTypes.length > 0) {
+      for (const ticket of ticketTypes) {
+        if (!ticket.name.trim()) return 'All ticket types must have a name';
+        if (ticket.quantity <= 0) return 'All ticket types must have a quantity greater than 0';
+        if (ticket.price < 0) return 'Ticket prices cannot be negative';
+      }
+    }
+
+    // Check if event has ticket types or is marked as free
+    if (ticketTypes.length === 0 && !isFreeEvent) {
+      return 'Please add ticket types or mark the event as free';
     }
 
     return null;

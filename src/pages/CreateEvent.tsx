@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Save, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, Save, AlertCircle, Gift } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganizer } from '../contexts/OrganizerContext';
 import { useEvent } from '../contexts/EventContext';
@@ -26,6 +26,7 @@ export const CreateEvent: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [selectedImageFiles, setSelectedImageFiles] = useState<File[]>([]);
+  const [isFreeEvent, setIsFreeEvent] = useState(false);
 
   // Use the event form hook
   const {
@@ -39,6 +40,13 @@ export const CreateEvent: React.FC = () => {
     validateForm,
   } = useEventForm();
 
+  // Check if event has valid ticket types or is marked as free
+  const hasValidTicketTypes = ticketTypes.some(ticket => 
+    ticket.name.trim() && ticket.quantity > 0 && ticket.price >= 0
+  );
+  
+  const canSubmit = hasValidTicketTypes || isFreeEvent;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -47,7 +55,7 @@ export const CreateEvent: React.FC = () => {
       return;
     }
 
-    const validationError = validateForm();
+    const validationError = validateForm(isFreeEvent);
     if (validationError) {
       setError(validationError);
       return;
@@ -98,15 +106,28 @@ export const CreateEvent: React.FC = () => {
       console.log('Created event:', newEvent);
 
       // Create ticket types for the event
-      for (const ticketType of ticketTypes) {
+      if (isFreeEvent && ticketTypes.length === 0) {
+        // Create a default free ticket type
         await eventsApi.createTicketType({
           event_id: eventId,
-          name: ticketType.name.trim(),
-          description: ticketType.description.trim(),
-          price: ticketType.price,
-          quantity: ticketType.quantity,
-          refundable: ticketType.refundable,
+          name: 'Free Entry',
+          description: 'Free admission to this event',
+          price: 0,
+          quantity: eventData.max_attendees,
+          refundable: false,
         });
+      } else {
+        // Create the specified ticket types
+        for (const ticketType of ticketTypes) {
+          await eventsApi.createTicketType({
+            event_id: eventId,
+            name: ticketType.name.trim(),
+            description: ticketType.description.trim(),
+            price: ticketType.price,
+            quantity: ticketType.quantity,
+            refundable: ticketType.refundable,
+          });
+        }
       }
 
       console.log('All ticket types created successfully');
@@ -199,6 +220,8 @@ export const CreateEvent: React.FC = () => {
           {/* Ticket Types */}
           <TicketTypesSection
             ticketTypes={ticketTypes}
+            isFreeEvent={isFreeEvent}
+            onFreeEventChange={setIsFreeEvent}
             onTicketTypeChange={handleTicketTypeChange}
             onAddTicketType={addTicketType}
             onRemoveTicketType={removeTicketType}
@@ -215,14 +238,23 @@ export const CreateEvent: React.FC = () => {
             </button>
             <button
               type="submit"
-              disabled={loading || imageUploading}
-              className="bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              disabled={loading || imageUploading || !canSubmit}
+              className={`px-8 py-3 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 ${
+                canSubmit 
+                  ? 'bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white hover:opacity-90' 
+                  : 'bg-gray-300 text-gray-500'
+              }`}
             >
               <Save className="w-5 h-5" />
               <span>
                 {imageUploading ? 'Uploading Images...' : loading ? 'Creating Event...' : 'Create Event'}
               </span>
             </button>
+            {!canSubmit && (
+              <p className="text-xs text-gray-500 mt-2 text-right">
+                Add ticket types or mark as free event to enable creation
+              </p>
+            )}
           </div>
         </form>
       </div>
