@@ -314,7 +314,7 @@ export const Profile: React.FC = () => {
                       />
                     </div>
                   <p className="mt-1 text-xs text-gray-500">
-                    A username and/or first/last name is required to interact with other users
+                    A username and/or first/last name is required to interact with other users through messages.
                   </p>
                   </div>
 
