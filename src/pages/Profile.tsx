@@ -167,6 +167,9 @@ export const Profile: React.FC = () => {
                     <h3 className="font-semibold text-gray-900">Become an Event Organizer</h3>
                     <p className="text-sm text-gray-600">Start hosting your own events and build your community</p>
                   </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    A username and/or first/last name is required to interact with other users
+                  </p>
                 </div>
                 <button
                   onClick={handleBecomeOrganizer}
