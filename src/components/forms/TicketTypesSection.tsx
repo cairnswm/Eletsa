@@ -1,5 +1,4 @@
 import React from 'react';
-import { DollarSign, Plus, Trash2, RefreshCw } from 'lucide-react';
 import { DollarSign, Plus, Trash2, RefreshCw, Gift } from 'lucide-react';
 
 interface TicketTypeForm {
