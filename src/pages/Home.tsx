@@ -1,18 +1,14 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Calendar, MapPin } from 'lucide-react';
 import { useEvent } from '../contexts/EventContext';
 import { EventCard } from '../components/events/EventCard';
-import { EventDetails } from '../components/events/EventDetails';
 
 export const Home: React.FC = () => {
-  const { events, loading, error, setActiveEventId, activeEventId } = useEvent();
+  const { events, loading, error } = useEvent();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-
-  // Show event details if an event is selected
-  if (activeEventId) {
-    return <EventDetails onBack={() => setActiveEventId(null)} />;
-  }
 
   const categories = ['All', 'Workshop', 'Social', 'Sports', 'Music', 'Food', 'Business', 'Arts'];
 
@@ -73,7 +69,7 @@ export const Home: React.FC = () => {
               >
                 {categories.map((category) => (
                   <option key={category} value={category === 'All' ? '' : category}>
-                    {category}
+                    onClick={() => navigate(`/event/${event.id}`)}
                   </option>
                 ))}
               </select>
