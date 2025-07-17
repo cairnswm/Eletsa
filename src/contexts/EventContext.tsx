@@ -24,7 +24,6 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   
   // FIXED: Add tracking for what data has been fetched for each event
   const [commentsFetched, setCommentsFetched] = useState<Set<number>>(new Set());
-  const [organizersFetched, setOrganizersFetched] = useState<Set<number>>(new Set());
   
   // FIXED: Add caching for ticket types to prevent redundant fetches
   const [ticketTypesCache, setTicketTypesCache] = useState<{ [eventId: number]: TicketType[] }>({});
@@ -173,26 +172,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // FIXED: Only fetch organizer if not already fetched
-  const fetchOrganizer = async (organizerId: number, force: boolean = false) => {
-    if (!force && organizersFetched.has(organizerId)) {
-      console.log(`Organizer ${organizerId} already fetched, skipping`);
-      return;
-    }
-
-    try {
-      setError(null);
-      console.log(`Fetching organizer ${organizerId}...`);
-      
-      // This will be handled by the OrganizerCard component using the OrganizerContext
-      // We don't need to fetch organizer data here since it's managed by OrganizerContext
-      console.log(`Organizer ${organizerId} fetch delegated to OrganizerContext`);
-      
-      setOrganizersFetched(prev => new Set([...prev, organizerId]));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch organizer');
-      console.error('Failed to fetch organizer:', err);
-    }
-  };
+  // Organizer data is handled by OrganizerContext - no need to fetch here
 
   const setActiveEventId = async (id: number | null) => {
     setActiveEventIdState(id);
@@ -224,7 +204,6 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await Promise.all([
         fetchEventTicketTypes(id),
         fetchEventComments(id),
-        fetchOrganizer(existingEvent.organizer_id),
       ]);
     } else {
       // Fetch event from API
@@ -234,7 +213,6 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         await Promise.all([
           fetchEventTicketTypes(id),
           fetchEventComments(id),
-          fetchOrganizer(eventData.organizer_id),
         ]);
       } catch (err) {
         console.error('Failed to fetch event details:', err);
@@ -265,7 +243,6 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setTicketTypesFetched(new Set());
     // FIXED: Also clear comments and organizer caches
     setCommentsFetched(new Set());
-    setOrganizersFetched(new Set());
   }, [events.length]); // Only clear when the number of events changes
 
   // FIXED: Clear comments and organizer when active event changes to null
@@ -296,7 +273,6 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     refreshEventTicketTypes, // ADDED: New method to force refresh
     invalidateEventTicketTypes, // ADDED: New method to invalidate cache
     fetchEventComments,
-    fetchOrganizer,
     addEventToCache,
   };
 
