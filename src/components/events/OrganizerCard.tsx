@@ -2,6 +2,7 @@ import React from 'react';
 import { Star, Shield, Calendar, Mail } from 'lucide-react';
 import { Organizer } from '../../types/event';
 import { UserName } from '../user/UserName';
+import { UserImage } from '../user/UserImage';
 
 interface OrganizerCardProps {
   organizer: Organizer;
@@ -13,12 +14,8 @@ export const OrganizerCard: React.FC<OrganizerCardProps> = ({ organizer }) => {
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Event Organizer</h3>
       
       <div className="flex items-start space-x-4">
-        <div className="relative">
-          <img
-            src={organizer.avatar || `https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=80&h=80&dpr=1`}
-            alt={organizer.name}
-            className="w-16 h-16 rounded-full object-cover"
-          />
+        <div className="relative flex-shrink-0">
+          <UserImage userId={organizer.id} size="lg" />
           {organizer.verified && (
             <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#489707] rounded-full flex items-center justify-center">
               <Shield className="w-3 h-3 text-white" />
@@ -32,6 +29,7 @@ export const OrganizerCard: React.FC<OrganizerCardProps> = ({ organizer }) => {
             <UserName 
               userId={organizer.id} 
               showFollowButton={true}
+              showIcon={false}
               className="text-base font-semibold"
             />
             {organizer.verified && (

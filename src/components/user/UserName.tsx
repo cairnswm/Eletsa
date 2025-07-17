@@ -6,12 +6,14 @@ import { useAuth } from '../../contexts/AuthContext';
 interface UserNameProps {
   userId: number;
   showFollowButton?: boolean;
+  showIcon?: boolean;
   className?: string;
 }
 
 export const UserName: React.FC<UserNameProps> = ({ 
   userId, 
   showFollowButton = true, 
+  showIcon = true,
   className = '' 
 }) => {
   const { user: currentUser } = useAuth();
@@ -72,19 +74,21 @@ export const UserName: React.FC<UserNameProps> = ({
   return (
     <div className={`flex items-center space-x-2 ${className}`}>
       {/* User Avatar */}
-      <div className="w-8 h-8 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] rounded-full flex items-center justify-center">
-        {userProfile?.avatar ? (
-          <img 
-            src={userProfile.avatar} 
-            alt={getDisplayName()} 
-            className="w-8 h-8 rounded-full object-cover"
-          />
-        ) : (
-          <span className="text-white text-sm font-medium">
-            {getDisplayName()[0].toUpperCase()}
-          </span>
-        )}
-      </div>
+      {showIcon && (
+        <div className="w-8 h-8 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] rounded-full flex items-center justify-center">
+          {userProfile?.avatar ? (
+            <img 
+              src={userProfile.avatar} 
+              alt={getDisplayName()} 
+              className="w-8 h-8 rounded-full object-cover"
+            />
+          ) : (
+            <span className="text-white text-sm font-medium">
+              {getDisplayName()[0].toUpperCase()}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* User Name */}
       <span className="font-medium text-gray-900 hover:text-[#1E30FF] transition-colors duration-200 cursor-pointer">
