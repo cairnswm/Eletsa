@@ -82,6 +82,7 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const fetchOrganizer = async (id: number): Promise<Organizer> => {
     try {
+    }
     // Check if organizer already exists in state
     const existingOrganizer = organizers.find(org => org.id === organizerId);
     if (!force && existingOrganizer) {
@@ -91,6 +92,8 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       // Update organizers cache
       setOrganizers(prev => {
         const existingIndex = prev.findIndex(org => org.id === id);
+      }
+      )
       console.log(`Fetching organizer ${organizerId} from API...`);
       
       // Fetch from API and add to organizers array
