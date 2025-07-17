@@ -17,7 +17,6 @@ import { MyEvents } from './pages/MyEvents';
 import { Messages } from './pages/Messages';
 import { CreateEvent } from './pages/CreateEvent';
 import { EditEvent } from './pages/EditEvent';
-import { EventDetailsPage } from './pages/EventDetailsPage';
 import { useAuth } from './contexts/AuthContext';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -97,14 +96,6 @@ const AppContent: React.FC = () => {
           element={
             <ProtectedRoute>
               <EditEvent />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/event/:eventId"
-          element={
-            <ProtectedRoute>
-              <EventDetailsPage />
             </ProtectedRoute>
           }
         />

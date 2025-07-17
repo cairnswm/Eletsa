@@ -113,7 +113,7 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
             className="flex items-center space-x-2 text-gray-600 hover:text-[#1E30FF] transition-colors duration-200"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">Back</span>
+            <span className="font-medium">Back to Events</span>
           </button>
         </div>
       </div>

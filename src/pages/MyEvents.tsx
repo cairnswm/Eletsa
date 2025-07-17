@@ -114,7 +114,8 @@ export const MyEvents: React.FC = () => {
   };
 
   const handleEventClick = (eventId: number) => {
-    navigate(`/event/${eventId}`);
+    setActiveEventId(eventId);
+    navigate('/home'); // Navigate to home which will show event details
   };
 
   const handleEditEvent = (eventId: number, e: React.MouseEvent) => {
