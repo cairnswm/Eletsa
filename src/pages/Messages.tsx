@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Send, ArrowLeft, Plus, Search } from 'lucide-react';
 import { useMessaging } from '../contexts/MessagingContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,6 +9,7 @@ import { UserName } from '../components/user/UserName';
 import { Conversation, Message } from '../types/messaging';
 
 export const Messages: React.FC = () => {
+  const navigate = useNavigate();
   const { user, hasCompletedProfile } = useAuth();
   const { getUser } = useUser();
   const {

@@ -182,6 +182,11 @@ export const MyEvents: React.FC = () => {
             <Plus className="w-5 h-5" />
             <span>Create Event</span>
           </button>
+          {!hasCompletedProfile && (
+            <p className="text-xs text-gray-500 mt-2 text-center">
+              Complete your profile to create events
+            </p>
+          )}
         </div>
 
         {/* Stats Cards */}

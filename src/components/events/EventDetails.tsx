@@ -377,6 +377,14 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
                     Complete your profile before contacting the organizer
                   </p>
                 )}
+                {!hasCompletedProfile && (
+                  <button
+                    onClick={() => navigate('/profile')}
+                    className="w-full mt-2 text-[#1E30FF] hover:text-[#FF2D95] font-medium text-sm transition-colors duration-200"
+                  >
+                    Go to Profile
+                  </button>
+                )}
               </div>
             )}
             {/* Event Info Card */}
