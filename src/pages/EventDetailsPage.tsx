@@ -16,12 +16,6 @@ export const EventDetailsPage: React.FC = () => {
       console.log(`Setting active event ID to: ${numericEventId}`);
       setActiveEventId(numericEventId);
     }
-    
-    // Clean up when component unmounts
-    return () => {
-      console.log('Cleaning up active event ID');
-      setActiveEventId(null);
-    };
   }, [eventId, setActiveEventId]);
 
   const handleBack = () => {
