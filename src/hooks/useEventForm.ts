@@ -101,8 +101,6 @@ export const useEventForm = (initialData?: Partial<EventFormData>, initialTicket
     }));
   };
 
-  const validateForm = (): string | null => {
-  }
   const validateForm = (isFreeEvent: boolean = false): string | null => {
     if (!eventData.title.trim()) return 'Event title is required';
     if (!eventData.description.trim()) return 'Event description is required';
