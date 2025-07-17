@@ -299,7 +299,7 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
           {/* Right Column - 40% */}
           <div className="space-y-8">
             {/* Organizer Card */}
-            {organizer && <OrganizerCard organizer={organizer} />}
+            {activeEvent && <OrganizerCard organizerId={activeEvent.organizer_id} />}
 
             {/* Contact Organizer */}
             {user && user.id !== activeEvent.organizer_id && (

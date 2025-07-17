@@ -182,18 +182,11 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       setError(null);
       console.log(`Fetching organizer ${organizerId}...`);
-      // Mock organizer data since the API endpoint wasn't provided
-      const mockOrganizer: Organizer = {
-        id: organizerId,
-        name: 'Event Organizer',
-        email: 'organizer@example.com',
-        description: 'Passionate about creating amazing local events and bringing communities together.',
-        avatar: `https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&dpr=1`,
-        verified: true,
-        rating: 4.8,
-        events_count: 12,
-      };
-      setOrganizer(mockOrganizer);
+      
+      // This will be handled by the OrganizerCard component using the OrganizerContext
+      // We don't need to fetch organizer data here since it's managed by OrganizerContext
+      console.log(`Organizer ${organizerId} fetch delegated to OrganizerContext`);
+      
       setOrganizersFetched(prev => new Set([...prev, organizerId]));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch organizer');
