@@ -51,6 +51,7 @@ export interface UpdateUserRequest {
 export interface AuthContextType {
   user: User | null;
   token: string | null;
+  hasCompletedProfile: boolean;
   loading: boolean;
   error: string | null;
   login: (credentials: LoginRequest) => Promise<void>;

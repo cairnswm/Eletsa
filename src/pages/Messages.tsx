@@ -8,7 +8,7 @@ import { UserName } from '../components/user/UserName';
 import { Conversation, Message } from '../types/messaging';
 
 export const Messages: React.FC = () => {
-  const { user } = useAuth();
+  const { user, hasCompletedProfile } = useAuth();
   const { getUser } = useUser();
   const {
     conversations,
@@ -352,30 +352,42 @@ export const Messages: React.FC = () => {
 
                   {/* Message Input */}
                   <div className="p-4 border-t border-gray-200 bg-white">
-                    <form onSubmit={handleSendMessage} className="flex space-x-3">
-                      <div className="flex-1">
-                        <textarea
-                          value={newMessage}
-                          onChange={(e) => setNewMessage(e.target.value)}
-                          placeholder="Type a message..."
-                          rows={1}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent resize-none"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                              e.preventDefault();
-                              handleSendMessage(e);
-                            }
-                          }}
-                        />
+                    {hasCompletedProfile ? (
+                      <form onSubmit={handleSendMessage} className="flex space-x-3">
+                        <div className="flex-1">
+                          <textarea
+                            value={newMessage}
+                            onChange={(e) => setNewMessage(e.target.value)}
+                            placeholder="Type a message..."
+                            rows={1}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent resize-none"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSendMessage(e);
+                              }
+                            }}
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={!newMessage.trim() || sending}
+                          className="bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white p-3 rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                        >
+                          <Send className="w-5 h-5" />
+                        </button>
+                      </form>
+                    ) : (
+                      <div className="bg-gray-50 rounded-lg p-4 text-center">
+                        <p className="text-gray-600 text-sm mb-2">Complete your profile to send messages</p>
+                        <button
+                          onClick={() => navigate('/profile')}
+                          className="text-[#1E30FF] hover:text-[#FF2D95] font-medium text-sm transition-colors duration-200"
+                        >
+                          Go to Profile
+                        </button>
                       </div>
-                      <button
-                        type="submit"
-                        disabled={!newMessage.trim() || sending}
-                        className="bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white p-3 rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                      >
-                        <Send className="w-5 h-5" />
-                      </button>
-                    </form>
+                    )}
                   </div>
                 </>
               ) : (

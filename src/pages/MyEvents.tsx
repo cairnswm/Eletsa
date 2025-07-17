@@ -8,7 +8,7 @@ import { EventCard } from '../components/events/EventCard';
 
 export const MyEvents: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, hasCompletedProfile } = useAuth();
   const { getOrganizerByUserId, fetchOrganizerEvents, getOrganizerEvents } = useOrganizer();
   const { setActiveEventId } = useEvent();
   const [activeTab, setActiveTab] = useState<'active' | 'draft' | 'past'>('active');
@@ -172,7 +172,12 @@ export const MyEvents: React.FC = () => {
           </div>
           <button 
             onClick={() => navigate('/create-event')}
-            className="bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-all duration-200 flex items-center space-x-2"
+            disabled={!hasCompletedProfile}
+            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 ${
+              hasCompletedProfile 
+                ? 'bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white hover:opacity-90' 
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
           >
             <Plus className="w-5 h-5" />
             <span>Create Event</span>

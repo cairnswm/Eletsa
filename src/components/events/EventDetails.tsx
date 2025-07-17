@@ -14,7 +14,7 @@ interface EventDetailsProps {
 
 export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
   const { activeEvent, ticketTypes, comments, organizer, loading } = useEvent();
-  const { user } = useAuth();
+  const { user, hasCompletedProfile } = useAuth();
   const navigate = useNavigate();
   const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
   const [showImageModal, setShowImageModal] = React.useState(false);
@@ -361,12 +361,22 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
                 </p>
                 <button
                   onClick={() => setShowContactModal(true)}
+                  disabled={!hasCompletedProfile}
                   type="button"
-                  className="w-full bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 ${
+                    hasCompletedProfile 
+                      ? 'bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white hover:opacity-90' 
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
                 >
                   <MessageCircle className="w-5 h-5" />
                   <span>Contact Organizer</span>
                 </button>
+                {!hasCompletedProfile && (
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    Complete your profile before contacting the organizer
+                  </p>
+                )}
               </div>
             )}
             {/* Event Info Card */}

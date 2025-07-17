@@ -18,6 +18,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Check if user has completed their profile
+  const hasCompletedProfile = user ? 
+    !!(user.username || (user.firstname && user.lastname)) : false;
   const clearError = () => {
     setError(null);
   };
@@ -156,6 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const value: AuthContextType = {
     user,
     token,
+    hasCompletedProfile,
     loading,
     error,
     login,
