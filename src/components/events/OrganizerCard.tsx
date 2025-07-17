@@ -6,6 +6,11 @@ import { UserImage } from '../user/UserImage';
 
 interface OrganizerCardProps {
   organizerId: number;
+}
+
+export const OrganizerCard: React.FC<OrganizerCardProps> = ({ organizerId }) => {
+  const { getOrganizer } = useOrganizer();
+  
   // Get organizer from OrganizerContext - this will automatically fetch if not cached
   const organizer = getOrganizer(organizerId);
   
