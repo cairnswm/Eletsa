@@ -201,8 +201,6 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  const setActiveEventId = async (id: number | null) => {
-  }
   const setActiveEventId = useCallback(async (id: number | null) => {
     setActiveEventIdState(id);
     
