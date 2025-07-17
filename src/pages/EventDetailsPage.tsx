@@ -9,14 +9,17 @@ export const EventDetailsPage: React.FC = () => {
   const navigate = useNavigate();
   const { setActiveEventId } = useEvent();
 
-  // Set the active event when the component mounts or eventId changes
+  // Set the active event when the component mounts
   React.useEffect(() => {
     if (eventId) {
-      const numericEventId = parseInt(eventId);
-      console.log(`Setting active event ID to: ${numericEventId}`);
-      setActiveEventId(numericEventId);
+      setActiveEventId(parseInt(eventId));
     }
-  }, [eventId]);
+    
+    // Clean up when component unmounts
+    return () => {
+      setActiveEventId(null);
+    };
+  }, [eventId, setActiveEventId]);
 
   const handleBack = () => {
     navigate(-1); // Go back to previous page
