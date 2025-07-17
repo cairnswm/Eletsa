@@ -82,28 +82,41 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const fetchOrganizer = async (id: number): Promise<Organizer> => {
     try {
-    }
-    // Check if organizer already exists in state
-    const existingOrganizer = organizers.find(org => org.id === organizerId);
-    if (!force && existingOrganizer) {
-      console.log(`Organizer ${organizerId} already in state, skipping fetch`);
+      setLoading(true);
+      setError(null);
+      
+      // Check if organizer already exists in state
+      const existingOrganizer = organizers.find(org => org.id === id);
+      if (existingOrganizer) {
+        console.log(`Organizer ${id} already in state, returning cached version`);
+        return existingOrganizer;
+      }
+      
+      console.log(`Fetching organizer ${id} from API...`);
+      
+      // Fetch from API
       const organizerData = await organizersApi.fetchOrganizer(id);
       
       // Update organizers cache
       setOrganizers(prev => {
         const existingIndex = prev.findIndex(org => org.id === id);
-      }
-      )
-      console.log(`Fetching organizer ${organizerId} from API...`);
+        if (existingIndex >= 0) {
+          // Update existing
+          const updated = [...prev];
+          updated[existingIndex] = organizerData;
+          return updated;
+        } else {
+          // Add new
+          return [...prev, organizerData];
+        }
+      });
       
-      // Fetch from API and add to organizers array
-      const organizerData = await organizersApi.fetchOrganizer(organizerId);
+      // Fetch user details for the organizer
+      await fetchOrganizerUsers([organizerData]);
       
-      // The fetchOrganizer method already updates the organizers array
-      // and fetches user details, so we don't need to do anything else here
-      
-      console.log(`Successfully fetched organizer ${organizerId}`);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch organizer';
+      console.log(`Successfully fetched organizer ${id}`);
+      return organizerData;
+    } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch organizer';
       setError(errorMessage);
       console.error('Failed to fetch organizer:', err);
