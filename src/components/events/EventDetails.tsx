@@ -246,57 +246,6 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
         </div>
       )}
 
-      {/* Old Hero Section - Remove this entire block */}
-      {/* <div className="relative h-96 overflow-hidden">
-        <img
-          src={mainImage}
-          alt={activeEvent.title}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-        
-        <div className="absolute bottom-0 left-0 right-0 p-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center space-x-2 mb-4">
-              <span className="bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white px-3 py-1 rounded-full text-sm font-medium">
-                {activeEvent.category}
-              </span>
-              <div className="flex items-center space-x-1">
-                <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span className="text-white text-sm font-medium">
-                  {activeEvent.popularity_score ? activeEvent.popularity_score.toFixed(1) : '4.5'}
-                </span>
-              </div>
-            </div>
-            
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              {activeEvent.title}
-            </h1>
-            
-            <div className="flex flex-wrap items-center gap-6 text-white/90">
-              <div className="flex items-center space-x-2">
-                <Calendar className="w-5 h-5" />
-                <span>{formatDate(activeEvent.start_datetime)}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Clock className="w-5 h-5" />
-                <span>{formatTime(activeEvent.start_datetime)} - {formatTime(activeEvent.end_datetime)}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-5 h-5" />
-                <span>{activeEvent.location_name}</span>
-              </div>
-              {activeEvent.max_attendees > 0 && (
-                <div className="flex items-center space-x-2">
-                  <Users className="w-5 h-5" />
-                  <span>{activeEvent.max_attendees} spots</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div> */}
-
       {/* Content Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid lg:grid-cols-3 gap-8">
