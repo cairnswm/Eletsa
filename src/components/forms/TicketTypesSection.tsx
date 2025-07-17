@@ -35,6 +35,8 @@ export const TicketTypesSection: React.FC<TicketTypesSectionProps> = ({
     }).format(amount);
   };
 
+  // Check if all ticket types have price 0
+  const allTicketsAreFree = ticketTypes.every(ticket => ticket.price === 0);
   return (
     <div className="bg-white rounded-xl shadow-md p-8">
       <div className="flex items-center justify-between mb-6">
@@ -52,8 +54,8 @@ export const TicketTypesSection: React.FC<TicketTypesSectionProps> = ({
         </button>
       </div>
 
-      {/* Warning message when no ticket types */}
-      {ticketTypes.length === 0 && (
+      {/* Warning message when all ticket types are free */}
+      {allTicketsAreFree && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-600 text-sm font-medium">
             If no ticket types are entered the event will be free entry.
@@ -170,8 +172,8 @@ export const TicketTypesSection: React.FC<TicketTypesSectionProps> = ({
         ))}
       </div>
 
-      {/* Free event checkbox when no ticket types */}
-      {ticketTypes.length === 0 && onFreeEventChange !== undefined && (
+      {/* Free event checkbox when all ticket types are free */}
+      {allTicketsAreFree && onFreeEventChange !== undefined && (
         <div className="mt-8 pt-6 border-t border-gray-200">
           <div className="flex items-center space-x-3">
             <input

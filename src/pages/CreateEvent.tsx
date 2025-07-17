@@ -41,8 +41,8 @@ export const CreateEvent: React.FC = () => {
   } = useEventForm();
 
   // Check if event has valid ticket types or is marked as free
-  const hasValidTicketTypes = ticketTypes.length > 0 && ticketTypes.some(ticket => 
-    ticket.name.trim() && ticket.quantity > 0 && ticket.price >= 0
+  const hasValidTicketTypes = ticketTypes.some(ticket => 
+    ticket.name.trim() && ticket.quantity > 0 && ticket.price > 0
   );
   
   const canSubmit = hasValidTicketTypes || isFreeEvent;
