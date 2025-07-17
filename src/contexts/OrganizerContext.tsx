@@ -41,10 +41,6 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const clearError = () => {
-    setError(null);
-  };
-
   // Utility function to bulk fetch user details for organizers
   const fetchOrganizerUsers = async (organizerList: Organizer[]) => {
     const userIds = organizerList.map(organizer => organizer.user_id);
@@ -86,27 +82,25 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const fetchOrganizer = async (id: number): Promise<Organizer> => {
     try {
-      setLoading(true);
-      setError(null);
+    // Check if organizer already exists in state
+    const existingOrganizer = organizers.find(org => org.id === organizerId);
+    if (!force && existingOrganizer) {
+      console.log(`Organizer ${organizerId} already in state, skipping fetch`);
       const organizerData = await organizersApi.fetchOrganizer(id);
       
       // Update organizers cache
       setOrganizers(prev => {
         const existingIndex = prev.findIndex(org => org.id === id);
-        if (existingIndex >= 0) {
-          const updated = [...prev];
-          updated[existingIndex] = organizerData;
-          return updated;
-        } else {
-          return [...prev, organizerData];
-        }
-      });
-
-      // Fetch user details for this organizer
-      await fetchOrganizerUsers([organizerData]);
+      console.log(`Fetching organizer ${organizerId} from API...`);
       
-      return organizerData;
-    } catch (err) {
+      // Fetch from API and add to organizers array
+      const organizerData = await organizersApi.fetchOrganizer(organizerId);
+      
+      // The fetchOrganizer method already updates the organizers array
+      // and fetches user details, so we don't need to do anything else here
+      
+      console.log(`Successfully fetched organizer ${organizerId}`);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch organizer';
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch organizer';
       setError(errorMessage);
       console.error('Failed to fetch organizer:', err);
