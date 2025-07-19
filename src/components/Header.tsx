@@ -43,6 +43,22 @@ export const Header: React.FC = () => {
     setMobileMenuOpen(false);
   };
 
+  const handleQuantityChange = async (itemId: number, newQuantity: number) => {
+    try {
+      await updateCartItem(itemId, newQuantity);
+    } catch (error) {
+      console.error('Failed to update cart item:', error);
+    }
+  };
+
+  const handleRemoveItem = async (itemId: number) => {
+    try {
+      await removeCartItem(itemId);
+    } catch (error) {
+      console.error('Failed to remove cart item:', error);
+    }
+  };
+
   const formatCurrency = (amount: string | number) => {
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
     return new Intl.NumberFormat('en-ZA', {
