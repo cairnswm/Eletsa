@@ -12,11 +12,13 @@ export const cartApi = {
 
     const data = await handleApiResponse(response);
     
+    console.log('Fetched cart data:', data);
+    
     // Convert cart_total to number and ensure items have proper number types
     return {
       ...data,
       cart_total: data.cart_total ? data.cart_total.toString() : '0',
-      items: data.items.map((item: any) => ({
+      items: (data.items || []).map((item: any) => ({
         ...item,
         ticket_id: Number(item.ticket_id),
         event_id: Number(item.event_id),

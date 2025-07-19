@@ -78,7 +78,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      setLoading(true);
       setError(null);
       
       console.log('Updating cart item:', itemId, 'to quantity:', quantity);
@@ -93,8 +92,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(errorMessage);
       console.error('Failed to update cart item:', err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -104,7 +101,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     try {
-      setLoading(true);
       setError(null);
       
       console.log('Removing cart item:', itemId);
@@ -119,8 +115,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(errorMessage);
       console.error('Failed to remove cart item:', err);
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
