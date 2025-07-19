@@ -4,9 +4,11 @@ import { useEvent } from '../../contexts/EventContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { TicketTypeCard } from './TicketTypeCard';
+import { TicketPurchaseModal } from './TicketPurchaseModal';
 import { CommentSection } from './CommentSection';
 import { OrganizerCard } from './OrganizerCard';
 import { ContactOrganizerModal } from './ContactOrganizerModal';
+import { TicketType } from '../../types/event';
 
 interface EventDetailsProps {
   onBack: () => void;
@@ -19,6 +21,8 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
   const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
   const [showImageModal, setShowImageModal] = React.useState(false);
   const [showContactModal, setShowContactModal] = React.useState(false);
+  const [showTicketModal, setShowTicketModal] = React.useState(false);
+  const [selectedTicketType, setSelectedTicketType] = React.useState<TicketType | null>(null);
 
   if (loading) {
     return (
@@ -101,6 +105,16 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
   const handleContactSuccess = () => {
     // Navigate to messages page after successful contact
     navigate('/messages');
+  };
+
+  const handleBuyTickets = (ticketType: TicketType) => {
+    setSelectedTicketType(ticketType);
+    setShowTicketModal(true);
+  };
+
+  const handleCloseTicketModal = () => {
+    setShowTicketModal(false);
+    setSelectedTicketType(null);
   };
 
   console.log("TICKETTYPES:", ticketTypes);
@@ -283,7 +297,12 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
               {ticketTypes.length > 0 ? (
                 <div className="space-y-4">
                   {ticketTypes.map((ticketType) => (
-                    <TicketTypeCard key={ticketType.id} ticketType={ticketType} />
+                    <TicketTypeCard 
+                      key={ticketType.id} 
+                      ticketType={ticketType} 
+                      onBuyTickets={handleBuyTickets}
+                      eventTitle={activeEvent.title}
+                    />
                   ))}
                 </div>
               ) : (
@@ -390,6 +409,16 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
           onClose={() => setShowContactModal(false)}
           event={activeEvent}
           onSuccess={handleContactSuccess}
+        />
+      )}
+
+      {/* Ticket Purchase Modal */}
+      {selectedTicketType && (
+        <TicketPurchaseModal
+          isOpen={showTicketModal}
+          onClose={handleCloseTicketModal}
+          ticketType={selectedTicketType}
+          eventTitle={activeEvent.title}
         />
       )}
     </div>

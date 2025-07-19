@@ -4,9 +4,15 @@ import { TicketType } from '../../types/event';
 
 interface TicketTypeCardProps {
   ticketType: TicketType;
+  onBuyTickets: (ticketType: TicketType) => void;
+  eventTitle: string;
 }
 
-export const TicketTypeCard: React.FC<TicketTypeCardProps> = ({ ticketType }) => {
+export const TicketTypeCard: React.FC<TicketTypeCardProps> = ({ 
+  ticketType, 
+  onBuyTickets, 
+  eventTitle 
+}) => {
   const availableTickets = ticketType.quantity - ticketType.quantity_sold;
   const isAvailable = availableTickets > 0;
 
@@ -44,6 +50,7 @@ export const TicketTypeCard: React.FC<TicketTypeCardProps> = ({ ticketType }) =>
           </div>
           
           <button
+            onClick={() => onBuyTickets(ticketType)}
             disabled={!isAvailable}
             className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
               isAvailable
