@@ -11,7 +11,7 @@ export const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const { getOrganizerByUserId } = useOrganizer();
   const { unreadCount } = useMessaging();
-  const { cart } = useCart();
+  const { cart, updateCartItem, removeCartItem } = useCart();
   const { tenant } = useTenant();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -53,6 +53,22 @@ export const Header: React.FC = () => {
 
   const getTotalItems = () => {
     return cart?.items.reduce((total, item) => total + item.quantity, 0) || 0;
+  };
+
+  const handleQuantityChange = async (itemId: number, newQuantity: number) => {
+    try {
+      await updateCartItem(itemId, newQuantity);
+    } catch (error) {
+      console.error('Failed to update cart item:', error);
+    }
+  };
+
+  const handleRemoveItem = async (itemId: number) => {
+    try {
+      await removeCartItem(itemId);
+    } catch (error) {
+      console.error('Failed to remove cart item:', error);
+    }
   };
 
   if (!user) return null;
@@ -146,20 +162,43 @@ export const Header: React.FC = () => {
                     <>
                       <div className="max-h-64 overflow-y-auto">
                         {cart.items.map((item, index) => (
-                          <div key={`${item.ticket_id}-${index}`} className="px-4 py-3 border-b border-gray-100 last:border-b-0">
-                            <div className="flex justify-between items-start">
+                          <div key={`${item.ticket_id}-${index}`} className="px-4 py-4 border-b border-gray-100 last:border-b-0">
+                            <div className="flex justify-between items-start mb-3">
                               <div className="flex-1">
                                 <h4 className="font-medium text-gray-900 text-sm">{item.event_name}</h4>
                                 <p className="text-xs text-gray-600">{item.ticket_name}</p>
-                                <div className="flex items-center justify-between mt-1">
-                                  <span className="text-xs text-gray-500">
-                                    {formatCurrency(item.price)} × {item.quantity}
-                                  </span>
-                                  <span className="font-medium text-sm text-gray-900">
-                                    {formatCurrency(item.total_price_per_item)}
-                                  </span>
-                                </div>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {formatCurrency(item.price)} each
+                                </p>
                               </div>
+                              <button
+                                onClick={() => handleRemoveItem(item.ticket_id)}
+                                className="text-red-500 hover:text-red-700 transition-colors duration-200 ml-2"
+                                title="Remove item"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() => handleQuantityChange(item.ticket_id, item.quantity - 1)}
+                                  className="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200"
+                                >
+                                  <span className="text-sm">−</span>
+                                </button>
+                                <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
+                                <button
+                                  onClick={() => handleQuantityChange(item.ticket_id, item.quantity + 1)}
+                                  className="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200"
+                                >
+                                  <span className="text-sm">+</span>
+                                </button>
+                              </div>
+                              <span className="font-medium text-sm text-gray-900">
+                                {formatCurrency(item.total_price_per_item)}
+                              </span>
                             </div>
                           </div>
                         ))}
@@ -302,11 +341,39 @@ export const Header: React.FC = () => {
                 {cart && cart.items.length > 0 ? (
                   <div className="space-y-2 max-h-32 overflow-y-auto">
                     {cart.items.slice(0, 3).map((item, index) => (
-                      <div key={`mobile-${item.ticket_id}-${index}`} className="bg-gray-50 rounded-lg p-2">
-                        <div className="text-xs font-medium text-gray-900">{item.event_name}</div>
-                        <div className="text-xs text-gray-600">{item.ticket_name} × {item.quantity}</div>
-                        <div className="text-xs font-medium text-[#1E30FF]">
-                          {formatCurrency(item.total_price_per_item)}
+                      <div key={`mobile-${item.ticket_id}-${index}`} className="bg-gray-50 rounded-lg p-3">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <div className="text-xs font-medium text-gray-900">{item.event_name}</div>
+                            <div className="text-xs text-gray-600">{item.ticket_name}</div>
+                          </div>
+                          <button
+                            onClick={() => handleRemoveItem(item.ticket_id)}
+                            className="text-red-500 hover:text-red-700 transition-colors duration-200"
+                            title="Remove item"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-1">
+                            <button
+                              onClick={() => handleQuantityChange(item.ticket_id, item.quantity - 1)}
+                              className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors duration-200"
+                            >
+                              <span className="text-xs">−</span>
+                            </button>
+                            <span className="text-xs font-medium w-6 text-center">{item.quantity}</span>
+                            <button
+                              onClick={() => handleQuantityChange(item.ticket_id, item.quantity + 1)}
+                              className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors duration-200"
+                            >
+                              <span className="text-xs">+</span>
+                            </button>
+                          </div>
+                          <div className="text-xs font-medium text-[#1E30FF]">
+                            {formatCurrency(item.total_price_per_item)}
+                          </div>
                         </div>
                       </div>
                     ))}

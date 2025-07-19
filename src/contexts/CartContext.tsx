@@ -67,6 +67,59 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateCartItem = async (itemId: number, quantity: number) => {
+    if (!user) {
+      throw new Error('User must be logged in to update cart items');
+    }
+
+    if (quantity <= 0) {
+      // If quantity is 0 or less, remove the item instead
+      return removeCartItem(itemId);
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Update item quantity via API
+      await cartApi.updateCartItem(itemId, quantity);
+      
+      // Refresh cart data after updating item
+      await fetchCart();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update cart item';
+      setError(errorMessage);
+      console.error('Failed to update cart item:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const removeCartItem = async (itemId: number) => {
+    if (!user) {
+      throw new Error('User must be logged in to remove cart items');
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Remove item via API
+      await cartApi.removeCartItem(itemId);
+      
+      // Refresh cart data after removing item
+      await fetchCart();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to remove cart item';
+      setError(errorMessage);
+      console.error('Failed to remove cart item:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Fetch cart when user changes
   useEffect(() => {
     if (user?.id) {
@@ -84,6 +137,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     error,
     fetchCart,
     addToCart,
+    updateCartItem,
+    removeCartItem,
     clearError,
   };
 

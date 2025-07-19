@@ -36,4 +36,23 @@ export const cartApi = {
 
     await handleApiResponse(response);
   },
+
+  async updateCartItem(itemId: number, quantity: number): Promise<void> {
+    const response = await fetch(`${CART_API}/api.php/item/${itemId}`, {
+      method: 'PUT',
+      headers: createHeaders(true),
+      body: JSON.stringify({ quantity }),
+    });
+
+    await handleApiResponse(response);
+  },
+
+  async removeCartItem(itemId: number): Promise<void> {
+    const response = await fetch(`${CART_API}/api.php/item/${itemId}`, {
+      method: 'DELETE',
+      headers: createHeaders(true),
+    });
+
+    await handleApiResponse(response);
+  },
 };

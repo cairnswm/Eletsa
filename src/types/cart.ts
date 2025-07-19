@@ -26,5 +26,7 @@ export interface CartContextType {
   error: string | null;
   fetchCart: () => Promise<void>;
   addToCart: (item: AddToCartRequest) => Promise<void>;
+  updateCartItem: (itemId: number, quantity: number) => Promise<void>;
+  removeCartItem: (itemId: number) => Promise<void>;
   clearError: () => void;
 }
