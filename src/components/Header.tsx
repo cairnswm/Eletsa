@@ -11,8 +11,7 @@ export const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const { getOrganizerByUserId } = useOrganizer();
   const { unreadCount } = useMessaging();
-  const { cart, updateCartItem, removeCartItem } = useCart();
-  const { cart, updateCartItem, removeCartItem } = useCart();
+  const { cart, updateCartItem, removeCartItem } = useCart(); 
   const { tenant } = useTenant();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
