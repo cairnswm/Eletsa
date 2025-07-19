@@ -1,4 +1,5 @@
 export interface CartItem {
+  id: number;
   ticket_id: number;
   event_id: number;
   event_name: string;

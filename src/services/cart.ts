@@ -20,6 +20,7 @@ export const cartApi = {
       cart_total: data.cart_total ? data.cart_total.toString() : '0',
       items: (data.items || []).map((item: any) => ({
         ...item,
+        id: Number(item.id),
         ticket_id: Number(item.ticket_id),
         event_id: Number(item.event_id),
         price: Number(item.price),

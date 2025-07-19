@@ -162,7 +162,7 @@ export const Header: React.FC = () => {
                     <>
                       <div className="max-h-64 overflow-y-auto">
                         {cart.items?.map((item, index) => (
-                          <div key={`${item.ticket_id}-${index}`} className="px-4 py-4 border-b border-gray-100 last:border-b-0">
+                          <div key={`${item.id}-${index}`} className="px-4 py-4 border-b border-gray-100 last:border-b-0">
                             <div className="flex justify-between items-start mb-3">
                               <div className="flex-1">
                                 <h4 className="font-medium text-gray-900 text-sm">{item.event_name}</h4>
@@ -174,7 +174,7 @@ export const Header: React.FC = () => {
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  handleRemoveItem(item.ticket_id);
+                                  handleRemoveItem(item.id);
                                 }}
                                 className="text-red-500 hover:text-red-700 transition-colors duration-200 ml-2"
                                 title="Remove item"
@@ -188,7 +188,7 @@ export const Header: React.FC = () => {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleQuantityChange(item.ticket_id, item.quantity - 1);
+                                    handleQuantityChange(item.id, item.quantity - 1);
                                   }}
                                   className="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200"
                                 >
@@ -198,7 +198,7 @@ export const Header: React.FC = () => {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleQuantityChange(item.ticket_id, item.quantity + 1);
+                                    handleQuantityChange(item.id, item.quantity + 1);
                                   }}
                                   className="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200"
                                 >
@@ -350,7 +350,7 @@ export const Header: React.FC = () => {
                 {cart && cart.items.length > 0 ? (
                   <div className="space-y-2 max-h-32 overflow-y-auto">
                     {cart.items?.slice(0, 3).map((item, index) => (
-                      <div key={`mobile-${item.ticket_id}-${index}`} className="bg-gray-50 rounded-lg p-3">
+                      <div key={`mobile-${item.id}-${index}`} className="bg-gray-50 rounded-lg p-3">
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex-1">
                             <div className="text-xs font-medium text-gray-900">{item.event_name}</div>
@@ -359,7 +359,7 @@ export const Header: React.FC = () => {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleRemoveItem(item.ticket_id);
+                              handleRemoveItem(item.id);
                             }}
                             className="text-red-500 hover:text-red-700 transition-colors duration-200"
                             title="Remove item"
@@ -372,7 +372,7 @@ export const Header: React.FC = () => {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleQuantityChange(item.ticket_id, item.quantity - 1);
+                                handleQuantityChange(item.id, item.quantity - 1);
                               }}
                               className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors duration-200"
                             >
@@ -382,7 +382,7 @@ export const Header: React.FC = () => {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleQuantityChange(item.ticket_id, item.quantity + 1);
+                                handleQuantityChange(item.id, item.quantity + 1);
                               }}
                               className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors duration-200"
                             >
