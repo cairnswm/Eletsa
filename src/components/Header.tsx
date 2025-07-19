@@ -5,12 +5,14 @@ import { useAuth } from '../contexts/AuthContext';
 import { useOrganizer } from '../contexts/OrganizerContext';
 import { useMessaging } from '../contexts/MessagingContext';
 import { useCart } from '../contexts/CartContext';
+import { useCart } from '../contexts/CartContext';
 import { useTenant } from '../contexts/TenantContext';
 
 export const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const { getOrganizerByUserId } = useOrganizer();
   const { unreadCount } = useMessaging();
+  const { cart, updateCartItem, removeCartItem } = useCart();
   const { cart, updateCartItem, removeCartItem } = useCart();
   const { tenant } = useTenant();
   const navigate = useNavigate();
@@ -52,9 +54,24 @@ export const Header: React.FC = () => {
   };
 
   const getTotalItems = () => {
-    return cart?.items.reduce((total, item) => total + item.quantity, 0) || 0;
+    return cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
   };
 
+  const handleQuantityChange = async (itemId: number, newQuantity: number) => {
+    try {
+      await updateCartItem(itemId, newQuantity);
+    } catch (error) {
+      console.error('Failed to update cart item:', error);
+    }
+  };
+
+  const handleRemoveItem = async (itemId: number) => {
+    try {
+      await removeCartItem(itemId);
+    } catch (error) {
+      console.error('Failed to remove cart item:', error);
+    }
+  };
   const handleQuantityChange = async (itemId: number, newQuantity: number) => {
     try {
       await updateCartItem(itemId, newQuantity);
@@ -161,7 +178,7 @@ export const Header: React.FC = () => {
                   {cart && cart.items.length > 0 ? (
                     <>
                       <div className="max-h-64 overflow-y-auto">
-                        {cart.items.map((item, index) => (
+                        {cart.items?.map((item, index) => (
                           <div key={`${item.ticket_id}-${index}`} className="px-4 py-4 border-b border-gray-100 last:border-b-0">
                             <div className="flex justify-between items-start mb-3">
                               <div className="flex-1">
@@ -340,7 +357,7 @@ export const Header: React.FC = () => {
                 
                 {cart && cart.items.length > 0 ? (
                   <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {cart.items.slice(0, 3).map((item, index) => (
+                    {cart.items?.slice(0, 3).map((item, index) => (
                       <div key={`mobile-${item.ticket_id}-${index}`} className="bg-gray-50 rounded-lg p-3">
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex-1">
@@ -377,7 +394,7 @@ export const Header: React.FC = () => {
                         </div>
                       </div>
                     ))}
-                    {cart.items.length > 3 && (
+                    {cart.items && cart.items.length > 3 && (
                       <div className="text-xs text-gray-500 text-center">
                         +{cart.items.length - 3} more items
                       </div>
@@ -390,7 +407,7 @@ export const Header: React.FC = () => {
                   </div>
                 )}
                 
-                {cart && cart.items.length > 0 && (
+                {cart && cart.items && cart.items.length > 0 && (
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);
