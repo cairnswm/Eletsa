@@ -71,7 +71,7 @@ const Cart: React.FC<{ cart: { items: CartItem[]; cart_total: string }; getTotal
                 {cart.items.map((item, index) => (
                   <div key={index} className="px-4 py-2 border-b border-gray-200">
                     <div className="flex justify-between items-center">
-                      <div>
+                      <div className="flex flex-col">
                         <span className="text-sm text-gray-700 font-bold">{item.event_name}</span>
                         <span className="text-xs text-gray-500">{item.ticket_name}</span>
                       </div>
