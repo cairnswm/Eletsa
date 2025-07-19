@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, MapPin, Users, Clock, Star } from 'lucide-react';
+import { MapPin, Users, Clock, Star } from 'lucide-react';
 import { Event } from '../../types/event';
 
 interface EventCardProps {
