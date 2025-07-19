@@ -55,37 +55,6 @@ export const Header: React.FC = () => {
     return cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
   };
 
-  const handleQuantityChange = async (itemId: number, newQuantity: number) => {
-    try {
-      await updateCartItem(itemId, newQuantity);
-    } catch (error) {
-      console.error('Failed to update cart item:', error);
-    }
-  };
-
-  const handleRemoveItem = async (itemId: number) => {
-    try {
-      await removeCartItem(itemId);
-    } catch (error) {
-      console.error('Failed to remove cart item:', error);
-    }
-  };
-  const handleQuantityChange = async (itemId: number, newQuantity: number) => {
-    try {
-      await updateCartItem(itemId, newQuantity);
-    } catch (error) {
-      console.error('Failed to update cart item:', error);
-    }
-  };
-
-  const handleRemoveItem = async (itemId: number) => {
-    try {
-      await removeCartItem(itemId);
-    } catch (error) {
-      console.error('Failed to remove cart item:', error);
-    }
-  };
-
   if (!user) return null;
 
   const navigationItems = [
