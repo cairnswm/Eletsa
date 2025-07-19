@@ -172,7 +172,10 @@ export const Header: React.FC = () => {
                                 </p>
                               </div>
                               <button
-                                onClick={() => handleRemoveItem(item.ticket_id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoveItem(item.ticket_id);
+                                }}
                                 className="text-red-500 hover:text-red-700 transition-colors duration-200 ml-2"
                                 title="Remove item"
                               >
@@ -183,14 +186,20 @@ export const Header: React.FC = () => {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center space-x-2">
                                 <button
-                                  onClick={() => handleQuantityChange(item.ticket_id, item.quantity - 1)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleQuantityChange(item.ticket_id, item.quantity - 1);
+                                  }}
                                   className="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200"
                                 >
                                   <span className="text-sm">−</span>
                                 </button>
                                 <span className="text-sm font-medium w-8 text-center">{item.quantity}</span>
                                 <button
-                                  onClick={() => handleQuantityChange(item.ticket_id, item.quantity + 1)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleQuantityChange(item.ticket_id, item.quantity + 1);
+                                  }}
                                   className="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200"
                                 >
                                   <span className="text-sm">+</span>
@@ -348,7 +357,10 @@ export const Header: React.FC = () => {
                             <div className="text-xs text-gray-600">{item.ticket_name}</div>
                           </div>
                           <button
-                            onClick={() => handleRemoveItem(item.ticket_id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveItem(item.ticket_id);
+                            }}
                             className="text-red-500 hover:text-red-700 transition-colors duration-200"
                             title="Remove item"
                           >
@@ -358,14 +370,20 @@ export const Header: React.FC = () => {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-1">
                             <button
-                              onClick={() => handleQuantityChange(item.ticket_id, item.quantity - 1)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleQuantityChange(item.ticket_id, item.quantity - 1);
+                              }}
                               className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors duration-200"
                             >
                               <span className="text-xs">−</span>
                             </button>
                             <span className="text-xs font-medium w-6 text-center">{item.quantity}</span>
                             <button
-                              onClick={() => handleQuantityChange(item.ticket_id, item.quantity + 1)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleQuantityChange(item.ticket_id, item.quantity + 1);
+                              }}
                               className="w-5 h-5 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition-colors duration-200"
                             >
                               <span className="text-xs">+</span>

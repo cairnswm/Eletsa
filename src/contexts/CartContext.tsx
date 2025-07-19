@@ -81,6 +81,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       setError(null);
       
+      console.log('Updating cart item:', itemId, 'to quantity:', quantity);
+      
       // Update item quantity via API
       await cartApi.updateCartItem(itemId, quantity);
       
@@ -104,6 +106,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       setError(null);
+      
+      console.log('Removing cart item:', itemId);
       
       // Remove item via API
       await cartApi.removeCartItem(itemId);
