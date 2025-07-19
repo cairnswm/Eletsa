@@ -1,10 +1,13 @@
-import { createHeaders, handleApiResponse } from './api';
+import { createHeaders, handleApiResponse } from "./api";
 
-let USERS_API = 'https://eletsa.cairns.co.za/php/cairnsgames';
-let FOLLOW_API = 'https://eletsa.cairns.co.za/php/follow';
+let USERS_API = "https://eletsa.cairns.co.za/php/cairnsgames";
+let FOLLOW_API = "https://eletsa.cairns.co.za/php/follow";
 
-USERS_API = "http://localhost/eletsa-api/php/cairnsgames";
-FOLLOW_API = "http://localhost/eletsa-api/php/follow";
+// const hostname = window.location.hostname.replace(/:\d+$/, "");
+// if (hostname === "localhost") {
+//   USERS_API = "http://localhost/eletsa-api/php/cairnsgames";
+//   FOLLOW_API = "http://localhost/eletsa-api/php/follow";
+// }
 
 export interface FollowRelation {
   id: number;
@@ -17,7 +20,7 @@ export interface FollowRelation {
 export const usersApi = {
   async fetchUser(userId: number) {
     const response = await fetch(`${USERS_API}/user.php/${userId}`, {
-      method: 'GET',
+      method: "GET",
       headers: createHeaders(),
     });
 
@@ -32,7 +35,7 @@ export const usersApi = {
     }
 
     const response = await fetch(`${USERS_API}/bulk.php`, {
-      method: 'POST',
+      method: "POST",
       headers: createHeaders(),
       body: JSON.stringify({ users: userIds }),
     });
@@ -43,10 +46,13 @@ export const usersApi = {
 
   // Get users that follow this user (followers)
   async getUserFollowers(userId: number): Promise<FollowRelation[]> {
-    const response = await fetch(`${FOLLOW_API}/api.php/user/${userId}/followed`, {
-      method: 'GET',
-      headers: createHeaders(),
-    });
+    const response = await fetch(
+      `${FOLLOW_API}/api.php/user/${userId}/followed`,
+      {
+        method: "GET",
+        headers: createHeaders(),
+      }
+    );
 
     const data = await handleApiResponse(response);
     return Array.isArray(data) ? data : [data];
@@ -54,19 +60,25 @@ export const usersApi = {
 
   // Get users that this user follows
   async getUserFollows(userId: number): Promise<FollowRelation[]> {
-    const response = await fetch(`${FOLLOW_API}/api.php/user/${userId}/follows`, {
-      method: 'GET',
-      headers: createHeaders(),
-    });
+    const response = await fetch(
+      `${FOLLOW_API}/api.php/user/${userId}/follows`,
+      {
+        method: "GET",
+        headers: createHeaders(),
+      }
+    );
 
     const data = await handleApiResponse(response);
     return Array.isArray(data) ? data : [data];
   },
 
   // Follow a user
-  async followUser(followerUserId: number, followedUserId: number): Promise<FollowRelation> {
+  async followUser(
+    followerUserId: number,
+    followedUserId: number
+  ): Promise<FollowRelation> {
     const response = await fetch(`${FOLLOW_API}/api.php/followers`, {
-      method: 'POST',
+      method: "POST",
       headers: createHeaders(true),
       body: JSON.stringify({
         follower_user_id: followerUserId,
@@ -75,22 +87,25 @@ export const usersApi = {
     });
 
     const data = await handleApiResponse(response);
-    
+
     // Handle the case where API returns an array (as you mentioned)
     const followRelation = Array.isArray(data) ? data[0] : data;
-    
-    console.log('Follow API response:', data);
-    console.log('Processed follow relation:', followRelation);
-    
+
+    console.log("Follow API response:", data);
+    console.log("Processed follow relation:", followRelation);
+
     return followRelation;
   },
 
   // Unfollow a user
   async unfollowUser(followId: number): Promise<void> {
-    const response = await fetch(`${FOLLOW_API}/api.php/followers/${followId}`, {
-      method: 'DELETE',
-      headers: createHeaders(true),
-    });
+    const response = await fetch(
+      `${FOLLOW_API}/api.php/followers/${followId}`,
+      {
+        method: "DELETE",
+        headers: createHeaders(true),
+      }
+    );
 
     await handleApiResponse(response);
   },
