@@ -50,7 +50,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ comments, eventI
       });
 
       setNewComment('');
-      await fetchEventComments(eventId);
+      await fetchEventComments(eventId, true); // Force refresh
     } catch (error) {
       console.error('Failed to submit comment:', error);
     } finally {
@@ -74,7 +74,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ comments, eventI
 
       setReplyInputs(prev => ({ ...prev, [parentId]: '' }));
       setActiveReplyId(null);
-      await fetchEventComments(eventId);
+      await fetchEventComments(eventId, true); // Force refresh
     } catch (error) {
       console.error('Failed to submit reply:', error);
     } finally {
