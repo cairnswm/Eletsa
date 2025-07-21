@@ -74,10 +74,7 @@ export const OrganizerCard: React.FC<OrganizerCardProps> = ({ organizerId }) => 
       </div>
       
       <div className="mt-6 space-y-3">
-        <button className="w-full bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 transition-all duration-200">
-          Follow Organizer
-        </button>
-        
+       
         <button className="w-full border border-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-50 transition-all duration-200 flex items-center justify-center space-x-2">
           <Mail className="w-4 h-4" />
           <span>Contact</span>
