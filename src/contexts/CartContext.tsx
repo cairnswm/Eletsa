@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Cart, CartContextType, AddToCartRequest } from '../types/cart';
 import { cartApi } from '../services/cart';
 import { useAuth } from './AuthContext';
+import { useTenant } from './TenantContext';
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -14,7 +15,8 @@ export const useCart = () => {
 };
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
+  const { tenant } = useTenant();
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +25,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
   };
 
-  const fetchCart = async () => {
+  const fetchCart = React.useCallback(async () => {
     if (!user) {
       setCart(null);
       return;
@@ -41,7 +43,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   const addToCart = async (item: AddToCartRequest) => {
     if (!user) {
@@ -118,6 +120,39 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const cartToOrder = async () => {
+    if (!user) {
+      throw new Error('User must be logged in to convert cart to order');
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch('http://eletsa.cairns.co.za/php/cart/api.php/carttoorder', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'app_id': tenant,
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to convert cart to order');
+      }
+
+      await fetchCart();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to convert cart to order';
+      setError(errorMessage);
+      console.error('Failed to convert cart to order:', err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Fetch cart when user changes
   useEffect(() => {
     if (user?.id) {
@@ -127,7 +162,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCart(null);
       setError(null);
     }
-  }, [user?.id]);
+  }, [user?.id, fetchCart]);
 
   const value: CartContextType = {
     cart,
@@ -138,6 +173,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     updateCartItem,
     removeCartItem,
     clearError,
+    cartToOrder,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

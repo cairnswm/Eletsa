@@ -104,16 +104,19 @@ export const TicketTypesSection: React.FC<TicketTypesSectionProps> = ({
                   Price (ZAR) *
                 </label>
                 <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <span className="absolute left-3 top-1/3 transform -translate-y-1/2 w-4 h-4 text-gray-400">R</span>
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    required
-                    value={ticket.price}
-                    onChange={(e) => onTicketTypeChange(ticket.id, 'price', parseFloat(e.target.value) || 0)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200"
-                    placeholder="0.00"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  required
+                  value={ticket.price === 0 ? '' : ticket.price}
+                  onChange={(e) => {
+                    let value = e.target.value.replace(/^0+(?=\d)/, '');
+                    onTicketTypeChange(ticket.id, 'price', parseFloat(value) || 0);
+                  }}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent transition-all duration-200"
+                  placeholder="0.00"
                   />
                 </div>
                 {ticket.price > 0 && (
