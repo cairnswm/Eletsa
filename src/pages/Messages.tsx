@@ -21,6 +21,7 @@ export const Messages: React.FC = () => {
     error,
     setActiveConversationId,
     sendMessage,
+    markAsRead,
     clearError,
   } = useMessaging();
 
