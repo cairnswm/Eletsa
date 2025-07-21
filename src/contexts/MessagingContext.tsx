@@ -304,6 +304,7 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
     // Find the conversation
     const conversation = conversations.find(conv => conv.id === conversationId);
     if (!conversation || !conversation.unread_messages || conversation.unread_messages === 0) {
+      console.log('No unread messages to mark or conversation not found');
       return; // No unread messages to mark
     }
 
@@ -325,6 +326,7 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
 
     console.log(`Marking conversation ${conversationId} as read up to message ${lastReadMessageId}`);
 
+    const originalUnreadCount = conversation.unread_messages;
     // Optimistically update the local state
     setConversations(prev => prev.map(conv => 
       conv.id === conversationId 
@@ -333,7 +335,7 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
     ));
 
     // Update total unread count
-    setUnreadCount(prev => Math.max(0, prev - (conversation.unread_messages || 0)));
+    setUnreadCount(prev => Math.max(0, prev - originalUnreadCount));
 
     // Call the API to mark messages as read
     window.Messages.markMessagesRead(user.id, conversationId, lastReadMessageId)
@@ -353,12 +355,12 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
         // Revert the optimistic update on error
         setConversations(prevConversations => prevConversations.map(conv => 
           conv.id === conversationId 
-            ? { ...conv, unread_messages: conversation.unread_messages }
+            ? { ...conv, unread_messages: originalUnreadCount }
             : conv
         ));
         
         // Revert unread count
-        setUnreadCount(prev => prev + (conversation.unread_messages || 0));
+        setUnreadCount(prev => prev + originalUnreadCount);
       });
   };
 
