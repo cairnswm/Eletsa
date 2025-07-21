@@ -274,7 +274,9 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
         text: text.trim(),
       });
 
-      const { conversation, message } = startResponse;
+      // Handle both response formats - sometimes it's { conversation, message }, sometimes just the conversation
+      const conversation = startResponse.conversation || startResponse;
+      const message = startResponse.message;
 
       console.log('Conversation started successfully:', { conversation, message });
 
@@ -282,6 +284,8 @@ export const MessagingProvider: React.FC<{ children: React.ReactNode }> = ({
       const conversationWithMessages = {
         ...conversation,
         users: [user.id, toUserId], // Ensure users array is set
+        messages: message ? [message] : [], // Add the initial message if provided
+        unread_messages: 0, // New conversation starts with no unread messages
       };
 
       setConversations((prev) => [conversationWithMessages, ...prev]);
