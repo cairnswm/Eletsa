@@ -188,10 +188,6 @@ export const Checkout: React.FC = () => {
                       <span className="text-gray-600">Items ({getTotalItems()})</span>
                       <span className="font-medium">{formatCurrency(cart.cart_total)}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Processing Fee</span>
-                      <span className="font-medium">R0.00</span>
-                    </div>
                     <div className="border-t border-gray-200 pt-3">
                       <div className="flex justify-between">
                         <span className="text-lg font-bold text-gray-900">Total</span>
