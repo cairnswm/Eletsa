@@ -19,6 +19,7 @@ import { Messages } from './pages/Messages';
 import { CreateEvent } from './pages/CreateEvent';
 import { EditEvent } from './pages/EditEvent';
 import { EventPage } from './pages/EventPage';
+import { Checkout } from './pages/Checkout';
 import { useAuth } from './contexts/AuthContext';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -106,6 +107,14 @@ const AppContent: React.FC = () => {
           element={
             <ProtectedRoute>
               <EventPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute>
+              <Checkout />
             </ProtectedRoute>
           }
         />

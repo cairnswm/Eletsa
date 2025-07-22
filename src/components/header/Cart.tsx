@@ -121,7 +121,7 @@ const Cart: React.FC<{ cart: { items: CartItem[]; cart_total: string }; getTotal
                 </div>
                 <button
                   className="flex items-center space-x-2 px-6 mt-3 py-3 rounded-lg font-medium transition-all duration-200 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white hover:opacity-90 shadow-md hover:shadow-lg"
-                  onClick={() => console.log('Proceed to checkout')}
+                  onClick={() => window.location.href = '/checkout'}
                   disabled={cart.items.length === 0}
                 >
                   <span>Checkout</span>
