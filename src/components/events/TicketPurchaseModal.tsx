@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, ShoppingCart, Plus, Minus, AlertCircle, Users, DollarSign } from 'lucide-react';
 import { TicketType } from '../../types/event';
-import { useCart } from '../../contexts/CartContext';
+import { useCart } from '../../contexts/useCart';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface TicketPurchaseModalProps {

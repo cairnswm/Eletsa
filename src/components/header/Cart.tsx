@@ -2,7 +2,7 @@ import { ShoppingCart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CartItem } from '../../types/cart';
-import { useCart } from '../../contexts/CartContext';
+import { useCart } from '../../contexts/useCart';
 
 const Cart: React.FC<{ cart: { items: CartItem[]; cart_total: string }; getTotalItems: () => number; formatCurrency: (amount: string | number) => string }> = ({ cart, getTotalItems, formatCurrency }) => {
   const { updateCartItem, removeCartItem } = useCart();

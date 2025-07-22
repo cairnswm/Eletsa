@@ -1,19 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import { Cart, CartContextType, AddToCartRequest } from '../types/cart';
 import { cartApi } from '../services/cart';
 import { useAuth } from './AuthContext';
 import { useTenant } from './TenantContext';
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
-const CART_API = 'https://eletsa.cairns.co.za/php/cart';
-
-export const useCart = () => {
-  const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
-  return context;
-};
+export const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, token } = useAuth();
@@ -130,17 +121,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`${CART_API}/api.php/carttoorder`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'app_id': tenant,
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to convert cart to order');
+      if (tenant) {
+        await cartApi.cartToOrder(token!, tenant.toString());
+      } else {
+        throw new Error('Tenant is required to convert cart to order');
       }
 
       await fetchCart();
@@ -154,12 +138,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Fetch cart when user changes
   useEffect(() => {
     if (user?.id) {
       fetchCart();
     } else {
-      // Clear cart when user logs out
       setCart(null);
       setError(null);
     }

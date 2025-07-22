@@ -4,7 +4,7 @@ import { User, LogOut, ChevronDown, Search, Ticket, Calendar, Menu, X, MessageCi
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganizer } from '../contexts/OrganizerContext';
 import { useMessaging } from '../contexts/MessagingContext';
-import { useCart } from '../contexts/CartContext'; 
+import { useCart } from '../contexts/useCart'; 
 import { useTenant } from '../contexts/TenantContext';
 import UserMenu from './header/UserMenu';
 import Cart from './header/Cart';

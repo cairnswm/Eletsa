@@ -58,4 +58,19 @@ export const cartApi = {
 
     await handleApiResponse(response);
   },
+
+  async cartToOrder(token: string, tenant: string): Promise<void> {
+    const response = await fetch(`${CART_API}/api.php/carttoorder`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'app_id': tenant,
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to convert cart to order');
+    }
+  },
 };

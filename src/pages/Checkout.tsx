@@ -1,7 +1,7 @@
 import React from 'react';
 import { ShoppingCart, Plus, Minus, Trash2, ArrowLeft, CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useCart } from '../contexts/CartContext';
+import { useCart } from '../contexts/useCart';
 import { useAuth } from '../contexts/AuthContext';
 import PayGate from '../components/payments/paygate';
 
