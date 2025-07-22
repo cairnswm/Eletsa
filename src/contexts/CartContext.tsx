@@ -5,6 +5,7 @@ import { useAuth } from './AuthContext';
 import { useTenant } from './TenantContext';
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
+const CART_API = 'https://eletsa.cairns.co.za/php/cart';
 
 export const useCart = () => {
   const context = useContext(CartContext);
@@ -129,7 +130,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       setError(null);
 
-      const response = await fetch('http://eletsa.cairns.co.za/php/cart/api.php/carttoorder', {
+      const response = await fetch(`${CART_API}/api.php/carttoorder`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
