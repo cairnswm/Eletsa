@@ -104,7 +104,7 @@ export const Checkout: React.FC = () => {
               ) : cart && cart.items.length > 0 ? (
                 <div className="divide-y divide-gray-200">
                   {cart.items.map((item) => (
-                    <div key={item.id} className="p-6">
+                    <div key={item.cart_item_id} className="p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
                           <h3 className="text-lg font-semibold text-gray-900 mb-1">
@@ -117,7 +117,7 @@ export const Checkout: React.FC = () => {
                         </div>
                         
                         <button
-                          onClick={() => handleRemoveItem(item.id)}
+                          onClick={() => handleRemoveItem(item.cart_item_id)}
                           className="text-red-500 hover:text-red-700 transition-colors duration-200 p-2"
                           title="Remove from cart"
                         >
@@ -130,7 +130,7 @@ export const Checkout: React.FC = () => {
                           <span className="text-sm font-medium text-gray-700">Quantity:</span>
                           <div className="flex items-center space-x-3">
                             <button
-                              onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                              onClick={() => handleQuantityChange(item.cart_item_id, item.quantity - 1)}
                               disabled={item.quantity <= 1}
                               className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                             >
@@ -142,7 +142,7 @@ export const Checkout: React.FC = () => {
                             </span>
                             
                             <button
-                              onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                              onClick={() => handleQuantityChange(item.cart_item_id, item.quantity + 1)}
                               className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors duration-200"
                             >
                               <Plus className="w-4 h-4" />
