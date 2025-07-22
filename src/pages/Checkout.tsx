@@ -3,11 +3,12 @@ import { ShoppingCart, Plus, Minus, Trash2, ArrowLeft, CreditCard } from 'lucide
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 import { useAuth } from '../contexts/AuthContext';
+import PayGate from '../components/payments/paygate';
 
 export const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { cart, updateCartItem, removeCartItem, loading } = useCart();
+  const { cart, updateCartItem, removeCartItem, loading, cartToOrder } = useCart();
 
   const formatCurrency = (amount: string | number) => {
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -44,6 +45,24 @@ export const Checkout: React.FC = () => {
     console.log('Proceed to payment');
   };
 
+  const handleGetOrder = async () => {
+    try {
+      await cartToOrder();
+      // Return order details for PayGate
+      return {
+        id: 'temp-order-id', // This should come from the cartToOrder response
+        total_price: parseFloat(cart?.cart_total || '0')
+      };
+    } catch (error) {
+      console.error('Failed to create order:', error);
+      throw error;
+    }
+  };
+
+  const handlePaymentSuccess = () => {
+    console.log('Payment successful');
+    // TODO: Handle successful payment (redirect to success page, etc.)
+  };
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#1E30FF]/5 via-white to-[#FF2D95]/5 flex items-center justify-center">
@@ -207,6 +226,12 @@ export const Checkout: React.FC = () => {
                     <span>{loading ? 'Processing...' : 'Proceed to Payment'}</span>
                   </button>
 
+                  <div className="mt-3">
+                    <PayGate 
+                      onGetOrder={handleGetOrder}
+                      onPaid={handlePaymentSuccess}
+                    />
+                  </div>
                   <div className="mt-4 text-center">
                     <p className="text-xs text-gray-500">
                       Secure payment processing powered by PayGate
