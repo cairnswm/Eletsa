@@ -559,7 +559,6 @@ const ProfileContent: React.FC = () => {
                                 <h4 className="font-semibold text-gray-900">
                                   {formatCurrency(request.requested_amount)}
                                 </h4>
-                                <p className="text-sm text-gray-600">Event ID: {request.event_id}</p>
                               </div>
                             </div>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
