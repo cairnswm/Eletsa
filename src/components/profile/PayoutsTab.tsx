@@ -135,12 +135,12 @@ export const PayoutsTab: React.FC = () => {
                     <span className="text-gray-600">Requested:</span>
                     <span className="ml-2 font-medium">{formatDate(request.created_at)}</span>
                   </div>
-                  {request.payout_date && (
-                    <div>
-                      <span className="text-gray-600">Preferred Date:</span>
-                      <span className="ml-2 font-medium">{formatDate(request.payout_date)}</span>
-                    </div>
-                  )}
+                  <div>
+                    <span className="text-gray-600">Preferred Date:</span>
+                    <span className="ml-2 font-medium">
+                      {request.payout_date ? formatDate(request.payout_date) : 'Immediate'}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
