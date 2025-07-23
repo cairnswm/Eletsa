@@ -19,7 +19,7 @@ const ProfileContent: React.FC = () => {
     fetchOrganizerTransactions, 
     fetchOrganizerPayoutRequests,
     payouts, 
-    transactions, 
+    transactions: organizerApiTransactions, 
     payoutRequests 
   } = useOrganizer();
   const [formData, setFormData] = useState({
@@ -180,7 +180,7 @@ const ProfileContent: React.FC = () => {
 
   // Filter data for current organizer
   const organizerPayouts = userOrganizer ? payouts.filter(p => p.organizer_id === userOrganizer.id) : [];
-  const organizerTransactions = userOrganizer ? transactions.filter(t => t.organizer_id === userOrganizer.id) : [];
+  const organizerTransactions = userOrganizer ? organizerApiTransactions.filter(t => t.organizer_id === userOrganizer.id) : [];
   const organizerPayoutRequests = userOrganizer ? payoutRequests.filter(pr => pr.organizer_id === userOrganizer.id) : [];
 
   return (
