@@ -36,6 +36,25 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
   const [reviewsFetched, setReviewsFetched] = useState<Set<number>>(
     new Set()
   );
+
+  const fetchEventReviews = async (
+    eventId: number,
+    force: boolean = false
+  ) => {
+    if (!force && reviewsFetched.has(eventId)) {
+      return;
+    }
+
+    try {
+      setError(null);
+      const reviewsData = await eventsApi.fetchEventReviews(eventId);
+      setReviews(reviewsData);
+      setReviewsFetched((prev) => new Set([...prev, eventId]));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to fetch reviews");
+    }
+  };
+
   const [ticketTypesCache, setTicketTypesCache] = useState<{
     [eventId: number]: TicketType[];
   }>({});
@@ -187,10 +206,11 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
       setActiveEvent(existingEvent);
 
       await Promise.all([fetchEventTicketTypes(id), fetchEventComments(id)]);
+      await fetchEventReviews(id);
     } else {
       try {
         await fetchEvent(id);
-        await Promise.all([fetchEventTicketTypes(id), fetchEventComments(id)]);
+        await Promise.all([fetchEventTicketTypes(id), fetchEventComments(id), fetchEventReviews(id)]);
       } catch (err) {
         console.error(err);
       }
@@ -214,6 +234,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
     setTicketTypesCache({});
     setTicketTypesFetched(new Set());
     setCommentsFetched(new Set());
+    setReviewsFetched(new Set());
   }, [events.length]);
 
   useEffect(() => {
