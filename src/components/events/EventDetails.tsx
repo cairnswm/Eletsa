@@ -15,7 +15,7 @@ interface EventDetailsProps {
 }
 
 export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
-  const { activeEvent, ticketTypes, comments, organizer, loading } = useEvent();
+  const { activeEvent, ticketTypes, comments, organizer, reviews, loading } = useEvent();
   const { user, hasCompletedProfile } = useAuth();
   const navigate = useNavigate();
   const [selectedImageIndex, setSelectedImageIndex] = React.useState(0);
