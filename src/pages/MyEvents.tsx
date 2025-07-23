@@ -11,7 +11,6 @@ export const MyEvents: React.FC = () => {
   const { user, hasCompletedProfile } = useAuth();
   const { getOrganizerByUserId, fetchOrganizerEvents, getOrganizerEvents } = useOrganizer();
   const { setActiveEventId } = useEvent();
-  const [activeTab, setActiveTab] = useState<'active' | 'draft' | 'past'>('active');
   const [activeTab, setActiveTab] = useState<'active' | 'past'>('active');
   const [loading, setLoading] = useState(false);
   const [eventsLoaded, setEventsLoaded] = useState(false);
