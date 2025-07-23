@@ -11,9 +11,10 @@ import html2canvas from 'html2canvas';
 interface TicketCardProps {
   ticket: UserTicket;
   showReviewOption?: boolean;
+  isPastEvent?: boolean;
 }
 
-export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption = false }) => {
+export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption = false, isPastEvent = false }) => {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -245,6 +246,25 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption
       setSubmittingReview(false);
     }
   };
+
+  const renderStars = (rating: number) => {
+    return (
+      <div className="flex items-center space-x-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            className={`w-4 h-4 ${
+              star <= rating
+                ? 'text-yellow-400 fill-current'
+                : 'text-gray-300'
+            }`}
+          />
+        ))}
+        <span className="ml-2 text-sm text-gray-600">({rating}/5)</span>
+      </div>
+    );
+  };
+
   return (
     <>
       <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200">
@@ -295,8 +315,8 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption
               </div>
 
               <div className="flex items-center space-x-3">
-                {/* Location Button - only show if coordinates exist */}
-                {hasLocation && (
+                {/* Location Button - only show if coordinates exist and not a past event */}
+                {hasLocation && !isPastEvent && (
                   <div className="flex items-center space-x-2">
                     <button 
                       onClick={() => setShowLocationModal(true)}
@@ -313,7 +333,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption
                   </div>
                 )}
 
-                {!showReviewOption && ticket.used === 0 && (
+                {!isPastEvent && ticket.used === 0 && (
                   <>
                     <button 
                       onClick={generateQRCode}
@@ -334,7 +354,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption
                 )}
 
                 {/* Review Button for past events */}
-                {showReviewOption && (
+                {showReviewOption && !ticket.rating && (
                   <button 
                     onClick={() => setShowReviewForm(!showReviewForm)}
                     className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-[#f0900a] to-[#FF2D95] text-white rounded-lg hover:opacity-90 transition-all duration-200"
@@ -350,8 +370,25 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption
           </div>
         </div>
 
+        {/* Existing Review Display for past events */}
+        {isPastEvent && ticket.rating && (
+          <div className="bg-yellow-50 px-6 py-4 border-t border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm font-medium text-gray-900">Your Review</div>
+            </div>
+            <div className="space-y-3">
+              {renderStars(ticket.rating)}
+              {ticket.review && (
+                <div className="bg-white rounded-lg p-3 border border-yellow-200">
+                  <p className="text-sm text-gray-700">{ticket.review}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* QR Code Section (expandable) */}
-        {!showReviewOption && ticket.used === 0 && showQRCode && (
+        {!isPastEvent && ticket.used === 0 && showQRCode && (
           <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <div className="text-sm font-medium text-gray-900">Entry Code</div>
@@ -381,7 +418,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption
         )}
 
         {/* Review Form Section */}
-        {showReviewOption && showReviewForm && (
+        {showReviewOption && showReviewForm && !ticket.rating && (
           <div className="bg-blue-50 px-6 py-6 border-t border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <div className="text-sm font-medium text-gray-900">Rate Your Experience</div>
@@ -462,7 +499,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption
       </div>
 
       {/* Location View Modal */}
-      {hasLocation && (
+      {hasLocation && !isPastEvent && (
         <LocationViewModal
           isOpen={showLocationModal}
           onClose={() => setShowLocationModal(false)}

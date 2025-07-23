@@ -115,6 +115,7 @@ export const Tickets: React.FC = () => {
                   key={ticket.ticket_code} 
                   ticket={ticket} 
                   showReviewOption={activeTab === 'past'}
+                  isPastEvent={activeTab === 'past'}
                 />
               ))}
             </div>

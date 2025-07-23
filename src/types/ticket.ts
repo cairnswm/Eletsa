@@ -10,6 +10,8 @@ export interface UserTicket {
   ticket_code: string;
   assigned_at: string;
   used: number;
+  rating: number | null;
+  review: string | null;
 }
 
 export interface TicketContextType {
