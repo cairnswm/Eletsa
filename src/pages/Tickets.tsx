@@ -1,10 +1,11 @@
 import React from 'react';
-import { Ticket, Star } from 'lucide-react';
+import { Ticket, Star, Clock, Calendar } from 'lucide-react';
 import { useTicket } from '../contexts/useTicket';
 import { TicketCard } from '../components/tickets/TicketCard';
 
 export const Tickets: React.FC = () => {
   const { tickets, loading, error, refreshTickets } = useTicket();
+  const [activeTab, setActiveTab] = React.useState<'upcoming' | 'past'>('upcoming');
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-ZA', {
@@ -12,6 +13,24 @@ export const Tickets: React.FC = () => {
       currency: 'ZAR',
     }).format(amount);
   };
+
+  // Separate tickets into upcoming and past based on event end date
+  const now = new Date();
+  const upcomingTickets = tickets.filter(ticket => {
+    const endDate = new Date(ticket.start_datetime); // Using start_datetime as we don't have end_datetime
+    return endDate >= now;
+  });
+  
+  const pastTickets = tickets.filter(ticket => {
+    const endDate = new Date(ticket.start_datetime); // Using start_datetime as we don't have end_datetime
+    return endDate < now;
+  });
+
+  const getCurrentTickets = () => {
+    return activeTab === 'upcoming' ? upcomingTickets : pastTickets;
+  };
+
+  const currentTickets = getCurrentTickets();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1E30FF]/5 via-white to-[#FF2D95]/5">
@@ -51,13 +70,83 @@ export const Tickets: React.FC = () => {
           </div>
         )}
 
+        {/* Tabs */}
+        {!loading && tickets.length > 0 && (
+          <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+            <div className="border-b border-gray-200">
+              <nav className="flex space-x-8 px-6">
+                <button
+                  onClick={() => setActiveTab('upcoming')}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                    activeTab === 'upcoming'
+                      ? 'border-[#1E30FF] text-[#1E30FF]'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="w-4 h-4" />
+                    <span>Upcoming Events ({upcomingTickets.length})</span>
+                  </div>
+                </button>
+                <button
+                  onClick={() => setActiveTab('past')}
+                  className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                    activeTab === 'past'
+                      ? 'border-[#1E30FF] text-[#1E30FF]'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center space-x-2">
+                    <Clock className="w-4 h-4" />
+                    <span>Past Events ({pastTickets.length})</span>
+                  </div>
+                </button>
+              </nav>
+            </div>
+          </div>
+        )}
+
         {/* Tickets List */}
         {!loading && tickets.length > 0 ? (
-          <div className="space-y-6">
-            {tickets.map((ticket) => (
-              <TicketCard key={ticket.ticket_code} ticket={ticket} />
-            ))}
-          </div>
+          currentTickets.length > 0 ? (
+            <div className="space-y-6">
+              {currentTickets.map((ticket) => (
+                <TicketCard 
+                  key={ticket.ticket_code} 
+                  ticket={ticket} 
+                  showReviewOption={activeTab === 'past'}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                {activeTab === 'upcoming' ? (
+                  <Calendar className="w-12 h-12 text-gray-400" />
+                ) : (
+                  <Clock className="w-12 h-12 text-gray-400" />
+                )}
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                {activeTab === 'upcoming' ? 'No upcoming events' : 'No past events'}
+              </h3>
+              <p className="text-gray-600 mb-6">
+                {activeTab === 'upcoming' 
+                  ? "You don't have any upcoming events. Discover new events to attend!"
+                  : "You haven't attended any events yet. Your past events will appear here."
+                }
+              </p>
+              {activeTab === 'upcoming' && (
+                <button
+                  onClick={() => window.location.href = '/home'}
+                  className="bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white px-6 py-3 rounded-lg font-medium hover:opacity-90 transition-all duration-200 flex items-center space-x-2 mx-auto"
+                >
+                  <Star className="w-5 h-5" />
+                  <span>Discover Events</span>
+                </button>
+              )}
+            </div>
+          )
         ) : !loading && (
           <div className="text-center py-16">
             <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -78,10 +167,10 @@ export const Tickets: React.FC = () => {
         )}
 
         {/* Summary Stats */}
-        {tickets.length > 0 && (
+        {!loading && tickets.length > 0 && (
           <div className="mt-12 bg-white rounded-xl shadow-md p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Ticket Summary</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-[#1E30FF]">
                   {tickets.length}
@@ -90,9 +179,15 @@ export const Tickets: React.FC = () => {
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-[#489707]">
-                  {tickets.filter(t => t.used === 0).length}
+                  {upcomingTickets.length}
                 </div>
-                <div className="text-sm text-gray-600">Valid</div>
+                <div className="text-sm text-gray-600">Upcoming</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-[#f0900a]">
+                  {pastTickets.length}
+                </div>
+                <div className="text-sm text-gray-600">Past</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-[#FF2D95]">

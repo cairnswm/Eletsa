@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, MapPin, Clock, QrCode, Download, Trash2 } from 'lucide-react';
+import { Calendar, MapPin, Clock, QrCode, Download, Trash2, Star, MessageSquare, Send } from 'lucide-react';
 import { X } from 'lucide-react';
 import { UserTicket } from '../../types/ticket';
 import { LocationViewModal } from './LocationViewModal';
@@ -10,13 +10,20 @@ import html2canvas from 'html2canvas';
 
 interface TicketCardProps {
   ticket: UserTicket;
+  showReviewOption?: boolean;
 }
 
-export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
+export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption = false }) => {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
+  const [reviewData, setReviewData] = useState({
+    rating: 0,
+    comment: ''
+  });
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -208,6 +215,36 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
       setIsGeneratingPDF(false);
     }
   };
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (reviewData.rating === 0) {
+      alert('Please select a rating');
+      return;
+    }
+
+    try {
+      setSubmittingReview(true);
+      // TODO: Implement review submission API call
+      console.log('Submitting review:', {
+        eventTitle: ticket.event_title,
+        rating: reviewData.rating,
+        comment: reviewData.comment
+      });
+      
+      // Reset form and close
+      setReviewData({ rating: 0, comment: '' });
+      setShowReviewForm(false);
+      
+      // Show success message (you might want to add a toast notification here)
+      alert('Review submitted successfully!');
+    } catch (error) {
+      console.error('Failed to submit review:', error);
+      alert('Failed to submit review. Please try again.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
   return (
     <>
       <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200">
@@ -276,7 +313,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
                   </div>
                 )}
 
-                {ticket.used === 0 && (
+                {!showReviewOption && ticket.used === 0 && (
                   <>
                     <button 
                       onClick={generateQRCode}
@@ -295,13 +332,26 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
                     </button>
                   </>
                 )}
+
+                {/* Review Button for past events */}
+                {showReviewOption && (
+                  <button 
+                    onClick={() => setShowReviewForm(!showReviewForm)}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-[#f0900a] to-[#FF2D95] text-white rounded-lg hover:opacity-90 transition-all duration-200"
+                  >
+                    <Star className="w-4 h-4" />
+                    <span className="text-sm font-medium">
+                      {showReviewForm ? 'Cancel Review' : 'Add Review'}
+                    </span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </div>
 
         {/* QR Code Section (expandable) */}
-        {ticket.used === 0 && showQRCode && (
+        {!showReviewOption && ticket.used === 0 && showQRCode && (
           <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
             <div className="flex items-center justify-between mb-4">
               <div className="text-sm font-medium text-gray-900">Entry Code</div>
@@ -327,6 +377,86 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
                 <div className="text-xs text-gray-500">Show this code at the event entrance</div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Review Form Section */}
+        {showReviewOption && showReviewForm && (
+          <div className="bg-blue-50 px-6 py-6 border-t border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-sm font-medium text-gray-900">Rate Your Experience</div>
+              <button
+                onClick={() => setShowReviewForm(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleReviewSubmit} className="space-y-4">
+              {/* Star Rating */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Rating *
+                </label>
+                <div className="flex items-center space-x-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewData(prev => ({ ...prev, rating: star }))}
+                      className={`w-8 h-8 rounded-full transition-colors duration-200 ${
+                        star <= reviewData.rating
+                          ? 'text-yellow-400 hover:text-yellow-500'
+                          : 'text-gray-300 hover:text-gray-400'
+                      }`}
+                    >
+                      <Star className={`w-6 h-6 ${star <= reviewData.rating ? 'fill-current' : ''}`} />
+                    </button>
+                  ))}
+                  <span className="ml-3 text-sm text-gray-600">
+                    {reviewData.rating > 0 ? `${reviewData.rating} star${reviewData.rating !== 1 ? 's' : ''}` : 'Select rating'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Review Comment */}
+              <div>
+                <label htmlFor="review-comment" className="block text-sm font-medium text-gray-700 mb-2">
+                  Your Review
+                </label>
+                <div className="relative">
+                  <MessageSquare className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
+                  <textarea
+                    id="review-comment"
+                    value={reviewData.comment}
+                    onChange={(e) => setReviewData(prev => ({ ...prev, comment: e.target.value }))}
+                    placeholder="Share your experience at this event..."
+                    rows={3}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent resize-none"
+                  />
+                </div>
+              </div>
+
+              {/* Submit Button */}
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowReviewForm(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={reviewData.rating === 0 || submittingReview}
+                  className="bg-gradient-to-r from-[#f0900a] to-[#FF2D95] text-white px-6 py-2 rounded-lg font-medium hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>{submittingReview ? 'Submitting...' : 'Submit Review'}</span>
+                </button>
+              </div>
+            </form>
           </div>
         )}
       </div>
