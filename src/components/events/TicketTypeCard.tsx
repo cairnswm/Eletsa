@@ -35,7 +35,7 @@ export const TicketTypeCard: React.FC<TicketTypeCardProps> = ({
               <span>{availableTickets} of {ticketType.quantity} available</span>
             </div>
             
-            {ticketType.refundable && (
+            {ticketType.refundable === 1 && (
               <div className="flex items-center space-x-1">
                 <RefreshCw className="w-4 h-4" />
                 <span>Refundable</span>
