@@ -147,27 +147,6 @@ export const organizersApi = {
     }));
   },
 
-  async fetchOrganizerTransactions(
-    organizerId: number
-  ): Promise<Transaction[]> {
-    const response = await fetch(
-      `${ORGANIZER_API}/api.php/organizer/${organizerId}/transactions`,
-      {
-        method: "GET",
-        headers: createHeaders(),
-      }
-    );
-
-    const data = await handleApiResponse(response);
-    const transactions = Array.isArray(data) ? data : [data];
-
-    // FIXED: Convert string amounts to numbers
-    return transactions.map((transaction) => ({
-      ...transaction,
-      amount: transaction.amount ? Number(transaction.amount) : 0,
-    }));
-  },
-
   // Payout Request endpoints
   async fetchPayoutRequests(): Promise<PayoutRequest[]> {
     const response = await fetch(`${ORGANIZER_API}/api.php/payout_requests`, {

@@ -37,7 +37,6 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [organizerEventsFetched, setOrganizerEventsFetched] = useState<Set<number>>(new Set());
   const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>([]);
   const [payouts, setPayouts] = useState<Payout[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -386,82 +385,6 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  // Transaction methods
-  const fetchTransactions = async (): Promise<void> => {
-    try {
-      setLoading(true);
-      setError(null);
-      const transactionsData = await organizersApi.fetchTransactions();
-      setTransactions(transactionsData);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch transactions';
-      setError(errorMessage);
-      console.error('Failed to fetch transactions:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchOrganizerTransactions = async (organizerId: number): Promise<Transaction[]> => {
-    try {
-      setError(null);
-      const transactionsData = await organizersApi.fetchOrganizerTransactions(organizerId);
-      
-      // Update cache with organizer-specific transactions
-      setTransactions(prev => {
-        const filtered = prev.filter(t => t.organizer_id !== organizerId);
-        return [...filtered, ...transactionsData];
-      });
-      
-      return transactionsData;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch organizer transactions';
-      setError(errorMessage);
-      console.error('Failed to fetch organizer transactions:', err);
-      throw err;
-    }
-  };
-
-  const createTransaction = async (data: CreateTransactionRequest): Promise<Transaction> => {
-    try {
-      setLoading(true);
-      setError(null);
-      const newTransaction = await organizersApi.createTransaction(data);
-      
-      setTransactions(prev => [...prev, newTransaction]);
-      
-      return newTransaction;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create transaction';
-      setError(errorMessage);
-      console.error('Failed to create transaction:', err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateTransaction = async (id: number, data: UpdateTransactionRequest): Promise<Transaction> => {
-    try {
-      setLoading(true);
-      setError(null);
-      const updatedTransaction = await organizersApi.updateTransaction(id, data);
-      
-      setTransactions(prev => 
-        prev.map(t => t.id === id ? updatedTransaction : t)
-      );
-      
-      return updatedTransaction;
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update transaction';
-      setError(errorMessage);
-      console.error('Failed to update transaction:', err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Load organizers on mount
   useEffect(() => {
     fetchOrganizers();
@@ -484,7 +407,6 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     organizerEvents,
     payoutRequests,
     payouts,
-    transactions,
     loading,
     error,
     
@@ -512,12 +434,6 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     fetchOrganizerPayouts,
     createPayout,
     updatePayout,
-    
-    // Transaction methods
-    fetchTransactions,
-    fetchOrganizerTransactions,
-    createTransaction,
-    updateTransaction,
     
     // Utility methods
     clearError,

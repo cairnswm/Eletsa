@@ -16,10 +16,8 @@ const ProfileContent: React.FC = () => {
     getOrganizerByUserId, 
     createOrganizer, 
     fetchOrganizerPayouts, 
-    fetchOrganizerTransactions, 
     fetchOrganizerPayoutRequests,
     payouts, 
-    transactions: organizerApiTransactions, 
     payoutRequests 
   } = useOrganizer();
   const [formData, setFormData] = useState({
@@ -129,17 +127,15 @@ const ProfileContent: React.FC = () => {
 
   // Load organizer data when switching to organizer tabs
   React.useEffect(() => {
-    if (userOrganizer && (activeTab === 'payouts' || activeTab === 'transactions')) {
+    if (userOrganizer && activeTab === 'payouts') {
       if (activeTab === 'payouts') {
         Promise.all([
           fetchOrganizerPayouts(userOrganizer.id),
           fetchOrganizerPayoutRequests(userOrganizer.id)
         ]).catch(console.error);
-      } else if (activeTab === 'transactions') {
-        fetchOrganizerTransactions(userOrganizer.id).catch(console.error);
       }
     }
-  }, [activeTab, userOrganizer]);
+  }, [activeTab, userOrganizer, fetchOrganizerPayouts, fetchOrganizerPayoutRequests]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-ZA', {
@@ -180,7 +176,6 @@ const ProfileContent: React.FC = () => {
 
   // Filter data for current organizer
   const organizerPayouts = userOrganizer ? payouts.filter(p => p.organizer_id === userOrganizer.id) : [];
-  const organizerTransactions = userOrganizer ? organizerApiTransactions.filter(t => t.organizer_id === userOrganizer.id) : [];
   const organizerPayoutRequests = userOrganizer ? payoutRequests.filter(pr => pr.organizer_id === userOrganizer.id) : [];
 
   return (
