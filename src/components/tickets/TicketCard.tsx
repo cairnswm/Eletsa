@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Calendar, MapPin, Clock, QrCode, Download, Trash2 } from 'lucide-react';
+import { X } from 'lucide-react';
 import { UserTicket } from '../../types/ticket';
 import { LocationViewModal } from './LocationViewModal';
 import { LocationShare } from './LocationShare';
+import QRCode from 'qrcode';
 
 interface TicketCardProps {
   ticket: UserTicket;
@@ -10,6 +12,8 @@ interface TicketCardProps {
 
 export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const [showQRCode, setShowQRCode] = useState(false);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -53,6 +57,23 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
 
   const latitude = hasLocation ? parseFloat(ticket.location_latitude) : 0;
   const longitude = hasLocation ? parseFloat(ticket.location_longitude) : 0;
+
+  const generateQRCode = async () => {
+    try {
+      const dataUrl = await QRCode.toDataURL(ticket.ticket_code, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+      setQrCodeDataUrl(dataUrl);
+      setShowQRCode(true);
+    } catch (error) {
+      console.error('Failed to generate QR code:', error);
+    }
+  };
 
   return (
     <>
@@ -98,7 +119,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
                 <div>
                   <div className="text-sm font-medium text-gray-900">{ticket.ticket_type}</div>
                   <div className="text-xs text-gray-500">
-                    Assigned: {formatDate(ticket.assigned_at)}
+                    Purchased: {formatDate(ticket.assigned_at)}
                   </div>
                 </div>
               </div>
@@ -124,7 +145,10 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
 
                 {ticket.used === 0 && (
                   <>
-                    <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200">
+                    <button 
+                      onClick={generateQRCode}
+                      className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+                    >
                       <QrCode className="w-4 h-4" />
                       <span className="text-sm font-medium">Show QR</span>
                     </button>
@@ -140,20 +164,30 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
         </div>
 
         {/* QR Code Section (expandable) */}
-        {ticket.used === 0 && (
+        {ticket.used === 0 && showQRCode && (
           <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
-                  <QrCode className="w-6 h-6 text-gray-400" />
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-sm font-medium text-gray-900">Entry Code</div>
+              <button
+                onClick={() => setShowQRCode(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex flex-col items-center space-y-4">
+              {qrCodeDataUrl && (
+                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                  <img 
+                    src={qrCodeDataUrl} 
+                    alt="Ticket QR Code" 
+                    className="w-48 h-48"
+                  />
                 </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-900">Entry Code</div>
-                  <div className="text-xs text-gray-500 font-mono">{ticket.ticket_code}</div>
-                </div>
-              </div>
-              <div className="text-xs text-gray-500">
-                Show this code at the event entrance
+              )}
+              <div className="text-center">
+                <div className="text-xs text-gray-500 font-mono mb-1">{ticket.ticket_code}</div>
+                <div className="text-xs text-gray-500">Show this code at the event entrance</div>
               </div>
             </div>
           </div>
