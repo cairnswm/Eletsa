@@ -172,7 +172,7 @@ const ProfileContent: React.FC = () => {
           </div>
 
           {/* Tab Content */}
-                      <p className="text-gray-600">No payout requests yet</p>
+          <div className="p-8">
             {activeTab === 'profile' && <ProfileTab />}
             {activeTab === 'followers' && <FollowersTab />}
             {activeTab === 'following' && <FollowingTab />}
