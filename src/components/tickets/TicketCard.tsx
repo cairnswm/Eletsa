@@ -107,14 +107,15 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
 
       pdfContainer.innerHTML = `
         <!-- Header -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e5e7eb;">
-          <div style="display: flex; align-items: center;">
-            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #1E30FF, #FF2D95); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
-              <span style="color: white; font-weight: bold; font-size: 20px;">E</span>
-            </div>
-            <span style="font-size: 24px; font-weight: bold; background: linear-gradient(135deg, #1E30FF, #FF2D95); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Eletsa</span>
+        <div style="background: linear-gradient(135deg, #1E30FF, #FF2D95); padding: 20px; margin-bottom: 30px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; color: white;">
+            <svg width="32" height="32" viewBox="0 0 100 100" style="margin-right: 12px;">
+              <rect width="100" height="100" rx="20" fill="white"/>
+              <text x="50" y="65" text-anchor="middle" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="#1E30FF">E</text>
+            </svg>
+            <span style="font-size: 28px; font-weight: bold; color: white;">Eletsa</span>
           </div>
-          <div style="color: #6b7280; font-size: 14px;">https://eletsa.cairns.co.za</div>
+          <div style="color: white; font-size: 16px; font-weight: 500;">https://eletsa.cairns.co.za</div>
         </div>
 
         <!-- Ticket Content -->
