@@ -219,6 +219,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     if (activeEventId === null) {
       setComments([]);
+      setReviews([]);
       setOrganizer(null);
     }
   }, [activeEventId]);
