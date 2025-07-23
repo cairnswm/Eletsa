@@ -5,6 +5,8 @@ import { UserTicket } from '../../types/ticket';
 import { LocationViewModal } from './LocationViewModal';
 import { LocationShare } from './LocationShare';
 import QRCode from 'qrcode';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface TicketCardProps {
   ticket: UserTicket;
@@ -14,6 +16,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -75,6 +78,135 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
     }
   };
 
+  const downloadPDF = async () => {
+    try {
+      setIsGeneratingPDF(true);
+      
+      // Generate QR code if not already generated
+      let qrDataUrl = qrCodeDataUrl;
+      if (!qrDataUrl) {
+        qrDataUrl = await QRCode.toDataURL(ticket.ticket_code, {
+          width: 200,
+          margin: 2,
+          color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+          }
+        });
+      }
+
+      // Create a temporary container for the PDF content
+      const pdfContainer = document.createElement('div');
+      pdfContainer.style.position = 'absolute';
+      pdfContainer.style.left = '-9999px';
+      pdfContainer.style.top = '0';
+      pdfContainer.style.width = '800px';
+      pdfContainer.style.backgroundColor = 'white';
+      pdfContainer.style.padding = '40px';
+      pdfContainer.style.fontFamily = 'Arial, sans-serif';
+
+      pdfContainer.innerHTML = `
+        <!-- Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e5e7eb;">
+          <div style="display: flex; align-items: center;">
+            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #1E30FF, #FF2D95); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+              <span style="color: white; font-weight: bold; font-size: 20px;">E</span>
+            </div>
+            <span style="font-size: 24px; font-weight: bold; background: linear-gradient(135deg, #1E30FF, #FF2D95); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Eletsa</span>
+          </div>
+          <div style="color: #6b7280; font-size: 14px;">https://eletsa.cairns.co.za</div>
+        </div>
+
+        <!-- Ticket Content -->
+        <div style="background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
+            <div style="flex: 1;">
+              <h1 style="font-size: 24px; font-weight: bold; color: #111827; margin: 0 0 16px 0;">${ticket.event_title}</h1>
+              <div style="margin-bottom: 8px; display: flex; align-items: center; color: #6b7280;">
+                <span style="margin-right: 8px;">📅</span>
+                <span>${formatDate(ticket.start_datetime)}</span>
+              </div>
+              <div style="margin-bottom: 8px; display: flex; align-items: center; color: #6b7280;">
+                <span style="margin-right: 8px;">🕐</span>
+                <span>${formatTime(ticket.start_datetime)}</span>
+              </div>
+              <div style="margin-bottom: 8px; display: flex; align-items: center; color: #6b7280;">
+                <span style="margin-right: 8px;">📍</span>
+                <span>${ticket.location_name}</span>
+              </div>
+            </div>
+            <div style="text-align: right; margin-left: 24px;">
+              <span style="display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 12px; font-weight: 500; margin-bottom: 8px; ${ticket.used === 0 ? 'background-color: #dcfce7; color: #166534;' : 'background-color: #f3f4f6; color: #374151;'}">${getStatusText(ticket.used)}</span>
+              <div style="font-size: 24px; font-weight: bold; color: #111827;">${formatCurrency(parseFloat(ticket.price))}</div>
+              <div style="font-size: 14px; color: #6b7280;">${ticket.quantity} ticket${ticket.quantity > 1 ? 's' : ''}</div>
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid #e5e7eb; padding-top: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-size: 14px; font-weight: 500; color: #111827;">${ticket.ticket_type}</div>
+                <div style="font-size: 12px; color: #6b7280;">Purchased: ${formatDate(ticket.assigned_at)}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- QR Code Section -->
+        ${ticket.used === 0 ? `
+        <div style="background: #f9fafb; padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px;">
+          <div style="text-align: center;">
+            <div style="font-size: 14px; font-weight: 500; color: #111827; margin-bottom: 16px;">Entry Code</div>
+            <div style="display: flex; flex-direction: column; align-items: center;">
+              <div style="background: white; padding: 16px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 16px;">
+                <img src="${qrDataUrl}" alt="Ticket QR Code" style="width: 192px; height: 192px;" />
+              </div>
+              <div style="text-align: center;">
+                <div style="font-size: 12px; color: #6b7280; font-family: monospace; margin-bottom: 4px;">${ticket.ticket_code}</div>
+                <div style="font-size: 12px; color: #6b7280;">Show this code at the event entrance</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        ` : ''}
+      `;
+
+      document.body.appendChild(pdfContainer);
+
+      // Generate canvas from the container
+      const canvas = await html2canvas(pdfContainer, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff'
+      });
+
+      // Remove the temporary container
+      document.body.removeChild(pdfContainer);
+
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      const imgWidth = 210; // A4 width in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight);
+      
+      // Download the PDF
+      const fileName = `ticket-${ticket.event_title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}-${ticket.ticket_code.slice(0, 8)}.pdf`;
+      pdf.save(fileName);
+
+    } catch (error) {
+      console.error('Failed to generate PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
   return (
     <>
       <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200">
@@ -152,9 +284,13 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
                       <QrCode className="w-4 h-4" />
                       <span className="text-sm font-medium">Show QR</span>
                     </button>
-                    <button className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white rounded-lg hover:opacity-90 transition-all duration-200">
+                    <button 
+                      onClick={downloadPDF}
+                      disabled={isGeneratingPDF}
+                      className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
                       <Download className="w-4 h-4" />
-                      <span className="text-sm font-medium">Download</span>
+                      <span className="text-sm font-medium">{isGeneratingPDF ? 'Generating...' : 'Download'}</span>
                     </button>
                   </>
                 )}
