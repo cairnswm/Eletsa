@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Calendar, MapPin, Clock, QrCode, Download, Trash2, Star, MessageSquare, Send } from 'lucide-react';
 import { X } from 'lucide-react';
 import { UserTicket } from '../../types/ticket';
+import { useTicket } from '../../contexts/useTicket';
 import { LocationViewModal } from './LocationViewModal';
 import { LocationShare } from './LocationShare';
 import QRCode from 'qrcode';
@@ -15,6 +16,7 @@ interface TicketCardProps {
 }
 
 export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption = false, isPastEvent = false }) => {
+  const { submitReview } = useTicket();
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showQRCode, setShowQRCode] = useState(false);
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -226,19 +228,14 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption
 
     try {
       setSubmittingReview(true);
-      // TODO: Implement review submission API call
-      console.log('Submitting review:', {
-        eventTitle: ticket.event_title,
-        rating: reviewData.rating,
-        comment: reviewData.comment
-      });
+      
+      // Submit review via ticket context
+      await submitReview(ticket.event_title, reviewData.rating, reviewData.comment);
       
       // Reset form and close
       setReviewData({ rating: 0, comment: '' });
       setShowReviewForm(false);
-      
-      // Show success message (you might want to add a toast notification here)
-      alert('Review submitted successfully!');
+
     } catch (error) {
       console.error('Failed to submit review:', error);
       alert('Failed to submit review. Please try again.');

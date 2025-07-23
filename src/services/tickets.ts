@@ -3,6 +3,13 @@ import { UserTicket } from "../types/ticket";
 
 const TICKETS_API = "https://eletsa.cairns.co.za/php/tickets";
 
+export interface CreateReviewRequest {
+  user_id: number;
+  event_id: number;
+  rating: number;
+  review: string;
+}
+
 export const ticketsApi = {
   async fetchUserTickets(): Promise<UserTicket[]> {
     const response = await fetch(`${TICKETS_API}/api.php/tickets`, {
@@ -20,5 +27,15 @@ export const ticketsApi = {
       quantity: Number(ticket.quantity),
       used: Number(ticket.used),
     }));
+  },
+
+  async createReview(reviewData: CreateReviewRequest): Promise<void> {
+    const response = await fetch(`${TICKETS_API}/api.php/review`, {
+      method: "POST",
+      headers: createHeaders(true),
+      body: JSON.stringify(reviewData),
+    });
+
+    await handleApiResponse(response);
   },
 };
