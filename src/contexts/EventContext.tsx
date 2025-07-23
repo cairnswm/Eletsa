@@ -26,10 +26,14 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
   const [activeEvent, setActiveEvent] = useState<Event | null>(null);
   const [ticketTypes, setTicketTypes] = useState<TicketType[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [organizer, setOrganizer] = useState<Organizer | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [commentsFetched, setCommentsFetched] = useState<Set<number>>(
+    new Set()
+  );
+  const [reviewsFetched, setReviewsFetched] = useState<Set<number>>(
     new Set()
   );
   const [ticketTypesCache, setTicketTypesCache] = useState<{
