@@ -20,6 +20,7 @@ import { CreateEvent } from './pages/CreateEvent';
 import { EditEvent } from './pages/EditEvent';
 import { EventPage } from './pages/EventPage';
 import { Checkout } from './pages/Checkout';
+import { PaymentSuccess } from './pages/PaymentSuccess';
 import { useAuth } from './contexts/AuthContext';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -115,6 +116,14 @@ const AppContent: React.FC = () => {
           element={
             <ProtectedRoute>
               <Checkout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment"
+          element={
+            <ProtectedRoute>
+              <PaymentSuccess />
             </ProtectedRoute>
           }
         />
