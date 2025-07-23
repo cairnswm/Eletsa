@@ -138,7 +138,7 @@ export const PayoutsTab: React.FC = () => {
                   <div>
                     <span className="text-gray-600">Preferred Date:</span>
                     <span className="ml-2 font-medium">
-                      {request.payout_date ? formatDate(request.payout_date) : 'Immediate'}
+                      {request.payout_date && request.payout_date !== '0000-00-00 00:00:00' ? formatDate(request.payout_date) : 'Immediate'}
                     </span>
                   </div>
                 </div>
