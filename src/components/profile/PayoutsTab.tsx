@@ -21,12 +21,19 @@ export const PayoutsTab: React.FC = () => {
   // Load organizer data when component mounts
   useEffect(() => {
     if (userOrganizer) {
-      Promise.all([
-        fetchOrganizerPayouts(userOrganizer.id),
-        fetchOrganizerPayoutRequests(userOrganizer.id)
-      ]).catch(console.error);
+      // Only fetch if we don't already have the data
+      const organizerPayouts = payouts.filter(p => p.organizer_id === userOrganizer.id);
+      const organizerPayoutRequests = payoutRequests.filter(pr => pr.organizer_id === userOrganizer.id);
+      
+      // Only fetch if we don't have any data for this organizer
+      if (organizerPayouts.length === 0 && organizerPayoutRequests.length === 0) {
+        Promise.all([
+          fetchOrganizerPayouts(userOrganizer.id),
+          fetchOrganizerPayoutRequests(userOrganizer.id)
+        ]).catch(console.error);
+      }
     }
-  }, [userOrganizer, fetchOrganizerPayouts, fetchOrganizerPayoutRequests]);
+  }, [userOrganizer?.id, payouts, payoutRequests, fetchOrganizerPayouts, fetchOrganizerPayoutRequests]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-ZA', {

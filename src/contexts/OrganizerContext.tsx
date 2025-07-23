@@ -35,6 +35,7 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [organizers, setOrganizers] = useState<Organizer[]>([]);
   const [organizerEvents, setOrganizerEvents] = useState<Event[]>([]);
   const [organizerEventsFetched, setOrganizerEventsFetched] = useState<Set<number>>(new Set());
+  const [payoutDataFetched, setPayoutDataFetched] = useState<Set<number>>(new Set());
   const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>([]);
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [loading, setLoading] = useState(false);
@@ -250,6 +251,11 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const fetchOrganizerPayoutRequests = async (organizerId: number): Promise<PayoutRequest[]> => {
+    // Check if we've already fetched payout requests for this organizer
+    if (payoutDataFetched.has(organizerId)) {
+      return payoutRequests.filter(pr => pr.organizer_id === organizerId);
+    }
+
     try {
       setError(null);
       const payoutRequestsData = await organizersApi.fetchOrganizerPayoutRequests(organizerId);
@@ -259,6 +265,9 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const filtered = prev.filter(pr => pr.organizer_id !== organizerId);
         return [...filtered, ...payoutRequestsData];
       });
+      
+      // Mark as fetched
+      setPayoutDataFetched(prev => new Set([...prev, organizerId]));
       
       return payoutRequestsData;
     } catch (err) {
@@ -326,6 +335,11 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const fetchOrganizerPayouts = async (organizerId: number): Promise<Payout[]> => {
+    // Check if we've already fetched payouts for this organizer
+    if (payoutDataFetched.has(organizerId)) {
+      return payouts.filter(p => p.organizer_id === organizerId);
+    }
+
     try {
       setError(null);
       const payoutsData = await organizersApi.fetchOrganizerPayouts(organizerId);
@@ -335,6 +349,9 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         const filtered = prev.filter(p => p.organizer_id !== organizerId);
         return [...filtered, ...payoutsData];
       });
+      
+      // Mark as fetched
+      setPayoutDataFetched(prev => new Set([...prev, organizerId]));
       
       return payoutsData;
     } catch (err) {
@@ -395,6 +412,7 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (!user) {
       setOrganizerEvents([]);
       setOrganizerEventsFetched(new Set());
+      setPayoutDataFetched(new Set());
     }
   }, [user?.id]);
 
