@@ -12,6 +12,7 @@ export const MyEvents: React.FC = () => {
   const { getOrganizerByUserId, fetchOrganizerEvents, getOrganizerEvents } = useOrganizer();
   const { setActiveEventId } = useEvent();
   const [activeTab, setActiveTab] = useState<'active' | 'draft' | 'past'>('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'past'>('active');
   const [loading, setLoading] = useState(false);
   const [eventsLoaded, setEventsLoaded] = useState(false);
 
@@ -96,7 +97,6 @@ export const MyEvents: React.FC = () => {
   console.log('Event categorization results:', {
     total: organizerEvents.length,
     active: activeEvents.length,
-    draft: draftEvents.length,
     past: pastEvents.length
   });
 
@@ -104,8 +104,6 @@ export const MyEvents: React.FC = () => {
     switch (activeTab) {
       case 'active':
         return activeEvents;
-      case 'draft':
-        return draftEvents;
       case 'past':
         return pastEvents;
       default:
@@ -156,7 +154,7 @@ export const MyEvents: React.FC = () => {
             {process.env.NODE_ENV === 'development' && user && (
               <div className="text-xs text-blue-600 mt-1 space-y-1">
                 <p>Debug: User ID {user.id}, Organizer ID {userOrganizer.id}, Events: {organizerEvents.length}, Loaded: {eventsLoaded ? 'Yes' : 'No'}</p>
-                <p>Active: {activeEvents.length}, Draft: {draftEvents.length}, Past: {pastEvents.length}</p>
+                <p>Active: {activeEvents.length}, Past: {pastEvents.length}</p>
                 {organizerEvents.length > 0 && (
                   <div className="bg-blue-50 p-2 rounded text-xs">
                     <p><strong>Events found:</strong></p>
@@ -272,16 +270,6 @@ export const MyEvents: React.FC = () => {
                 Active Events ({activeEvents.length})
               </button>
               <button
-                onClick={() => setActiveTab('draft')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'draft'
-                    ? 'border-[#1E30FF] text-[#1E30FF]'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                Drafts ({draftEvents.length})
-              </button>
-              <button
                 onClick={() => setActiveTab('past')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
                   activeTab === 'past'
@@ -306,7 +294,6 @@ export const MyEvents: React.FC = () => {
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="text-xl font-semibold text-gray-900">
                     {activeTab === 'active' && 'Active Events'}
-                    {activeTab === 'draft' && 'Draft Events'}
                     {activeTab === 'past' && 'Past Events'}
                   </h2>
                   <span className="text-gray-600">
@@ -343,11 +330,10 @@ export const MyEvents: React.FC = () => {
                   <Calendar className="w-8 h-8 text-gray-400" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  No {activeTab} events
+                  {activeTab === 'active' ? 'No active events' : 'No past events'}
                 </h3>
                 <p className="text-gray-600 mb-6">
                   {activeTab === 'active' && "You don't have any active events yet."}
-                  {activeTab === 'draft' && "You don't have any draft events yet."}
                   {activeTab === 'past' && "You don't have any past events yet."}
                 </p>
                 {activeTab !== 'past' && (
