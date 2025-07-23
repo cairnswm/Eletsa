@@ -29,7 +29,7 @@ const ProfileContent: React.FC = () => {
     avatar: user?.avatar || '',
   });
   const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState<'profile' | 'followers' | 'following' | 'payouts' | 'transactions' | 'user-transactions'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'followers' | 'following' | 'payouts' | 'transactions'>('profile');
   const [becomingOrganizer, setBecomingOrganizer] = useState(false);
   const [showPayoutRequestModal, setShowPayoutRequestModal] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
@@ -292,34 +292,20 @@ const ProfileContent: React.FC = () => {
                       <span>Payouts</span>
                     </div>
                   </button>
-                  
-                  <button
-                    onClick={() => setActiveTab('transactions')}
-                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                      activeTab === 'transactions'
-                        ? 'border-[#1E30FF] text-[#1E30FF]'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-2">
-                      <CreditCard className="w-4 h-4" />
-                      <span>Transactions</span>
-                    </div>
-                  </button>
                 </>
               )}
               
               <button
-                onClick={() => setActiveTab('user-transactions')}
+                onClick={() => setActiveTab('transactions')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
-                  activeTab === 'user-transactions'
+                  activeTab === 'transactions'
                     ? 'border-[#1E30FF] text-[#1E30FF]'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
                 <div className="flex items-center space-x-2">
                   <Receipt className="w-4 h-4" />
-                  <span>My Transactions</span>
+                  <span>Transactions</span>
                 </div>
               </button>
             </nav>
@@ -681,74 +667,12 @@ const ProfileContent: React.FC = () => {
               </div>
             )}
 
-            {activeTab === 'transactions' && isOrganizer && (
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-2">
-                    <CreditCard className="w-6 h-6 text-[#1E30FF]" />
-                    <h2 className="text-2xl font-bold text-gray-900">Transactions</h2>
-                  </div>
-                  <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm">
-                    {organizerTransactions.length} total
-                  </span>
-                </div>
-
-                {organizerTransactions.length > 0 ? (
-                  <div className="space-y-4">
-                    {organizerTransactions.map((transaction) => (
-                      <div key={transaction.id} className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] rounded-full flex items-center justify-center">
-                              <CreditCard className="w-5 h-5 text-white" />
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-gray-900">
-                                {formatCurrency(transaction.amount)} {transaction.currency}
-                              </h3>
-                              <p className="text-sm text-gray-600 capitalize">
-                                {transaction.transaction_type}
-                              </p>
-                            </div>
-                          </div>
-                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(transaction.status)}`}>
-                            {transaction.status}
-                          </span>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="text-gray-600">Date:</span>
-                            <span className="ml-2 font-medium">{formatDate(transaction.transaction_date)}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">Provider:</span>
-                            <span className="ml-2 font-medium">{transaction.payment_provider}</span>
-                          </div>
-                          <div className="col-span-2">
-                            <span className="text-gray-600">Reference:</span>
-                            <span className="ml-2 font-medium font-mono text-xs">{transaction.payment_reference}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <CreditCard className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No transactions yet</h3>
-                    <p className="text-gray-600">Your transaction history will appear here once you start receiving payments</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === 'user-transactions' && (
+            {activeTab === 'transactions' && (
               <div>
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center space-x-2">
                     <Receipt className="w-6 h-6 text-[#1E30FF]" />
-                    <h2 className="text-2xl font-bold text-gray-900">My Transactions</h2>
+                    <h2 className="text-2xl font-bold text-gray-900">Transactions</h2>
                   </div>
                   <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm">
                     {transactions.length} total
