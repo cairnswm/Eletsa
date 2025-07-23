@@ -45,6 +45,16 @@ export interface Comment {
   modified_at: string;
 }
 
+export interface Review {
+  id: number;
+  event_id: number;
+  user_id: number;
+  rating: number;
+  review: string;
+  created_at: string;
+  modified_at: string;
+}
+
 export interface Organizer {
   id: number;
   name: string;
@@ -62,6 +72,7 @@ export interface EventContextType {
   activeEvent: Event | null;
   ticketTypes: TicketType[];
   comments: Comment[];
+  reviews: Review[];
   organizer: Organizer | null;
   loading: boolean;
   error: string | null;
@@ -72,6 +83,7 @@ export interface EventContextType {
   refreshEventTicketTypes: (eventId: number) => Promise<TicketType[]>; // ADDED: Force refresh
   invalidateEventTicketTypes: (eventId: number) => void; // ADDED: Invalidate cache
   fetchEventComments: (eventId: number) => Promise<void>;
+  fetchEventReviews: (eventId: number) => Promise<void>;
   fetchOrganizer: (organizerId: number) => Promise<void>;
   addEventToCache: (newEvent: Event) => void;
 }

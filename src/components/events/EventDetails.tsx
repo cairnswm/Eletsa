@@ -313,8 +313,53 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
               )}
             </div>
 
-            {/* Comments Section */}
-            <CommentSection comments={comments} eventId={activeEvent.id} />
+            {/* Comments and Reviews Section */}
+            <div className="bg-white rounded-xl shadow-md overflow-hidden">
+              {/* Tab Navigation */}
+              <div className="border-b border-gray-200">
+                <nav className="flex space-x-8 px-6">
+                  <button
+                    onClick={() => setActiveTab('comments')}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                      activeTab === 'comments'
+                        ? 'border-[#1E30FF] text-[#1E30FF]'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <MessageCircle className="w-4 h-4" />
+                      <span>Comments ({comments.length})</span>
+                    </div>
+                  </button>
+                  
+                  {isEventPast && (
+                    <button
+                      onClick={() => setActiveTab('reviews')}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                        activeTab === 'reviews'
+                          ? 'border-[#1E30FF] text-[#1E30FF]'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <Star className="w-4 h-4" />
+                        <span>Reviews ({reviews.length})</span>
+                      </div>
+                    </button>
+                  )}
+                </nav>
+              </div>
+
+              {/* Tab Content */}
+              <div className="p-8">
+                {activeTab === 'comments' && (
+                  <CommentSection comments={comments} eventId={activeEvent.id} />
+                )}
+                {activeTab === 'reviews' && isEventPast && (
+                  <ReviewsSection reviews={reviews} eventId={activeEvent.id} />
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Right Column - 40% */}

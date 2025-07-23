@@ -104,6 +104,27 @@ export const eventsApi = {
     }));
   },
 
+  async fetchEventReviews(eventId: number) {
+    const response = await fetch(
+      `${EVENTS_API}/api.php/event/${eventId}/reviews`,
+      {
+        method: "GET",
+        headers: createHeaders(),
+      }
+    );
+
+    const data = await handleApiResponse(response);
+    const reviews = Array.isArray(data) ? data : [data];
+
+    // FIXED: Convert string numbers to actual numbers
+    return reviews.map((review) => ({
+      ...review,
+      rating: review.rating ? Number(review.rating) : 0,
+      event_id: Number(review.event_id),
+      user_id: Number(review.user_id),
+    }));
+  },
+
   async createEvent(eventData: {
     organizer_id: number;
     title: string;

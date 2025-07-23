@@ -229,6 +229,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
     activeEvent,
     ticketTypes,
     comments,
+    reviews,
     organizer,
     loading,
     error,
@@ -239,6 +240,7 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
     refreshEventTicketTypes,
     invalidateEventTicketTypes,
     fetchEventComments,
+    fetchEventReviews,
     addEventToCache,
     fetchOrganizer: async () => {},
   };
