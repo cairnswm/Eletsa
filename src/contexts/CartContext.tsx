@@ -122,16 +122,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(null);
 
       if (tenant) {
-        await cartApi.cartToOrder(token!, tenant.toString());
+        const result = await cartApi.cartToOrder(token!, tenant.uuid);
+        await fetchCart();
+        return result;
       } else {
         throw new Error('Tenant is required to convert cart to order');
       }
-
-      await fetchCart();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to convert cart to order';
       setError(errorMessage);
-      console.error('Failed to convert cart to order:', err);
       throw err;
     } finally {
       setLoading(false);

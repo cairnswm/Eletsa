@@ -47,10 +47,10 @@ export const Checkout: React.FC = () => {
 
   const handleGetOrder = async () => {
     try {
-      await cartToOrder();
-      // Return order details for PayGate
+      const response = await cartToOrder();
+      console.log("CART TO ORDER", response);
       return {
-        id: 'temp-order-id', // This should come from the cartToOrder response
+        id: response.order_id,
         total_price: parseFloat(cart?.cart_total || '0')
       };
     } catch (error) {

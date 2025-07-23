@@ -1,23 +1,23 @@
-import { createHeaders, handleApiResponse } from './api';
-import { Cart, AddToCartRequest } from '../types/cart';
+import { createHeaders, handleApiResponse } from "./api";
+import { Cart, AddToCartRequest } from "../types/cart";
 
-const CART_API = 'https://eletsa.cairns.co.za/php/cart';
+const CART_API = "https://eletsa.cairns.co.za/php/cart";
 
 export const cartApi = {
   async fetchUserCart(userId: number): Promise<Cart> {
     const response = await fetch(`${CART_API}/api.php/user/${userId}/cart`, {
-      method: 'GET',
+      method: "GET",
       headers: createHeaders(true),
     });
 
     const data = await handleApiResponse(response);
-    
-    console.log('Fetched cart data:', data);
-    
+
+    console.log("Fetched cart data:", data);
+
     // Convert cart_total to number and ensure items have proper number types
     return {
       ...data,
-      cart_total: data.cart_total ? data.cart_total.toString() : '0',
+      cart_total: data.cart_total ? data.cart_total.toString() : "0",
       items: (data.items || []).map((item: any) => ({
         ...item,
         id: Number(item.id),
@@ -32,7 +32,7 @@ export const cartApi = {
 
   async addToCart(item: AddToCartRequest): Promise<void> {
     const response = await fetch(`${CART_API}/api.php/item`, {
-      method: 'POST',
+      method: "POST",
       headers: createHeaders(true),
       body: JSON.stringify(item),
     });
@@ -42,7 +42,7 @@ export const cartApi = {
 
   async updateCartItem(itemId: number, quantity: number): Promise<void> {
     const response = await fetch(`${CART_API}/api.php/item/${itemId}`, {
-      method: 'PUT',
+      method: "PUT",
       headers: createHeaders(true),
       body: JSON.stringify({ quantity }),
     });
@@ -52,7 +52,7 @@ export const cartApi = {
 
   async removeCartItem(itemId: number): Promise<void> {
     const response = await fetch(`${CART_API}/api.php/item/${itemId}`, {
-      method: 'DELETE',
+      method: "DELETE",
       headers: createHeaders(true),
     });
 
@@ -61,16 +61,17 @@ export const cartApi = {
 
   async cartToOrder(token: string, tenant: string): Promise<void> {
     const response = await fetch(`${CART_API}/api.php/carttoorder`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'app_id': tenant,
-        'Authorization': `Bearer ${token}`,
+        "Content-Type": "application/json",
+        app_id: tenant,
+        Authorization: `Bearer ${token}`,
       },
     });
 
     if (!response.ok) {
-      throw new Error('Failed to convert cart to order');
+      throw new Error("Failed to convert cart to order");
     }
+    return response.json();
   },
 };

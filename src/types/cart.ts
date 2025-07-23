@@ -21,6 +21,12 @@ export interface AddToCartRequest {
   quantity: number;
 }
 
+export interface CartToOrderResponse {
+  success: boolean;
+  message: string;
+  order_id: number;
+}
+
 export interface CartContextType {
   cart: Cart | null;
   loading: boolean;
@@ -30,5 +36,5 @@ export interface CartContextType {
   updateCartItem: (itemId: number, quantity: number) => Promise<void>;
   removeCartItem: (itemId: number) => Promise<void>;
   clearError: () => void;
-  cartToOrder: () => Promise<void>;
+  cartToOrder: () => Promise<CartToOrderResponse>;
 }

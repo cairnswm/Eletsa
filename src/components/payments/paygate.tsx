@@ -3,7 +3,7 @@ import PayGateButton from "./paygatebutton";
 import { useTenant } from "../../contexts/TenantContext";
 import { useAuth } from "../../contexts/AuthContext";
 
-const PAYWEB3_API = "https://localhost/eletsa-api/payweb3";
+const PAYWEB3_API = "https://eletsa.cairns.co.za/php/payment";
 
 type PayGateProps = {
   onGetOrder: () => Promise<{ id: string; total_price: number }>;
