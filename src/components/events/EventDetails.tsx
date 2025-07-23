@@ -23,6 +23,10 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
   const [showContactModal, setShowContactModal] = React.useState(false);
   const [showTicketModal, setShowTicketModal] = React.useState(false);
   const [selectedTicketType, setSelectedTicketType] = React.useState<TicketType | null>(null);
+  const [activeTab, setActiveTab] = React.useState<'comments' | 'reviews'>('comments');
+
+  // Check if event is in the past
+  const isEventPast = activeEvent ? new Date(activeEvent.end_datetime) < new Date() : false;
 
   if (loading) {
     return (
