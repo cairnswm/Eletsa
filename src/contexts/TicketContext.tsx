@@ -76,3 +76,5 @@ export const TicketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   return <TicketContext.Provider value={value}>{children}</TicketContext.Provider>;
 };
+
+export { TicketContext }
