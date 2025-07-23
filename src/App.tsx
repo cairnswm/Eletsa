@@ -7,6 +7,7 @@ import { UserProvider } from './contexts/UserContext';
 import { OrganizerProvider } from './contexts/OrganizerContext';
 import { MessagingProvider } from './contexts/MessagingContext';
 import { CartProvider } from './contexts/CartContext';
+import { TicketProvider } from './contexts/TicketContext';
 import { Header } from './components/Header';
 import { Landing } from './pages/Landing';
 import { Home } from './pages/Home';
@@ -141,9 +142,11 @@ function App() {
             <MessagingProvider>
               <OrganizerProvider>
                 <EventProvider>
-                  <CartProvider>
-                    <AppContent />
-                  </CartProvider>
+                  <TicketProvider>
+                    <CartProvider>
+                      <AppContent />
+                    </CartProvider>
+                  </TicketProvider>
                 </EventProvider>
               </OrganizerProvider>
             </MessagingProvider>
