@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { X, DollarSign, Calendar, AlertCircle, Send } from 'lucide-react';
 import { useOrganizer } from '../../contexts/OrganizerContext';
-import { useEvent } from '../../contexts/EventContext';
 
 interface PayoutRequestModalProps {
   isOpen: boolean;
@@ -15,23 +14,19 @@ export const PayoutRequestModal: React.FC<PayoutRequestModalProps> = ({
   organizerId,
 }) => {
   const { createPayoutRequest, loading } = useOrganizer();
-  const { events } = useEvent();
   const [formData, setFormData] = useState({
-    event_id: '',
     requested_amount: '',
     payout_date: '',
   });
   const [error, setError] = useState<string | null>(null);
 
-  // Filter events for this organizer
-  const organizerEvents = events.filter(event => event.organizer_id === organizerId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    if (!formData.event_id || !formData.requested_amount) {
-      setError('Please fill in all required fields');
+    if (!formData.requested_amount) {
+      setError('Please enter a payout amount');
       return;
     }
 
@@ -44,7 +39,7 @@ export const PayoutRequestModal: React.FC<PayoutRequestModalProps> = ({
     try {
       await createPayoutRequest({
         organizer_id: organizerId,
-        event_id: parseInt(formData.event_id),
+        event_id: 0, // Default value since event selection is removed
         requested_amount: amount,
         status: 'pending',
         payout_date: formData.payout_date || undefined,
@@ -52,7 +47,6 @@ export const PayoutRequestModal: React.FC<PayoutRequestModalProps> = ({
 
       // Reset form and close modal
       setFormData({
-        event_id: '',
         requested_amount: '',
         payout_date: '',
       });
@@ -117,30 +111,6 @@ export const PayoutRequestModal: React.FC<PayoutRequestModalProps> = ({
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Event Selection */}
-            <div>
-              <label htmlFor="event_id" className="block text-sm font-medium text-gray-700 mb-2">
-                Event *
-              </label>
-              <select
-                id="event_id"
-                name="event_id"
-                value={formData.event_id}
-                onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent"
-              >
-                <option value="">Select an event</option>
-                {organizerEvents.map((event) => (
-                  <option key={event.id} value={event.id}>
-                    {event.title}
-                  </option>
-                ))}
-              </select>
-              {organizerEvents.length === 0 && (
-                <p className="mt-1 text-xs text-gray-500">No events found for this organizer</p>
-              )}
-            </div>
 
             {/* Requested Amount */}
             <div>
@@ -200,7 +170,7 @@ export const PayoutRequestModal: React.FC<PayoutRequestModalProps> = ({
               </button>
               <button
                 type="submit"
-                disabled={loading || !formData.event_id || !formData.requested_amount}
+                disabled={loading || !formData.requested_amount}
                 className="flex-1 bg-gradient-to-r from-[#489707] to-[#1E30FF] text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 focus:ring-2 focus:ring-[#1E30FF] focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
               >
                 <Send className="w-4 h-4" />
