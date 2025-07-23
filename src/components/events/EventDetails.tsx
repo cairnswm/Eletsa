@@ -9,6 +9,7 @@ import { CommentSection } from './CommentSection';
 import { OrganizerCard } from './OrganizerCard';
 import { ContactOrganizerModal } from './ContactOrganizerModal';
 import { TicketType } from '../../types/event';
+import { ReviewsSection } from './ReviewsSection';
 
 interface EventDetailsProps {
   onBack: () => void;
