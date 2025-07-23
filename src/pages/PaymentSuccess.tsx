@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CheckCircle, Ticket, Clock } from 'lucide-react';
+import { useTicket } from '../contexts/useTicket';
 
 export const PaymentSuccess: React.FC = () => {
   const navigate = useNavigate();
+  const { refreshTickets } = useTicket();
   const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
+    // Refresh tickets data immediately when payment is successful
+    refreshTickets().catch(console.error);
+    
     // Start countdown
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -21,7 +26,7 @@ export const PaymentSuccess: React.FC = () => {
 
     // Cleanup timer on unmount
     return () => clearInterval(timer);
-  }, [navigate]);
+  }, [navigate, refreshTickets]);
 
   const handleGoToTickets = () => {
     navigate('/tickets');

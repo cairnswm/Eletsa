@@ -1,46 +1,9 @@
 import React from 'react';
 import { Ticket, Calendar, MapPin, Clock, QrCode, Download, Star } from 'lucide-react';
+import { useTicket } from '../contexts/useTicket';
 
 export const Tickets: React.FC = () => {
-  // Mock ticket data - replace with actual API call
-  const tickets = [
-    {
-      id: 1,
-      event_title: 'Board Game Night',
-      event_date: '2024-07-15T19:00:00Z',
-      event_location: 'Community Center',
-      ticket_type: 'General Admission',
-      quantity: 2,
-      total_paid: 50.00,
-      status: 'confirmed',
-      qr_code: 'QR123456789',
-      purchase_date: '2024-06-20T10:30:00Z',
-    },
-    {
-      id: 2,
-      event_title: 'Photography Workshop',
-      event_date: '2024-07-20T14:00:00Z',
-      event_location: 'Art Studio Downtown',
-      ticket_type: 'Workshop Pass',
-      quantity: 1,
-      total_paid: 75.00,
-      status: 'confirmed',
-      qr_code: 'QR987654321',
-      purchase_date: '2024-06-25T15:45:00Z',
-    },
-    {
-      id: 3,
-      event_title: 'Local Food Festival',
-      event_date: '2024-08-05T11:00:00Z',
-      event_location: 'City Park',
-      ticket_type: 'VIP Access',
-      quantity: 1,
-      total_paid: 120.00,
-      status: 'pending',
-      qr_code: 'QR456789123',
-      purchase_date: '2024-07-01T09:15:00Z',
-    },
-  ];
+  const { tickets, loading, error, refreshTickets } = useTicket();
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -68,17 +31,14 @@ export const Tickets: React.FC = () => {
     }).format(amount);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'confirmed':
-        return 'bg-green-100 text-green-800';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const getStatusColor = (used: number) => {
+    return used === 0 
+      ? 'bg-green-100 text-green-800'
+      : 'bg-gray-100 text-gray-800';
+  };
+
+  const getStatusText = (used: number) => {
+    return used === 0 ? 'Valid' : 'Used';
   };
 
   return (
@@ -97,11 +57,33 @@ export const Tickets: React.FC = () => {
           </p>
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1E30FF]"></div>
+            <span className="ml-3 text-gray-600">Loading tickets...</span>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-lg mb-8">
+            <p className="font-medium">Error loading tickets</p>
+            <p className="text-sm">{error}</p>
+            <button
+              onClick={() => refreshTickets()}
+              className="mt-2 text-sm underline hover:no-underline"
+            >
+              Try again
+            </button>
+          </div>
+        )}
+
         {/* Tickets List */}
-        {tickets.length > 0 ? (
+        {!loading && tickets.length > 0 ? (
           <div className="space-y-6">
             {tickets.map((ticket) => (
-              <div key={ticket.id} className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200">
+              <div key={ticket.ticket_code} className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-200">
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
@@ -111,25 +93,25 @@ export const Tickets: React.FC = () => {
                       <div className="space-y-2">
                         <div className="flex items-center text-gray-600">
                           <Calendar className="w-4 h-4 mr-2 text-[#1E30FF]" />
-                          <span>{formatDate(ticket.event_date)}</span>
+                          <span>{formatDate(ticket.start_datetime)}</span>
                         </div>
                         <div className="flex items-center text-gray-600">
                           <Clock className="w-4 h-4 mr-2 text-[#489707]" />
-                          <span>{formatTime(ticket.event_date)}</span>
+                          <span>{formatTime(ticket.start_datetime)}</span>
                         </div>
                         <div className="flex items-center text-gray-600">
                           <MapPin className="w-4 h-4 mr-2 text-[#FF2D95]" />
-                          <span>{ticket.event_location}</span>
+                          <span>{ticket.location_name}</span>
                         </div>
                       </div>
                     </div>
                     
                     <div className="text-right ml-6">
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium mb-2 ${getStatusColor(ticket.status)}`}>
-                        {ticket.status.charAt(0).toUpperCase() + ticket.status.slice(1)}
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium mb-2 ${getStatusColor(ticket.used)}`}>
+                        {getStatusText(ticket.used)}
                       </span>
                       <div className="text-2xl font-bold text-gray-900">
-                        {formatCurrency(ticket.total_paid)}
+                        {formatCurrency(parseFloat(ticket.price))}
                       </div>
                       <div className="text-sm text-gray-600">
                         {ticket.quantity} ticket{ticket.quantity > 1 ? 's' : ''}
@@ -143,13 +125,13 @@ export const Tickets: React.FC = () => {
                         <div>
                           <div className="text-sm font-medium text-gray-900">{ticket.ticket_type}</div>
                           <div className="text-xs text-gray-500">
-                            Purchased: {formatDate(ticket.purchase_date)}
+                            Assigned: {formatDate(ticket.assigned_at)}
                           </div>
                         </div>
                       </div>
 
                       <div className="flex items-center space-x-3">
-                        {ticket.status === 'confirmed' && (
+                        {ticket.used === 0 && (
                           <>
                             <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200">
                               <QrCode className="w-4 h-4" />
@@ -167,7 +149,7 @@ export const Tickets: React.FC = () => {
                 </div>
 
                 {/* QR Code Section (expandable) */}
-                {ticket.status === 'confirmed' && (
+                {ticket.used === 0 && (
                   <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
@@ -176,7 +158,7 @@ export const Tickets: React.FC = () => {
                         </div>
                         <div>
                           <div className="text-sm font-medium text-gray-900">Entry Code</div>
-                          <div className="text-xs text-gray-500 font-mono">{ticket.qr_code}</div>
+                          <div className="text-xs text-gray-500 font-mono">{ticket.ticket_code}</div>
                         </div>
                       </div>
                       <div className="text-xs text-gray-500">
@@ -188,7 +170,7 @@ export const Tickets: React.FC = () => {
               </div>
             ))}
           </div>
-        ) : (
+        ) : !loading && (
           <div className="text-center py-16">
             <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <Ticket className="w-12 h-12 text-gray-400" />
@@ -220,13 +202,13 @@ export const Tickets: React.FC = () => {
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-[#489707]">
-                  {tickets.filter(t => t.status === 'confirmed').length}
+                  {tickets.filter(t => t.used === 0).length}
                 </div>
-                <div className="text-sm text-gray-600">Confirmed</div>
+                <div className="text-sm text-gray-600">Valid</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-[#FF2D95]">
-                  {formatCurrency(tickets.reduce((sum, ticket) => sum + ticket.total_paid, 0))}
+                  {formatCurrency(tickets.reduce((sum, ticket) => sum + (parseFloat(ticket.price) * ticket.quantity), 0))}
                 </div>
                 <div className="text-sm text-gray-600">Total Spent</div>
               </div>
