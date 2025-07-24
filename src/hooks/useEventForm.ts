@@ -30,12 +30,8 @@ export const useEventForm = (initialData?: Partial<EventFormData>, initialTicket
   const getDefaultStartDate = () => {
     const now = new Date();
     const defaultDate = new Date(now);
-    console.log("defaultDate", defaultDate);
-    defaultDate.setDate(defaultDate.getDate() + 7); // Add 7 days
-    console.log("startDate - default", defaultDate);
-    defaultDate.setMinutes(0, 0, 0); // Round to current hour
-    console.log("startData - default - rounded", defaultDate)
-    // Format for datetime-local input (preserves local timezone)
+    defaultDate.setDate(defaultDate.getDate() + 7); 
+    defaultDate.setMinutes(0, 0, 0); 
     const year = defaultDate.getFullYear();
     const month = String(defaultDate.getMonth() + 1).padStart(2, '0');
     const day = String(defaultDate.getDate()).padStart(2, '0');
@@ -106,15 +102,15 @@ export const useEventForm = (initialData?: Partial<EventFormData>, initialTicket
         [name]: type === 'number' ? parseFloat(value) || 0 : value,
       };
       
-      // Auto-update end date when start date changes
       if (name === 'start_datetime' && value) {
         const newStartDate = new Date(value);
         const currentEndDate = prev.end_datetime ? new Date(prev.end_datetime) : null;
         const suggestedEndDate = new Date(newStartDate);
-        suggestedEndDate.setHours(suggestedEndDate.getHours() + 1); // Start + 1 hour
-        
-        // Update end date if it's empty or if the current end date is less than start + 1 hour
-        if (!currentEndDate || currentEndDate < suggestedEndDate) {
+        suggestedEndDate.setHours(suggestedEndDate.getHours() + 1);
+        if (
+          !currentEndDate ||
+          currentEndDate.getTime() <= newStartDate.getTime()
+        ) {
           const year = suggestedEndDate.getFullYear();
           const month = String(suggestedEndDate.getMonth() + 1).padStart(2, '0');
           const day = String(suggestedEndDate.getDate()).padStart(2, '0');
