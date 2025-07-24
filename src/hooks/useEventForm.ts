@@ -108,13 +108,19 @@ export const useEventForm = (initialData?: Partial<EventFormData>, initialTicket
       
       // Auto-update end date when start date changes
       if (name === 'start_datetime' && value) {
+        const newStartDate = new Date(value);
         const currentEndDate = prev.end_datetime ? new Date(prev.end_datetime) : null;
-        const suggestedEndDate = new Date(value);
+        const suggestedEndDate = new Date(newStartDate);
         suggestedEndDate.setHours(suggestedEndDate.getHours() + 1); // Start + 1 hour
         
-        // Only update end date if it's empty or if the current end date is before the suggested end date
-        if (!currentEndDate || currentEndDate <= suggestedEndDate) {
-          newData.end_datetime = suggestedEndDate.toISOString().slice(0, 16);
+        // Update end date if it's empty or if the current end date is less than start + 1 hour
+        if (!currentEndDate || currentEndDate < suggestedEndDate) {
+          const year = suggestedEndDate.getFullYear();
+          const month = String(suggestedEndDate.getMonth() + 1).padStart(2, '0');
+          const day = String(suggestedEndDate.getDate()).padStart(2, '0');
+          const hours = String(suggestedEndDate.getHours()).padStart(2, '0');
+          const minutes = String(suggestedEndDate.getMinutes()).padStart(2, '0');
+          newData.end_datetime = `${year}-${month}-${day}T${hours}:${minutes}`;
         }
       }
       
