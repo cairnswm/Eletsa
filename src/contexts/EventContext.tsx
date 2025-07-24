@@ -67,7 +67,15 @@ export const EventProvider: React.FC<{ children: React.ReactNode }> = ({
       setLoading(true);
       setError(null);
       const eventsData = await eventsApi.fetchEvents();
-      setEvents(eventsData);
+      
+      // Filter to only include future events (where end date is greater than now)
+      const now = new Date();
+      const futureEvents = eventsData.filter(event => {
+        const endDate = new Date(event.end_datetime);
+        return endDate > now;
+      });
+      
+      setEvents(futureEvents);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch events");
     } finally {
