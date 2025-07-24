@@ -17,13 +17,17 @@ export const Tickets: React.FC = () => {
   // Separate tickets into upcoming and past based on event end date
   const now = new Date();
   const upcomingTickets = tickets.filter(ticket => {
-    const endDate = new Date(ticket.start_datetime); // Using start_datetime as we don't have end_datetime
-    return endDate >= now;
+    // For now, we'll estimate end date as 3 hours after start since we don't have end_datetime in ticket data
+    const startDate = new Date(ticket.start_datetime);
+    const estimatedEndDate = new Date(startDate.getTime() + (3 * 60 * 60 * 1000)); // Add 3 hours
+    return estimatedEndDate >= now;
   });
   
   const pastTickets = tickets.filter(ticket => {
-    const endDate = new Date(ticket.start_datetime); // Using start_datetime as we don't have end_datetime
-    return endDate < now;
+    // For now, we'll estimate end date as 3 hours after start since we don't have end_datetime in ticket data
+    const startDate = new Date(ticket.start_datetime);
+    const estimatedEndDate = new Date(startDate.getTime() + (3 * 60 * 60 * 1000)); // Add 3 hours
+    return estimatedEndDate < now;
   });
 
   const getCurrentTickets = () => {
