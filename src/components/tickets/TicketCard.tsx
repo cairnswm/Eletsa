@@ -47,6 +47,32 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption
     });
   };
 
+  const formatEventDateTime = (startDateTime: string) => {
+    const startDate = new Date(startDateTime);
+    // Estimate end time as 4 hours after start since we don't have end_datetime in ticket data
+    const endDate = new Date(startDate.getTime() + (4 * 60 * 60 * 1000));
+    
+    const dateStr = startDate.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+    
+    const startTimeStr = startDate.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+    
+    const endTimeStr = endDate.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+    
+    return `${dateStr} ${startTimeStr} - ${endTimeStr}`;
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-ZA', {
       style: 'currency',
@@ -274,11 +300,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption
               <div className="space-y-2">
                 <div className="flex items-center text-gray-600">
                   <Calendar className="w-4 h-4 mr-2 text-[#1E30FF]" />
-                  <span>{formatDate(ticket.start_datetime)}</span>
-                </div>
-                <div className="flex items-center text-gray-600">
-                  <Clock className="w-4 h-4 mr-2 text-[#489707]" />
-                  <span>{formatTime(ticket.start_datetime)}</span>
+                  <span>{formatEventDateTime(ticket.start_datetime)}</span>
                 </div>
                 <div className="flex items-center text-gray-600">
                   <MapPin className="w-4 h-4 mr-2 text-[#FF2D95]" />
