@@ -22,6 +22,14 @@ import { EditEvent } from './pages/EditEvent';
 import { EventPage } from './pages/EventPage';
 import { Checkout } from './pages/Checkout';
 import { PaymentSuccess } from './pages/PaymentSuccess';
+import { Discovery } from './pages/Discovery';
+import { Ticketing } from './pages/Ticketing';
+import { OrganizerTools } from './pages/OrganizerTools';
+import { Community } from './pages/Community';
+import { HelpCenter } from './pages/HelpCenter';
+import { ContactUs } from './pages/ContactUs';
+import { TermsPrivacy } from './pages/TermsPrivacy';
+import { Pricing } from './pages/Pricing';
 import { useAuth } from './contexts/AuthContext';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -48,6 +56,14 @@ const AppContent: React.FC = () => {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/discovery" element={<Discovery />} />
+        <Route path="/ticketing" element={<Ticketing />} />
+        <Route path="/organizer-tools" element={<OrganizerTools />} />
+        <Route path="/community" element={<Community />} />
+        <Route path="/help" element={<HelpCenter />} />
+        <Route path="/contact" element={<ContactUs />} />
+        <Route path="/terms-privacy" element={<TermsPrivacy />} />
+        <Route path="/pricing" element={<Pricing />} />
         <Route
           path="/home"
           element={

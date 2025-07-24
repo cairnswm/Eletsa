@@ -307,20 +307,20 @@ export const Landing: React.FC = () => {
             <div>
               <h4 className="font-semibold mb-4">Features</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Event Discovery</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Ticketing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Organizer Tools</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Community</a></li>
+                <li><Link to="/discovery" className="hover:text-white transition-colors">Event Discovery</Link></li>
+                <li><Link to="/ticketing" className="hover:text-white transition-colors">Ticketing</Link></li>
+                <li><Link to="/organizer-tools" className="hover:text-white transition-colors">Organizer Tools</Link></li>
+                <li><Link to="/community" className="hover:text-white transition-colors">Community</Link></li>
               </ul>
             </div>
             
             <div>
               <h4 className="font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms & Privacy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
+                <li><Link to="/help" className="hover:text-white transition-colors">Help Center</Link></li>
+                <li><Link to="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
+                <li><Link to="/terms-privacy" className="hover:text-white transition-colors">Terms & Privacy</Link></li>
+                <li><Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
               </ul>
             </div>
             
