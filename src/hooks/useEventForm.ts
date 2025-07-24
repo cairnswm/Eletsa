@@ -37,7 +37,7 @@ export const useEventForm = (initialData?: Partial<EventFormData>, initialTicket
   // Helper function to get default end date (start date + 1 hour)
   const getDefaultEndDate = (startDateTime: string) => {
     const startDate = new Date(startDateTime);
-    const endDate = new Date(startDate.getTime() + (60 * 60 * 1000)); // Add 1 hour
+    const endDate = new Date(startDate.getTime() + (1 * 60 * 60 * 1000)); // Add 1 hour
     return endDate.toISOString().slice(0, 16);
   };
 
@@ -93,7 +93,7 @@ export const useEventForm = (initialData?: Partial<EventFormData>, initialTicket
       if (name === 'start_datetime' && value) {
         const newStartDate = new Date(value);
         const currentEndDate = prev.end_datetime ? new Date(prev.end_datetime) : null;
-        const suggestedEndDate = new Date(newStartDate.getTime() + (60 * 60 * 1000)); // Start + 1 hour
+        const suggestedEndDate = new Date(newStartDate.getTime() + (1 * 60 * 60 * 1000)); // Start + 1 hour
         
         // Only update end date if it's empty or if the current end date is before the suggested end date
         if (!currentEndDate || currentEndDate <= suggestedEndDate) {
