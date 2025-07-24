@@ -1,6 +1,7 @@
 export interface UserTicket {
   event_title: string;
   start_datetime: string;
+  end_datetime: string;
   location_name: string;
   location_latitude: string;
   location_longitude: string;
