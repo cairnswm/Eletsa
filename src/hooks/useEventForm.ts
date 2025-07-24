@@ -29,15 +29,17 @@ export const useEventForm = (initialData?: Partial<EventFormData>, initialTicket
   // Helper function to get default start date (today + 7 days, rounded to current hour)
   const getDefaultStartDate = () => {
     const now = new Date();
-    const defaultDate = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000)); // Add 7 days
+    const defaultDate = new Date(now);
+    defaultDate.setDate(defaultDate.getDate() + 7); // Add 7 days
     defaultDate.setMinutes(0, 0, 0); // Round to current hour
     return defaultDate.toISOString().slice(0, 16); // Format for datetime-local input
   };
 
   // Helper function to get default end date (start date + 1 hour)
   const getDefaultEndDate = (startDateTime: string) => {
-    const startDate = new Date(startDateTime);
-    const endDate = new Date(startDate.getTime() + (1 * 60 * 60 * 1000)); // Add 1 hour
+    if (!startDateTime) return '';
+    const endDate = new Date(startDateTime);
+    endDate.setHours(endDate.getHours() + 1); // Add 1 hour
     return endDate.toISOString().slice(0, 16);
   };
 
@@ -91,9 +93,9 @@ export const useEventForm = (initialData?: Partial<EventFormData>, initialTicket
       
       // Auto-update end date when start date changes
       if (name === 'start_datetime' && value) {
-        const newStartDate = new Date(value);
         const currentEndDate = prev.end_datetime ? new Date(prev.end_datetime) : null;
-        const suggestedEndDate = new Date(newStartDate.getTime() + (1 * 60 * 60 * 1000)); // Start + 1 hour
+        const suggestedEndDate = new Date(value);
+        suggestedEndDate.setHours(suggestedEndDate.getHours() + 1); // Start + 1 hour
         
         // Only update end date if it's empty or if the current end date is before the suggested end date
         if (!currentEndDate || currentEndDate <= suggestedEndDate) {
