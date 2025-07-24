@@ -92,7 +92,8 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption
 
   // Check if location coordinates are available
   const hasLocation = ticket.location_latitude && ticket.location_longitude && 
-                     ticket.location_latitude !== '0' && ticket.location_longitude !== '0';
+                     ticket.location_latitude !== '0' && ticket.location_longitude !== '0' &&
+                     parseFloat(ticket.location_latitude) !== 0 && parseFloat(ticket.location_longitude) !== 0;
 
   const latitude = hasLocation ? parseFloat(ticket.location_latitude) : 0;
   const longitude = hasLocation ? parseFloat(ticket.location_longitude) : 0;
