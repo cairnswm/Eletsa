@@ -30,8 +30,11 @@ export const useEventForm = (initialData?: Partial<EventFormData>, initialTicket
   const getDefaultStartDate = () => {
     const now = new Date();
     const defaultDate = new Date(now);
+    console.log("defaultDate", defaultDate);
     defaultDate.setDate(defaultDate.getDate() + 7); // Add 7 days
+    console.log("startDate - default", defaultDate);
     defaultDate.setMinutes(0, 0, 0); // Round to current hour
+    console.log("startData - default - rounded", defaultData)
     return defaultDate.toISOString().slice(0, 16); // Format for datetime-local input
   };
 
