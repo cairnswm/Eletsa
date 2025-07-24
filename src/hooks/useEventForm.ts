@@ -35,7 +35,13 @@ export const useEventForm = (initialData?: Partial<EventFormData>, initialTicket
     console.log("startDate - default", defaultDate);
     defaultDate.setMinutes(0, 0, 0); // Round to current hour
     console.log("startData - default - rounded", defaultDate)
-    return defaultDate.toISOString().slice(0, 16); // Format for datetime-local input
+    // Format for datetime-local input (preserves local timezone)
+    const year = defaultDate.getFullYear();
+    const month = String(defaultDate.getMonth() + 1).padStart(2, '0');
+    const day = String(defaultDate.getDate()).padStart(2, '0');
+    const hours = String(defaultDate.getHours()).padStart(2, '0');
+    const minutes = String(defaultDate.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
   // Helper function to get default end date (start date + 1 hour)
@@ -43,7 +49,13 @@ export const useEventForm = (initialData?: Partial<EventFormData>, initialTicket
     if (!startDateTime) return '';
     const endDate = new Date(startDateTime);
     endDate.setHours(endDate.getHours() + 1); // Add 1 hour
-    return endDate.toISOString().slice(0, 16);
+    // Format for datetime-local input (preserves local timezone)
+    const year = endDate.getFullYear();
+    const month = String(endDate.getMonth() + 1).padStart(2, '0');
+    const day = String(endDate.getDate()).padStart(2, '0');
+    const hours = String(endDate.getHours()).padStart(2, '0');
+    const minutes = String(endDate.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
   };
 
   const [eventData, setEventData] = useState<EventFormData>({
