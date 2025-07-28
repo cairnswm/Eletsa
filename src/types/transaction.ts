@@ -4,7 +4,9 @@ export interface UserTransaction {
   event_name: string;
   quantity: number;
   amount: string;
-  payout_amount: string;
+  payout_amount: number;
+  cost_amount: number;
+  balance: number;
   transaction_id: number;
   user_id: number;
   order_id: number;
