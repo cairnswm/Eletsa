@@ -126,7 +126,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
               {event.popularity_score.toFixed(1)}
             </span>
             
-          </>>) : ""}
+          </>) : ""}
           </div>
           
           {event.tags && (
