@@ -119,14 +119,15 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
 
         {/* Event Stats */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          {event.popularity_score ?
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-1">            
+          {event.popularity_score ? (<>
             <Star className="w-4 h-4 text-yellow-400 fill-current" />
             <span className="text-sm font-medium text-gray-700">
               {event.popularity_score.toFixed(1)}
             </span>
+            
+          </>>) : ""}
           </div>
-            : ""}
           
           {event.tags && (
             <div className="flex flex-wrap gap-1">
