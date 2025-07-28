@@ -64,6 +64,9 @@ export const TransactionsTab: React.FC = () => {
                     Amount
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Balance
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Order ID
                   </th>
                 </tr>
@@ -89,6 +92,9 @@ export const TransactionsTab: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {formatCurrency(parseFloat(transaction.amount))}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {formatCurrency(transaction.balance)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
                       #{transaction.order_id}
@@ -120,6 +126,9 @@ export const TransactionsTab: React.FC = () => {
                   <div className="text-right">
                     <div className="text-lg font-bold text-gray-900">
                       {formatCurrency(parseFloat(transaction.amount))}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      Balance: {formatCurrency(transaction.balance)}
                     </div>
                     <div className="text-xs text-gray-500">
                       Qty: {transaction.quantity}

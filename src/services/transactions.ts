@@ -24,6 +24,9 @@ export const transactionsApi = {
       order_item_id: Number(transaction.order_item_id),
       ticket_id: Number(transaction.ticket_id),
       organizer_id: Number(transaction.organizer_id),
+      payout_amount: Number(transaction.payout_amount),
+      cost_amount: Number(transaction.cost_amount),
+      balance: Number(transaction.balance),
     }));
   },
 };
