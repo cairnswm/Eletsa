@@ -8,6 +8,7 @@ import { OrganizerProvider } from './contexts/OrganizerContext';
 import { MessagingProvider } from './contexts/MessagingContext';
 import { CartProvider } from './contexts/CartContext';
 import { TicketProvider } from './contexts/TicketContext';
+import { ActivityProvider } from './contexts/ActivityContext';
 import { Header } from './components/Header';
 import { Landing } from './pages/Landing';
 import { Home } from './pages/Home';
@@ -31,6 +32,12 @@ import { ContactUs } from './pages/ContactUs';
 import { TermsPrivacy } from './pages/TermsPrivacy';
 import { Pricing } from './pages/Pricing';
 import { useAuth } from './contexts/AuthContext';
+import { Discovery } from './pages/Discovery';
+import { Ticketing } from './pages/Ticketing';
+import { OrganizerTools } from './pages/OrganizerTools';
+import { Community } from './pages/Community';
+import { HelpCenter } from './pages/HelpCenter';
+import { ContactUs } from './pages/ContactUs';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -155,17 +162,19 @@ function App() {
       <TenantProvider>
         <AuthProvider>
           <UserProvider>
-            <MessagingProvider>
-              <OrganizerProvider>
-                <EventProvider>
-                  <TicketProvider>
-                    <CartProvider>
-                      <AppContent />
-                    </CartProvider>
-                  </TicketProvider>
-                </EventProvider>
-              </OrganizerProvider>
-            </MessagingProvider>
+            <ActivityProvider>
+              <MessagingProvider>
+                <OrganizerProvider>
+                  <EventProvider>
+                    <TicketProvider>
+                      <CartProvider>
+                        <AppContent />
+                      </CartProvider>
+                    </TicketProvider>
+                  </EventProvider>
+                </OrganizerProvider>
+              </MessagingProvider>
+            </ActivityProvider>
           </UserProvider>
         </AuthProvider>
       </TenantProvider>
