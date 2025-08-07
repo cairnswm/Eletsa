@@ -76,3 +76,5 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   return <ActivityContext.Provider value={value}>{children}</ActivityContext.Provider>;
 };
+
+export { ActivityContext }
