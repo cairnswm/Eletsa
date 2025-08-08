@@ -18,6 +18,7 @@ export interface ActivityItem {
   total_reactions: number;
   reaction_breakdown: Record<string, number> | null;
   total_comments: number;
+  modified_at: string;
 }
 
 export interface ActivityContextType {

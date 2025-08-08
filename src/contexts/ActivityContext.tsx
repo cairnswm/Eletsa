@@ -33,9 +33,9 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setLoading(true);
       setError(null);
       const activitiesData = await activityApi.fetchUserActivityFeed(user.id);
-      // Sort activities by created_at descending (newest first)
+      // Sort activities by modified_at descending (newest first)
       const sortedActivities = activitiesData.sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        new Date(b.modified_at).getTime() - new Date(a.modified_at).getTime()
       );
       setActivities(sortedActivities);
     } catch (err) {
