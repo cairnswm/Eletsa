@@ -1,5 +1,6 @@
 import React from 'react';
 import { TrendingUp, Calendar, Star, Users, MessageCircle, Trophy, Heart, ThumbsUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useActivity } from '../contexts/useActivity';
 import { useUser } from '../contexts/UserContext';
 import { UserName } from '../components/user/UserName';
@@ -7,6 +8,7 @@ import { UserName } from '../components/user/UserName';
 export const Latest: React.FC = () => {
   const { activities, loading, error } = useActivity();
   const { getUser } = useUser();
+  const navigate = useNavigate();
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -81,7 +83,7 @@ export const Latest: React.FC = () => {
       // Create event link if we have reference_id_1 (event ID)
       const eventId = activity.reference_id_1;
       if (eventId) {
-        const eventLink = `<a href="/event/${eventId}" class="text-[#1E30FF] hover:text-[#FF2D95] font-medium underline transition-colors duration-200">${activity.event_title}</a>`;
+        const eventLink = `<span class="text-[#1E30FF] hover:text-[#FF2D95] font-medium underline transition-colors duration-200 cursor-pointer" data-event-id="${eventId}">${activity.event_title}</span>`;
         content = content.replace('{event_name}', eventLink);
       } else {
         content = content.replace('{event_name}', activity.event_title);
@@ -125,6 +127,15 @@ export const Latest: React.FC = () => {
 
     console.log('Final rendered content:', content);
     return content;
+  };
+
+  const handleEventClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    const eventId = target.getAttribute('data-event-id');
+    if (eventId) {
+      e.preventDefault();
+      navigate(`/event/${eventId}`);
+    }
   };
 
   const renderReactions = (activity: any) => {
@@ -204,6 +215,7 @@ export const Latest: React.FC = () => {
                         <p 
                           className="text-gray-900 font-medium leading-relaxed"
                           dangerouslySetInnerHTML={{ __html: renderActivityContent(activity) }}
+                          onClick={handleEventClick}
                         />
                         
                         {/* Additional Details */}
