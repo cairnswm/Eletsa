@@ -78,13 +78,21 @@ export const Latest: React.FC = () => {
     }
     
     if (activity.event_title) {
-      content = content.replace('{event_name}', activity.event_title);
+      // Create event link if we have reference_id_1 (event ID)
+      const eventId = activity.reference_id_1;
+      if (eventId) {
+        const eventLink = `<a href="/event/${eventId}" class="text-[#1E30FF] hover:text-[#FF2D95] font-medium underline transition-colors duration-200">${activity.event_title}</a>`;
+        content = content.replace('{event_name}', eventLink);
+      } else {
+        content = content.replace('{event_name}', activity.event_title);
+      }
       console.log('After event_name replacement:', content);
     }
     
     if (activity.event_date) {
-      const eventDate = new Date(activity.event_date).toLocaleDateString();
-      content = content.replace('{event_date}', eventDate);
+      const eventDate = new Date(activity.event_date);
+      const formattedDate = `${eventDate.getFullYear()}/${String(eventDate.getMonth() + 1).padStart(2, '0')}/${String(eventDate.getDate()).padStart(2, '0')}`;
+      content = content.replace('{event_date}', formattedDate);
       console.log('After event_date replacement:', content);
     }
     
@@ -193,9 +201,10 @@ export const Latest: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <p className="text-gray-900 font-medium leading-relaxed">
-                          {renderActivityContent(activity)}
-                        </p>
+                        <p 
+                          className="text-gray-900 font-medium leading-relaxed"
+                          dangerouslySetInnerHTML={{ __html: renderActivityContent(activity) }}
+                        />
                         
                         {/* Additional Details */}
                         {activity.review_snippet && (
