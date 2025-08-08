@@ -98,6 +98,18 @@ export const Latest: React.FC = () => {
       console.log('After ticket_type_name replacement:', content);
     }
     
+    if (activity.ticket_quantity) {
+      content = content.replace('{ticket_quantity}', activity.ticket_quantity.toString());
+      console.log('After ticket_quantity replacement:', content);
+      
+      // Handle plural logic for ticket_quantity
+      const pluralRegex = /\{ticket_quantity\|plural:([^}]+)\}/g;
+      content = content.replace(pluralRegex, (match, pluralSuffix) => {
+        return activity.ticket_quantity > 1 ? pluralSuffix : '';
+      });
+      console.log('After plural replacement:', content);
+    }
+    
     if (activity.metadata?.name) {
       content = content.replace('{achievement_name}', activity.metadata.name);
       console.log('After achievement_name replacement:', content);

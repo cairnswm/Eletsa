@@ -28,6 +28,7 @@ export const activityApi = {
       review_rating: activity.review_rating ? Number(activity.review_rating) : null,
       total_reactions: Number(activity.total_reactions),
       total_comments: Number(activity.total_comments),
+      ticket_quantity: activity.ticket_quantity ? Number(activity.ticket_quantity) : null,
     }));
   },
 };

@@ -14,6 +14,7 @@ export interface ActivityItem {
   review_rating: number | null;
   review_snippet: string | null;
   ticket_type_name: string | null;
+  ticket_quantity: number | null;
   total_reactions: number;
   reaction_breakdown: Record<string, number> | null;
   total_comments: number;
