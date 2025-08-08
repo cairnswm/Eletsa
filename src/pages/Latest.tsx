@@ -58,24 +58,15 @@ export const Latest: React.FC = () => {
   const renderActivityContent = (activity: any) => {
     console.log('Processing activity:', activity);
     
-    const user = getUser(activity.user_id);
-    const userName = user?.firstname && user?.lastname 
-      ? `${user.firstname} ${user.lastname}`
-      : user?.username || user?.email || `User ${activity.user_id}`;
-
     let content = activity.template_text;
     console.log('Original template:', content);
     
-    // Replace template variables
-    content = content.replace('{user_name}', userName);
+    // Replace user_name with a placeholder that we'll replace with the UserName component
+    content = content.replace('{user_name}', '__USER_NAME_PLACEHOLDER__');
     console.log('After user_name replacement:', content);
     
     if (activity.followed_user_id) {
-      const followedUser = getUser(activity.followed_user_id);
-      const followedUserName = followedUser?.firstname && followedUser?.lastname 
-        ? `${followedUser.firstname} ${followedUser.lastname}`
-        : followedUser?.username || followedUser?.email || `User ${activity.followed_user_id}`;
-      content = content.replace('{followed_user_name}', followedUserName);
+      content = content.replace('{followed_user_name}', '__FOLLOWED_USER_NAME_PLACEHOLDER__');
       console.log('After followed_user_name replacement:', content);
     }
     
@@ -129,6 +120,50 @@ export const Latest: React.FC = () => {
     return content;
   };
 
+  const renderActivityWithUserNames = (activity: any) => {
+    const content = renderActivityContent(activity);
+    const parts = content.split('__USER_NAME_PLACEHOLDER__');
+    
+    if (parts.length === 1) {
+      // No user name placeholder found, check for followed user
+      const followedParts = content.split('__FOLLOWED_USER_NAME_PLACEHOLDER__');
+      if (followedParts.length === 2) {
+        return (
+          <>
+            {followedParts[0]}
+            <UserName userId={activity.followed_user_id} showFollowButton={false} showIcon={false} className="inline" />
+            {followedParts[1]}
+          </>
+        );
+      }
+      return content;
+    }
+    
+    // Handle both user_name and followed_user_name placeholders
+    let result = (
+      <>
+        {parts[0]}
+        <UserName userId={activity.user_id} showFollowButton={false} showIcon={false} className="inline" />
+        {parts[1]}
+      </>
+    );
+    
+    // Check if there's also a followed user placeholder in the second part
+    if (activity.followed_user_id && parts[1].includes('__FOLLOWED_USER_NAME_PLACEHOLDER__')) {
+      const followedParts = parts[1].split('__FOLLOWED_USER_NAME_PLACEHOLDER__');
+      result = (
+        <>
+          {parts[0]}
+          <UserName userId={activity.user_id} showFollowButton={false} showIcon={false} className="inline" />
+          {followedParts[0]}
+          <UserName userId={activity.followed_user_id} showFollowButton={false} showIcon={false} className="inline" />
+          {followedParts[1]}
+        </>
+      );
+    }
+    
+    return result;
+  };
   const handleEventClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     const eventId = target.getAttribute('data-event-id');
@@ -212,11 +247,12 @@ export const Latest: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <p 
+                        <div 
                           className="text-gray-900 font-medium leading-relaxed"
-                          dangerouslySetInnerHTML={{ __html: renderActivityContent(activity) }}
                           onClick={handleEventClick}
-                        />
+                        >
+                          {renderActivityWithUserNames(activity)}
+                        </div>
                         
                         {/* Additional Details */}
                         {activity.review_snippet && (
