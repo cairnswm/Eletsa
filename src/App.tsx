@@ -32,6 +32,7 @@ import { ContactUs } from './pages/ContactUs';
 import { TermsPrivacy } from './pages/TermsPrivacy';
 import { Pricing } from './pages/Pricing';
 import { useAuth } from './contexts/AuthContext';
+import { Latest } from './pages/Latest';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -65,6 +66,14 @@ const AppContent: React.FC = () => {
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/terms-privacy" element={<TermsPrivacy />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route
+          path="/latest"
+          element={
+            <ProtectedRoute>
+              <Latest />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/home"
           element={

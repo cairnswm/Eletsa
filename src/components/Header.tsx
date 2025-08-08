@@ -61,6 +61,12 @@ export const Header: React.FC = () => {
 
   const navigationItems = [
     {
+      name: 'Latest',
+      href: '/latest',
+      icon: TrendingUp,
+      description: 'Latest activities',
+    },
+    {
       name: 'Discover',
       href: '/home',
       icon: Search,
