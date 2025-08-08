@@ -3,6 +3,7 @@ import { TrendingUp, Calendar, Star, Users, MessageCircle, Trophy, Heart, Thumbs
 import { useNavigate } from 'react-router-dom';
 import { useActivity } from '../contexts/useActivity';
 import { UserName } from '../components/user/UserName';
+import { EventName } from '../components/events/EventName';
 
 export const Latest: React.FC = () => {
   const { activities, loading, error } = useActivity();
@@ -69,12 +70,7 @@ export const Latest: React.FC = () => {
     if (activity.event_title) {
       // Create event link if we have reference_id_1 (event ID)
       const eventId = activity.reference_id_1;
-      if (eventId) {
-        const eventLink = `<span class="text-[#1E30FF] hover:text-[#FF2D95] font-medium underline transition-colors duration-200 cursor-pointer" data-event-id="${eventId}">${activity.event_title}</span>`;
-        content = content.replace('{event_name}', eventLink);
-      } else {
-        content = content.replace('{event_name}', activity.event_title);
-      }
+      content = content.replace('{event_name}', '__EVENT_NAME_PLACEHOLDER__');
       console.log('After event_name replacement:', content);
     }
     
@@ -155,25 +151,32 @@ export const Latest: React.FC = () => {
       remainingContent = parts[1];
     }
     
+    // Handle event_name placeholder
+    if (remainingContent.includes('__EVENT_NAME_PLACEHOLDER__') && activity.event_title && activity.reference_id_1) {
+      const parts = remainingContent.split('__EVENT_NAME_PLACEHOLDER__');
+      result.push(parts[0]);
+      result.push(
+        <EventName 
+          key={`event-${activity.reference_id_1}`}
+          eventId={activity.reference_id_1}
+          eventTitle={activity.event_title}
+          className="inline-block"
+        />
+      );
+      remainingContent = parts[1];
+    }
+    
     // Add any remaining content
     if (remainingContent) {
-      result.push(<span key="remaining" dangerouslySetInnerHTML={{ __html: remainingContent }} onClick={handleEventClick} />);
+      result.push(<span key="remaining">{remainingContent}</span>);
     }
     
     // If no placeholders were found, return the original content
     if (result.length === 0) {
-      return <span dangerouslySetInnerHTML={{ __html: content }} onClick={handleEventClick} />;
+      return <span>{content}</span>;
     }
     
     return <span className="inline">{result}</span>;
-  };
-  const handleEventClick = (e: React.MouseEvent) => {
-    const target = e.target as HTMLElement;
-    const eventId = target.getAttribute('data-event-id');
-    if (eventId) {
-      e.preventDefault();
-      navigate(`/event/${eventId}`);
-    }
   };
 
   const renderReactions = (activity: any) => {
