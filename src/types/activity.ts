@@ -4,7 +4,7 @@ export interface ActivityItem {
   activity_type: string;
   reference_id_1: number | null;
   reference_id_2: number | null;
-  metadata: Record<string, any> | null;
+  metadata: Record<string, unknown> | null;
   created_at: string;
   template_id: number;
   template_text: string;
@@ -18,6 +18,7 @@ export interface ActivityItem {
   total_reactions: number;
   reaction_breakdown: Record<string, number> | null;
   total_comments: number;
+  has_liked: 0 | 1;
   modified_at: string;
 }
 
@@ -28,4 +29,6 @@ export interface ActivityContextType {
   fetchActivities: () => Promise<void>;
   refreshActivities: () => Promise<void>;
   clearError: () => void;
+  likeActivity: (activityId: number, userId: number) => Promise<void>;
+  unlikeActivity: (activityId: number, userId: number) => Promise<void>;
 }
