@@ -63,11 +63,9 @@ export const Latest: React.FC = () => {
     
     // Replace user_name with a placeholder that we'll replace with the UserName component
     content = content.replace('{user_name}', '__USER_NAME_PLACEHOLDER__');
-    console.log('After user_name replacement:', content);
     
     if (activity.followed_user_id) {
       content = content.replace('{followed_user_name}', '__FOLLOWED_USER_NAME_PLACEHOLDER__');
-      console.log('After followed_user_name replacement:', content);
     }
     
     if (activity.event_title) {
