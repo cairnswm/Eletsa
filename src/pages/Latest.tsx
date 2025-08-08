@@ -1,11 +1,13 @@
 import React from 'react';
 import { TrendingUp, Calendar, Star, Users, MessageCircle, Trophy, Heart, ThumbsUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { useActivity } from '../contexts/useActivity';
 import { UserName } from '../components/user/UserName';
 import { EventName } from '../components/events/EventName';
 
 export const Latest: React.FC = () => {
+  const { user: currentUser } = useAuth();
   const { activities, loading, error } = useActivity();
   const navigate = useNavigate();
 
@@ -131,15 +133,22 @@ export const Latest: React.FC = () => {
           />
         );
       } else if (part === '__FOLLOWED_USER_NAME_PLACEHOLDER__' && activity.followed_user_id) {
-        result.push(
-          <UserName 
-            key={`followed-${activity.followed_user_id}-${index}`}
-            userId={activity.followed_user_id} 
-            showFollowButton={true} 
-            showIcon={false}
-            className="inline-block"
-          />
-        );
+        // Check if the followed user is the current logged-in user
+        if (currentUser && activity.followed_user_id === currentUser.id) {
+          result.push(
+            <span key={`you-${index}`} className="font-medium text-[#1E30FF]">you</span>
+          );
+        } else {
+          result.push(
+            <UserName 
+              key={`followed-${activity.followed_user_id}-${index}`}
+              userId={activity.followed_user_id} 
+              showFollowButton={true} 
+              showIcon={false}
+              className="inline-block"
+            />
+          );
+        }
       } else if (part === '__EVENT_NAME_PLACEHOLDER__' && activity.event_title && activity.reference_id_1) {
         result.push(
           <EventName 
