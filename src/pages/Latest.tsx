@@ -302,3 +302,5 @@ export const Latest: React.FC = () => {
     </div>
   );
 };
+
+export { Latest }
