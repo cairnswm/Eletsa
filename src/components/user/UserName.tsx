@@ -72,7 +72,7 @@ export const UserName: React.FC<UserNameProps> = ({
   const isOwnProfile = currentUser?.id === userId;
 
   return (
-    <div className={`flex items-center space-x-2 ${className}`}>
+    <span className={`inline-flex items-center space-x-2 ${className}`}>
       {/* User Avatar */}
       {showIcon && (
         <div className="w-8 h-8 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] rounded-full flex items-center justify-center">
@@ -113,6 +113,6 @@ export const UserName: React.FC<UserNameProps> = ({
           
         </button>
       )}
-    </div>
+    </span>
   );
 };
