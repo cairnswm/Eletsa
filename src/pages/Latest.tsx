@@ -115,66 +115,44 @@ export const Latest: React.FC = () => {
   const renderActivityWithUserNames = (activity: any) => {
     const content = renderActivityContent(activity);
     
-    // Split content by user name placeholders and render with UserName components
+    // Split content by placeholders and render with appropriate components
     let result: React.ReactNode[] = [];
-    let remainingContent = content;
+    const parts = content.split(/(__USER_NAME_PLACEHOLDER__|__FOLLOWED_USER_NAME_PLACEHOLDER__|__EVENT_NAME_PLACEHOLDER__)/);
     
-    // Handle user_name placeholder
-    if (remainingContent.includes('__USER_NAME_PLACEHOLDER__')) {
-      const parts = remainingContent.split('__USER_NAME_PLACEHOLDER__');
-      result.push(parts[0]);
-      result.push(
-        <UserName 
-          key={`user-${activity.user_id}`}
-          userId={activity.user_id} 
-          showFollowButton={true} 
-          showIcon={false}
-          className="inline-block"
-        />
-      );
-      remainingContent = parts[1];
-    }
-    
-    // Handle followed_user_name placeholder
-    if (remainingContent.includes('__FOLLOWED_USER_NAME_PLACEHOLDER__') && activity.followed_user_id) {
-      const parts = remainingContent.split('__FOLLOWED_USER_NAME_PLACEHOLDER__');
-      result.push(parts[0]);
-      result.push(
-        <UserName 
-          key={`followed-${activity.followed_user_id}`}
-          userId={activity.followed_user_id} 
-          showFollowButton={true} 
-          showIcon={false}
-          className="inline-block"
-        />
-      );
-      remainingContent = parts[1];
-    }
-    
-    // Handle event_name placeholder
-    if (remainingContent.includes('__EVENT_NAME_PLACEHOLDER__') && activity.event_title && activity.reference_id_1) {
-      const parts = remainingContent.split('__EVENT_NAME_PLACEHOLDER__');
-      result.push(parts[0]);
-      result.push(
-        <EventName 
-          key={`event-${activity.reference_id_1}`}
-          eventId={activity.reference_id_1}
-          eventTitle={activity.event_title}
-          className="inline-block"
-        />
-      );
-      remainingContent = parts[1];
-    }
-    
-    // Add any remaining content
-    if (remainingContent) {
-      result.push(<span key="remaining">{remainingContent}</span>);
-    }
-    
-    // If no placeholders were found, return the original content
-    if (result.length === 0) {
-      return <span>{content}</span>;
-    }
+    parts.forEach((part, index) => {
+      if (part === '__USER_NAME_PLACEHOLDER__') {
+        result.push(
+          <UserName 
+            key={`user-${activity.user_id}-${index}`}
+            userId={activity.user_id} 
+            showFollowButton={true} 
+            showIcon={false}
+            className="inline-block"
+          />
+        );
+      } else if (part === '__FOLLOWED_USER_NAME_PLACEHOLDER__' && activity.followed_user_id) {
+        result.push(
+          <UserName 
+            key={`followed-${activity.followed_user_id}-${index}`}
+            userId={activity.followed_user_id} 
+            showFollowButton={true} 
+            showIcon={false}
+            className="inline-block"
+          />
+        );
+      } else if (part === '__EVENT_NAME_PLACEHOLDER__' && activity.event_title && activity.reference_id_1) {
+        result.push(
+          <EventName 
+            key={`event-${activity.reference_id_1}-${index}`}
+            eventId={activity.reference_id_1}
+            eventTitle={activity.event_title}
+            className="inline-block"
+          />
+        );
+      } else if (part && part.trim()) {
+        result.push(<span key={`text-${index}`}>{part}</span>);
+      }
+    });
     
     return <span className="inline">{result}</span>;
   };
