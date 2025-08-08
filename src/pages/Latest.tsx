@@ -2,12 +2,10 @@ import React from 'react';
 import { TrendingUp, Calendar, Star, Users, MessageCircle, Trophy, Heart, ThumbsUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useActivity } from '../contexts/useActivity';
-import { useUser } from '../contexts/UserContext';
 import { UserName } from '../components/user/UserName';
 
 export const Latest: React.FC = () => {
   const { activities, loading, error } = useActivity();
-  const { getUser } = useUser();
   const navigate = useNavigate();
 
   const formatDate = (dateString: string) => {
@@ -120,51 +118,54 @@ export const Latest: React.FC = () => {
 
   const renderActivityWithUserNames = (activity: any) => {
     const content = renderActivityContent(activity);
-    const parts = content.split('__USER_NAME_PLACEHOLDER__');
     
-    if (parts.length === 1) {
-      // No user name placeholder found, check for followed user
-      const followedParts = content.split('__FOLLOWED_USER_NAME_PLACEHOLDER__');
-      if (followedParts.length === 2) {
-        return (
-          <span>
-            {followedParts[0]}
-            <span className="font-medium text-[#1E30FF] hover:text-[#FF2D95] transition-colors duration-200">
-              {getUser(activity.followed_user_id)?.firstname && getUser(activity.followed_user_id)?.lastname
-                ? `${getUser(activity.followed_user_id)?.firstname} ${getUser(activity.followed_user_id)?.lastname}`
-                : getUser(activity.followed_user_id)?.username || `User ${activity.followed_user_id}`}
-            </span>
-            {followedParts[1]}
-          </span>
-        );
-      }
+    // Split content by user name placeholders and render with UserName components
+    let result: React.ReactNode[] = [];
+    let remainingContent = content;
+    
+    // Handle user_name placeholder
+    if (remainingContent.includes('__USER_NAME_PLACEHOLDER__')) {
+      const parts = remainingContent.split('__USER_NAME_PLACEHOLDER__');
+      result.push(parts[0]);
+      result.push(
+        <UserName 
+          key={`user-${activity.user_id}`}
+          userId={activity.user_id} 
+          showFollowButton={false} 
+          showIcon={false}
+          className="inline-block"
+        />
+      );
+      remainingContent = parts[1];
+    }
+    
+    // Handle followed_user_name placeholder
+    if (remainingContent.includes('__FOLLOWED_USER_NAME_PLACEHOLDER__') && activity.followed_user_id) {
+      const parts = remainingContent.split('__FOLLOWED_USER_NAME_PLACEHOLDER__');
+      result.push(parts[0]);
+      result.push(
+        <UserName 
+          key={`followed-${activity.followed_user_id}`}
+          userId={activity.followed_user_id} 
+          showFollowButton={false} 
+          showIcon={false}
+          className="inline-block"
+        />
+      );
+      remainingContent = parts[1];
+    }
+    
+    // Add any remaining content
+    if (remainingContent) {
+      result.push(<span key="remaining" dangerouslySetInnerHTML={{ __html: remainingContent }} onClick={handleEventClick} />);
+    }
+    
+    // If no placeholders were found, return the original content
+    if (result.length === 0) {
       return <span dangerouslySetInnerHTML={{ __html: content }} onClick={handleEventClick} />;
     }
     
-    // Handle both user_name and followed_user_name placeholders
-    return (
-      <span>
-        {parts[0]}
-        <span className="font-medium text-[#1E30FF] hover:text-[#FF2D95] transition-colors duration-200">
-          {getUser(activity.user_id)?.firstname && getUser(activity.user_id)?.lastname
-            ? `${getUser(activity.user_id)?.firstname} ${getUser(activity.user_id)?.lastname}`
-            : getUser(activity.user_id)?.username || `User ${activity.user_id}`}
-        </span>
-        <span 
-          dangerouslySetInnerHTML={{ 
-            __html: activity.followed_user_id && parts[1].includes('__FOLLOWED_USER_NAME_PLACEHOLDER__')
-              ? parts[1].replace('__FOLLOWED_USER_NAME_PLACEHOLDER__', 
-                  `<span class="font-medium text-[#1E30FF] hover:text-[#FF2D95] transition-colors duration-200">${
-                    getUser(activity.followed_user_id)?.firstname && getUser(activity.followed_user_id)?.lastname
-                      ? `${getUser(activity.followed_user_id)?.firstname} ${getUser(activity.followed_user_id)?.lastname}`
-                      : getUser(activity.followed_user_id)?.username || `User ${activity.followed_user_id}`
-                  }</span>`)
-              : parts[1]
-          }} 
-          onClick={handleEventClick}
-        />
-      </span>
-    );
+    return <span className="inline-flex items-center flex-wrap">{result}</span>;
   };
   const handleEventClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
