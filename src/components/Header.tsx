@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, LogOut, ChevronDown, Search, Ticket, Calendar, Menu, X, MessageCircle, ShoppingCart } from 'lucide-react';
+import { User, LogOut, ChevronDown, Search, Ticket, Calendar, Menu, X, MessageCircle, ShoppingCart, TrendingUp } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganizer } from '../contexts/OrganizerContext';
 import { useMessaging } from '../contexts/MessagingContext';
