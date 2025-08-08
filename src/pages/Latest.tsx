@@ -129,40 +129,44 @@ export const Latest: React.FC = () => {
       const followedParts = content.split('__FOLLOWED_USER_NAME_PLACEHOLDER__');
       if (followedParts.length === 2) {
         return (
-          <>
+          <span>
             {followedParts[0]}
-            <UserName userId={activity.followed_user_id} showFollowButton={false} showIcon={false} className="inline" />
+            <span className="font-medium text-[#1E30FF] hover:text-[#FF2D95] transition-colors duration-200">
+              {getUser(activity.followed_user_id)?.firstname && getUser(activity.followed_user_id)?.lastname
+                ? `${getUser(activity.followed_user_id)?.firstname} ${getUser(activity.followed_user_id)?.lastname}`
+                : getUser(activity.followed_user_id)?.username || `User ${activity.followed_user_id}`}
+            </span>
             {followedParts[1]}
-          </>
+          </span>
         );
       }
-      return content;
+      return <span dangerouslySetInnerHTML={{ __html: content }} onClick={handleEventClick} />;
     }
     
     // Handle both user_name and followed_user_name placeholders
-    let result = (
-      <>
+    return (
+      <span>
         {parts[0]}
-        <UserName userId={activity.user_id} showFollowButton={false} showIcon={false} className="inline" />
-        {parts[1]}
-      </>
+        <span className="font-medium text-[#1E30FF] hover:text-[#FF2D95] transition-colors duration-200">
+          {getUser(activity.user_id)?.firstname && getUser(activity.user_id)?.lastname
+            ? `${getUser(activity.user_id)?.firstname} ${getUser(activity.user_id)?.lastname}`
+            : getUser(activity.user_id)?.username || `User ${activity.user_id}`}
+        </span>
+        <span 
+          dangerouslySetInnerHTML={{ 
+            __html: activity.followed_user_id && parts[1].includes('__FOLLOWED_USER_NAME_PLACEHOLDER__')
+              ? parts[1].replace('__FOLLOWED_USER_NAME_PLACEHOLDER__', 
+                  `<span class="font-medium text-[#1E30FF] hover:text-[#FF2D95] transition-colors duration-200">${
+                    getUser(activity.followed_user_id)?.firstname && getUser(activity.followed_user_id)?.lastname
+                      ? `${getUser(activity.followed_user_id)?.firstname} ${getUser(activity.followed_user_id)?.lastname}`
+                      : getUser(activity.followed_user_id)?.username || `User ${activity.followed_user_id}`
+                  }</span>`)
+              : parts[1]
+          }} 
+          onClick={handleEventClick}
+        />
+      </span>
     );
-    
-    // Check if there's also a followed user placeholder in the second part
-    if (activity.followed_user_id && parts[1].includes('__FOLLOWED_USER_NAME_PLACEHOLDER__')) {
-      const followedParts = parts[1].split('__FOLLOWED_USER_NAME_PLACEHOLDER__');
-      result = (
-        <>
-          {parts[0]}
-          <UserName userId={activity.user_id} showFollowButton={false} showIcon={false} className="inline" />
-          {followedParts[0]}
-          <UserName userId={activity.followed_user_id} showFollowButton={false} showIcon={false} className="inline" />
-          {followedParts[1]}
-        </>
-      );
-    }
-    
-    return result;
   };
   const handleEventClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -247,10 +251,7 @@ export const Latest: React.FC = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div 
-                          className="text-gray-900 font-medium leading-relaxed"
-                          onClick={handleEventClick}
-                        >
+                        <div className="text-gray-900 font-medium leading-relaxed">
                           {renderActivityWithUserNames(activity)}
                         </div>
                         
