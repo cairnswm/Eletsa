@@ -33,7 +33,11 @@ export const ActivityProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setLoading(true);
       setError(null);
       const activitiesData = await activityApi.fetchUserActivityFeed(user.id);
-      setActivities(activitiesData);
+      // Sort activities by created_at descending (newest first)
+      const sortedActivities = activitiesData.sort((a, b) => 
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setActivities(sortedActivities);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch activities';
       setError(errorMessage);
