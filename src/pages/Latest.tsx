@@ -131,8 +131,8 @@ export const Latest: React.FC = () => {
         <UserName 
           key={`user-${activity.user_id}`}
           userId={activity.user_id} 
-          showFollowButton={false} 
-          showIcon={false}
+          showFollowButton={true} 
+          showIcon={true}
           className="inline-block"
         />
       );
@@ -147,8 +147,8 @@ export const Latest: React.FC = () => {
         <UserName 
           key={`followed-${activity.followed_user_id}`}
           userId={activity.followed_user_id} 
-          showFollowButton={false} 
-          showIcon={false}
+          showFollowButton={true} 
+          showIcon={true}
           className="inline-block"
         />
       );
@@ -165,7 +165,7 @@ export const Latest: React.FC = () => {
       return <span dangerouslySetInnerHTML={{ __html: content }} onClick={handleEventClick} />;
     }
     
-    return <span className="inline-flex items-center flex-wrap">{result}</span>;
+    return <div className="flex items-center flex-wrap gap-1">{result}</div>;
   };
   const handleEventClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
