@@ -133,7 +133,7 @@ export const Latest: React.FC = () => {
           userId={activity.user_id} 
           showFollowButton={true} 
           showIcon={false}
-          className="inline"
+          className="inline-block"
         />
       );
       remainingContent = parts[1];
@@ -149,7 +149,7 @@ export const Latest: React.FC = () => {
           userId={activity.followed_user_id} 
           showFollowButton={true} 
           showIcon={false}
-          className="inline"
+          className="inline-block"
         />
       );
       remainingContent = parts[1];
@@ -251,7 +251,7 @@ export const Latest: React.FC = () => {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="text-gray-900 font-medium leading-relaxed">
-                          {renderActivityWithUserNames(activity)}
+                          <span className="inline-block">{renderActivityWithUserNames(activity)}</span>
                         </div>
                         
                         {/* Additional Details */}
