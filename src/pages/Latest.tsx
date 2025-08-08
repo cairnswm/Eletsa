@@ -54,15 +54,19 @@ export const Latest: React.FC = () => {
   };
 
   const renderActivityContent = (activity: any) => {
+    console.log('Processing activity:', activity);
+    
     const user = getUser(activity.user_id);
     const userName = user?.firstname && user?.lastname 
       ? `${user.firstname} ${user.lastname}`
       : user?.username || user?.email || `User ${activity.user_id}`;
 
     let content = activity.template_text;
+    console.log('Original template:', content);
     
     // Replace template variables
     content = content.replace('{user_name}', userName);
+    console.log('After user_name replacement:', content);
     
     if (activity.followed_user_id) {
       const followedUser = getUser(activity.followed_user_id);
@@ -70,29 +74,36 @@ export const Latest: React.FC = () => {
         ? `${followedUser.firstname} ${followedUser.lastname}`
         : followedUser?.username || followedUser?.email || `User ${activity.followed_user_id}`;
       content = content.replace('{followed_user_name}', followedUserName);
+      console.log('After followed_user_name replacement:', content);
     }
     
     if (activity.event_title) {
       content = content.replace('{event_name}', activity.event_title);
+      console.log('After event_name replacement:', content);
     }
     
     if (activity.event_date) {
       const eventDate = new Date(activity.event_date).toLocaleDateString();
       content = content.replace('{event_date}', eventDate);
+      console.log('After event_date replacement:', content);
     }
     
     if (activity.review_rating) {
       content = content.replace('{review_rating}', activity.review_rating.toString());
+      console.log('After review_rating replacement:', content);
     }
     
     if (activity.ticket_type_name) {
       content = content.replace('{ticket_type_name}', activity.ticket_type_name);
+      console.log('After ticket_type_name replacement:', content);
     }
     
     if (activity.metadata?.name) {
       content = content.replace('{achievement_name}', activity.metadata.name);
+      console.log('After achievement_name replacement:', content);
     }
 
+    console.log('Final rendered content:', content);
     return content;
   };
 
