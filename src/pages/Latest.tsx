@@ -52,10 +52,9 @@ export const Latest: React.FC = () => {
               </ActivityCard>
             ))}
           </div>
-                <DateFormat 
-                  date={activity.created_at} 
-                  className="text-xs text-gray-500"
-                />
+        ) : (
+          <div className="text-center py-16">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gray-100 rounded-full mb-6">
               <TrendingUp className="w-12 h-12 text-gray-400" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No activities yet</h3>
@@ -63,7 +62,7 @@ export const Latest: React.FC = () => {
               Start engaging with events and other users to see activities here
             </p>
           </div>
-        ) : null}
+        )}
       </div>
     </div>
   );
