@@ -1,7 +1,7 @@
 import { createHeaders, handleApiResponse } from "./api";
 import { ActivityItem } from "../types/activity";
 
-const ACTIVITY_API = "http://localhost/eletsa-api/php/activity";
+const ACTIVITY_API = "https://eletsa.cairns.co.za/php/activity";
 
 interface ActivityResponse {
   id: string | number;
