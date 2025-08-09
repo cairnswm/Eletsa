@@ -2,6 +2,7 @@ import React from 'react';
 import { TrendingUp, Calendar, Star, Users, MessageCircle, Trophy } from 'lucide-react';
 import { ActivityItem } from '../../types/activity';
 import { ActivityReactions } from './ActivityReactions';
+import { DateFormat } from '../common/DateFormat';
 
 interface ActivityCardProps {
   activity: ActivityItem;
@@ -9,17 +10,6 @@ interface ActivityCardProps {
 }
 
 export const ActivityCard: React.FC<ActivityCardProps> = ({ activity, children }) => {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
-    return date.toLocaleDateString();
-  };
-
   const getActivityIcon = (activityType: string) => {
     switch (activityType) {
       case 'event_created':
@@ -96,9 +86,10 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({ activity, children }
               {/* Reactions and Comments */}
               <div className="mt-3 flex items-center justify-between">
                 <ActivityReactions activity={activity} />
-                <span className="text-xs text-gray-500">
-                  {formatDate(activity.created_at)}
-                </span>
+                <DateFormat 
+                  date={activity.created_at}
+                  className="text-xs text-gray-500"
+                />
               </div>
             </div>
           </div>
