@@ -1,6 +1,7 @@
 import React from 'react';
 import { Star, MessageSquare } from 'lucide-react';
 import { Review } from '../../types/event';
+import { DateFormat } from '../common/DateFormat';
 import { UserName } from '../user/UserName';
 
 interface ReviewsSectionProps {
@@ -9,17 +10,6 @@ interface ReviewsSectionProps {
 }
 
 export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ reviews, eventId }) => {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
-    return date.toLocaleDateString();
-  };
-
   const renderStars = (rating: number) => {
     return (
       <div className="flex items-center space-x-1">
@@ -111,7 +101,7 @@ export const ReviewsSection: React.FC<ReviewsSectionProps> = ({ reviews, eventId
                           <span className="text-sm text-gray-600">({review.rating}/5)</span>
                         </div>
                       </div>
-                      <span className="text-xs text-gray-500">{formatDate(review.created_at)}</span>
+                      <DateFormat date={review.created_at} className="text-xs text-gray-500" />
                     </div>
                     
                     {review.review && (

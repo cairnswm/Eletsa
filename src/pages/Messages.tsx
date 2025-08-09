@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Send, ArrowLeft, Plus, Search } from 'lucide-react';
 import { useMessaging } from '../contexts/MessagingContext';
+import { DateFormat } from '../components/common/DateFormat';
 import { useAuth } from '../contexts/AuthContext';
 import { useUser } from '../contexts/UserContext';
 import { UserInitials } from '../components/user/UserInitials';
@@ -55,17 +56,6 @@ export const Messages: React.FC = () => {
     } finally {
       setSending(false);
     }
-  };
-
-  const formatMessageTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
-    return date.toLocaleDateString();
   };
 
   const getConversationTitle = (conversation: Conversation) => {
@@ -132,7 +122,7 @@ export const Messages: React.FC = () => {
       return '';
     }
     const lastMessage = conversation.messages[conversation.messages.length - 1];
-    return formatMessageTime(lastMessage.created_at);
+    return lastMessage.created_at;
   };
 
   const filteredConversations = conversations.filter(conversation => {
@@ -224,7 +214,10 @@ export const Messages: React.FC = () => {
                             <p className="text-sm text-gray-500">{getLastMessage(conversation)}</p>
                           </div>
                           <div className="flex flex-col items-end space-y-1">
-                            <span className="text-xs text-gray-400">{getLastMessageTime(conversation)}</span>
+                            <DateFormat 
+                              date={getLastMessageTime(conversation)} 
+                              className="text-xs text-gray-400"
+                            />
                             {conversation.unread_messages > 0 && (
                               <div className="w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
                                 {conversation.unread_messages > 99 ? '99+' : conversation.unread_messages}
@@ -332,7 +325,7 @@ export const Messages: React.FC = () => {
                                 <p className={`text-xs mt-1 ${
                                   isOwnMessage ? 'text-white/70' : 'text-gray-500'
                                 }`}>
-                                  {formatMessageTime(message.created_at)}
+                                  <DateFormat date={message.created_at} />
                                 </p>
                               </div>
                             </div>

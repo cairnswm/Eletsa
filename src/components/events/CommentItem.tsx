@@ -1,6 +1,7 @@
 import React from 'react';
 import { Heart, Reply, Send } from 'lucide-react';
 import { Comment } from '../../types/event';
+import { DateFormat } from '../common/DateFormat';
 import { UserName } from '../user/UserName';
 
 interface CommentItemProps {
@@ -14,7 +15,6 @@ interface CommentItemProps {
   onReplyInputChange: (parentId: number, value: string) => void;
   onSubmitReply: (e: React.FormEvent, parentId: number) => void;
   getReplies: (parentId: number) => Comment[];
-  formatDate: (dateString: string) => string;
 }
 
 export const CommentItem: React.FC<CommentItemProps> = ({
@@ -28,7 +28,6 @@ export const CommentItem: React.FC<CommentItemProps> = ({
   onReplyInputChange,
   onSubmitReply,
   getReplies,
-  formatDate,
 }) => {
   const replies = getReplies(comment.id);
 
@@ -39,7 +38,7 @@ export const CommentItem: React.FC<CommentItemProps> = ({
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <UserName userId={comment.user_id} />
-              <span className="text-xs text-gray-500">{formatDate(comment.created_at)}</span>
+              <DateFormat date={comment.created_at} className="text-xs text-gray-500" />
             </div>
             <p className="text-gray-700 text-sm leading-relaxed">{comment.content}</p>
           </div>
@@ -77,7 +76,6 @@ export const CommentItem: React.FC<CommentItemProps> = ({
                   onReplyInputChange={onReplyInputChange}
                   onSubmitReply={onSubmitReply}
                   getReplies={getReplies}
-                  formatDate={formatDate}
                 />
               ))}
             </div>

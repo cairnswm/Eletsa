@@ -1,6 +1,7 @@
 import React from 'react';
 import { TrendingUp } from 'lucide-react';
 import { useActivity } from '../contexts/useActivity';
+import { DateFormat } from '../components/common/DateFormat';
 import { ActivityCard } from '../components/latest/ActivityCard';
 import { ActivityContent } from '../components/latest/ActivityContent';
 
@@ -51,9 +52,10 @@ export const Latest: React.FC = () => {
               </ActivityCard>
             ))}
           </div>
-        ) : !loading ? (
-          <div className="text-center py-16">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <DateFormat 
+                  date={activity.created_at} 
+                  className="text-xs text-gray-500"
+                />
               <TrendingUp className="w-12 h-12 text-gray-400" />
             </div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">No activities yet</h3>

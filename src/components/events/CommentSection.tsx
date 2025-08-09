@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { MessageCircle, Send } from 'lucide-react';
 import { Comment } from '../../types/event';
+import { DateFormat } from '../common/DateFormat';
 import { useAuth } from '../../contexts/AuthContext';
 import { useEvent } from '../../contexts/EventContext';
 import { eventsApi } from '../../services/events';
@@ -24,17 +25,6 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ comments, eventI
 
   const getReplies = (parentId: number) => {
     return visibleComments.filter(comment => comment.parent_comment_id === parentId);
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    if (diffInHours < 168) return `${Math.floor(diffInHours / 24)}d ago`;
-    return date.toLocaleDateString();
   };
 
   const handleSubmitMainComment = async (e: React.FormEvent) => {
@@ -156,7 +146,6 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ comments, eventI
               onReplyInputChange={handleReplyInputChange}
               onSubmitReply={handleSubmitReply}
               getReplies={getReplies}
-              formatDate={formatDate}
             />
           ))}
         </div>
