@@ -22,8 +22,8 @@ export const ActivityComments: React.FC<ActivityCommentsProps> = ({ activity }) 
     fetchActivityComments(activity.id);
   }, [activity.id, fetchActivityComments]);
 
-  const handleSubmitComment = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmitComment = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!newComment.trim() || !user || submitting) return;
 
     try {
@@ -34,6 +34,13 @@ export const ActivityComments: React.FC<ActivityCommentsProps> = ({ activity }) 
       console.error('Failed to submit comment:', err);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmitComment();
     }
   };
 
@@ -64,12 +71,13 @@ export const ActivityComments: React.FC<ActivityCommentsProps> = ({ activity }) 
               </span>
             </div>
             <div className="flex-1">
-              <textarea
+              <input
+                type="text"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
+                onKeyPress={handleKeyPress}
                 placeholder="Write a comment..."
-                rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent text-sm resize-none"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent text-sm"
               />
             </div>
             <div className="flex-shrink-0">
