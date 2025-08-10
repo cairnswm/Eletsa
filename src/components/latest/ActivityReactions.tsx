@@ -1,5 +1,5 @@
 import React from 'react';
-import { ThumbsUp, MessageCircle, Send } from 'lucide-react';
+import { ThumbsUp, MessageCircle, Send, ChevronDown, ChevronUp } from 'lucide-react';
 import { ActivityItem } from '../../types/activity';
 import { useActivity } from '../../contexts/useActivity';
 import { useAuth } from '../../contexts/AuthContext';
@@ -77,12 +77,17 @@ export const ActivityReactions: React.FC<ActivityReactionsProps> = ({ activity }
               : 'Comment'
             }
           </span>
+          {showComments ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
         </button>
       </div>
 
       {/* Comments Section */}
       {showComments && (
-        <div className="mt-4 space-y-4">
+        <div className="space-y-3">
           {/* Existing Comments */}
           {comments.length > 0 && (
             <div className="space-y-3">
@@ -100,34 +105,32 @@ export const ActivityReactions: React.FC<ActivityReactionsProps> = ({ activity }
 
           {/* Add Comment Form */}
           {user && (
-            <form onSubmit={handleSubmitComment} className="bg-white/60 rounded-lg p-3 border border-white/40">
-              <div className="flex space-x-3">
+            <div className="bg-white/60 rounded-lg p-3 border border-white/40">
+              <form onSubmit={handleSubmitComment} className="flex space-x-3">
                 <div className="w-8 h-8 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] rounded-full flex items-center justify-center flex-shrink-0">
                   <span className="text-white text-xs font-medium">
                     {user.firstname?.[0] || user.email[0].toUpperCase()}
                   </span>
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 flex space-x-2">
                   <textarea
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Write a comment..."
                     rows={2}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent text-sm resize-none"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent text-sm resize-none"
                   />
-                  <div className="flex justify-end mt-2">
-                    <button
-                      type="submit"
-                      disabled={!newComment.trim() || submitting}
-                      className="bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 text-sm"
-                    >
-                      <Send className="w-3 h-3" />
-                      <span>{submitting ? 'Posting...' : 'Post'}</span>
-                    </button>
-                  </div>
+                  <button
+                    type="submit"
+                    disabled={!newComment.trim() || submitting}
+                    className="bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white p-2 rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                    title={submitting ? 'Posting...' : 'Post comment'}
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
                 </div>
-              </div>
-            </form>
+              </form>
+            </div>
           )}
         </div>
       )}
