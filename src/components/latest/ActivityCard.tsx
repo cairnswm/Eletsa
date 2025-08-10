@@ -2,6 +2,7 @@ import React from 'react';
 import { TrendingUp, Calendar, Star, Users, MessageCircle, Trophy } from 'lucide-react';
 import { ActivityItem } from '../../types/activity';
 import { ActivityReactions } from './ActivityReactions';
+import { ActivityComments } from './ActivityComments';
 import { DateFormat } from '../common/DateFormat';
 
 interface ActivityCardProps {
@@ -10,6 +11,11 @@ interface ActivityCardProps {
 }
 
 export const ActivityCard: React.FC<ActivityCardProps> = ({ activity, children }) => {
+  const [showComments, setShowComments] = React.useState(false);
+
+  const handleToggleComments = () => {
+    setShowComments(!showComments);
+  };
   const getActivityIcon = (activityType: string) => {
     switch (activityType) {
       case 'event_created':
@@ -89,12 +95,21 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({ activity, children }
       
       {/* Reactions, Comments, and Date - Full Width */}
       <div className="mt-4 flex items-center justify-between">
-        <ActivityReactions activity={activity} />
+        <ActivityReactions 
+          activity={activity} 
+          showComments={showComments}
+          onToggleComments={handleToggleComments}
+        />
         <DateFormat 
           date={activity.created_at}
           className="text-xs text-gray-500"
         />
       </div>
+      
+      {/* Comments Section */}
+      {showComments && (
+        <ActivityComments activity={activity} />
+      )}
     </div>
   );
 };
