@@ -82,17 +82,17 @@ export const ActivityCard: React.FC<ActivityCardProps> = ({ activity, children }
                   <p className="text-gray-700 text-sm italic">"{activity.review_snippet}"</p>
                 </div>
               )}
-
-              {/* Reactions and Comments */}
-              <div className="mt-3 flex items-center justify-between">
-                <ActivityReactions activity={activity} />
-                <DateFormat 
-                  date={activity.created_at}
-                  className="text-xs text-gray-500"
-                />
-              </div>
             </div>
           </div>
+        </div>
+        
+        {/* Reactions, Comments, and Date - Full Width */}
+        <div className="mt-4 flex items-center justify-between">
+          <ActivityReactions activity={activity} />
+          <DateFormat 
+            date={activity.created_at}
+            className="text-xs text-gray-500"
+          />
         </div>
       </div>
     </div>
