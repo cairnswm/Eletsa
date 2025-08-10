@@ -133,48 +133,32 @@ export const Header: React.FC = () => {
             <UserMenu user={user} handleLogout={handleLogout} getDisplayName={getDisplayName} />
           </div>
 
-          {/* Mobile Menu Button */}
-          <div className="md:hidden">
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
-            >
-              {mobileMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </button>
+          {/* Mobile Right Side - Cart and User Menu */}
+          <div className="md:hidden flex items-center space-x-4">
+            <Cart cart={cart} getTotalItems={getTotalItems} formatCurrency={formatCurrency} />
+            <UserMenu user={user} handleLogout={handleLogout} getDisplayName={getDisplayName} />
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4">
-            <div className="space-y-2">
-              {/* Navigation Items */}
-              {navigationItems.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  onClick={handleNavClick}
-                  className="flex items-center space-x-3 px-3 py-3 rounded-lg text-gray-700 hover:text-[#1E30FF] hover:bg-gray-50 transition-all duration-200 relative"
-                >
-                  <item.icon className="w-5 h-5" />
-                  <div>
-                    <div className="font-medium">{item.name}</div>
-                    <div className="text-xs text-gray-500">{item.description}</div>
-                  </div>
-                  {item.name === 'Messages' && unreadCount > 0 && (
-                    <span className="absolute top-2 right-2 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
-                      {unreadCount > 99 ? '99+' : unreadCount}
-                    </span>
-                  )}
-                </Link>
-              ))}
-            </div>
+        {/* Mobile Navigation Icons Row */}
+        <div className="md:hidden border-t border-gray-200 py-3">
+          <div className="flex items-center justify-center space-x-8">
+            {navigationItems.map((item) => (
+              <Link
+                key={item.name}
+                to={item.href}
+                className="flex flex-col items-center space-y-1 p-2 rounded-lg text-gray-700 hover:text-[#1E30FF] hover:bg-gray-50 transition-all duration-200 relative"
+              >
+                <item.icon className="w-6 h-6" />
+                {item.name === 'Messages' && unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </Link>
+            ))}
           </div>
-        )}
+        </div>
       </div>
     </header>
   );
