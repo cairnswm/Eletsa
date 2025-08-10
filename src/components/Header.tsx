@@ -130,13 +130,13 @@ export const Header: React.FC = () => {
           {/* Right Side - Desktop */}
           <div className="hidden md:flex items-center space-x-4">
             <Cart cart={cart} getTotalItems={getTotalItems} formatCurrency={formatCurrency} />
-            <UserMenu user={user} handleLogout={handleLogout} getDisplayName={getDisplayName} />
+            <UserMenu user={user} handleLogout={handleLogout} getDisplayName={getDisplayName} showUsername={true} />
           </div>
 
           {/* Mobile Right Side - Cart and User Menu */}
           <div className="md:hidden flex items-center space-x-4">
             <Cart cart={cart} getTotalItems={getTotalItems} formatCurrency={formatCurrency} />
-            <UserMenu user={user} handleLogout={handleLogout} getDisplayName={getDisplayName} />
+            <UserMenu user={user} handleLogout={handleLogout} getDisplayName={getDisplayName} showUsername={false} />
           </div>
         </div>
 

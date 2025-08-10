@@ -2,7 +2,7 @@ import { User, LogOut, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const UserMenu: React.FC<{ user: any; handleLogout: () => void; getDisplayName: () => string }> = ({ user, handleLogout, getDisplayName }) => {
+const UserMenu: React.FC<{ user: any; handleLogout: () => void; getDisplayName: () => string; showUsername?: boolean }> = ({ user, handleLogout, getDisplayName, showUsername = true }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   return (
@@ -18,10 +18,14 @@ const UserMenu: React.FC<{ user: any; handleLogout: () => void; getDisplayName: 
             <User className="w-4 h-4 text-white" />
           )}
         </div>
-        <span className="text-sm font-medium text-gray-700">
-          {getDisplayName()}
-        </span>
-        <ChevronDown className="w-4 h-4 text-gray-500" />
+        {showUsername && (
+          <>
+            <span className="text-sm font-medium text-gray-700">
+              {getDisplayName()}
+            </span>
+            <ChevronDown className="w-4 h-4 text-gray-500" />
+          </>
+        )}
       </button>
 
       {dropdownOpen && (
