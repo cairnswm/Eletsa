@@ -22,8 +22,18 @@ export interface ActivityItem {
   modified_at: string;
 }
 
+export interface ActivityComment {
+  id: number;
+  activity_id: number;
+  user_id: number;
+  content: string;
+  created_at: string;
+  modified_at: string;
+}
+
 export interface ActivityContextType {
   activities: ActivityItem[];
+  activityComments: { [activityId: number]: ActivityComment[] };
   loading: boolean;
   error: string | null;
   fetchActivities: () => Promise<void>;
@@ -31,4 +41,7 @@ export interface ActivityContextType {
   clearError: () => void;
   likeActivity: (activityId: number, userId: number) => Promise<void>;
   unlikeActivity: (activityId: number, userId: number) => Promise<void>;
+  fetchActivityComments: (activityId: number) => Promise<void>;
+  getActivityComments: (activityId: number) => ActivityComment[];
+  addActivityComment: (activityId: number, content: string, userId: number) => Promise<void>;
 }

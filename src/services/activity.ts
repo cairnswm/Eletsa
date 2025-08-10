@@ -1,5 +1,5 @@
 import { createHeaders, handleApiResponse } from "./api";
-import { ActivityItem } from "../types/activity";
+import { ActivityItem, ActivityComment } from "../types/activity";
 
 const ACTIVITY_API = "https://eletsa.cairns.co.za/php/activity";
 
@@ -24,6 +24,15 @@ interface ActivityResponse {
   reaction_breakdown: Record<string, number> | null;
   total_comments: string | number;
   has_liked: 0 | 1;
+  modified_at: string;
+}
+
+interface ActivityCommentResponse {
+  id: string | number;
+  activity_id: string | number;
+  user_id: string | number;
+  content: string;
+  created_at: string;
   modified_at: string;
 }
 
@@ -54,6 +63,54 @@ export const activityApi = {
       total_comments: Number(activity.total_comments),
       ticket_quantity: activity.ticket_quantity ? Number(activity.ticket_quantity) : null,
     }));
+  },
+
+  async fetchActivityComments(activityId: number): Promise<ActivityComment[]> {
+    const response = await fetch(`${ACTIVITY_API}/api.php/userActivityFeed/${activityId}/comments`, {
+      method: "GET",
+      headers: {
+        ...createHeaders(true),
+        'Accept': 'application/json',
+      },
+    });
+
+    const data = await handleApiResponse(response);
+    const comments = Array.isArray(data) ? data : [data];
+
+    // Convert string numbers to proper types where needed
+    return comments.map((comment: ActivityCommentResponse) => ({
+      ...comment,
+      id: Number(comment.id),
+      activity_id: Number(comment.activity_id),
+      user_id: Number(comment.user_id),
+    }));
+  },
+
+  async createActivityComment(activityId: number, content: string, userId: number): Promise<ActivityComment> {
+    const response = await fetch(`${ACTIVITY_API}/api.php/activityComment`, {
+      method: "POST",
+      headers: {
+        ...createHeaders(true),
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        activity_id: activityId,
+        content: content,
+        user_id: userId
+      }),
+    });
+
+    const data = await handleApiResponse(response);
+    const comment = Array.isArray(data) ? data[0] : data;
+
+    // Convert string numbers to proper types where needed
+    return {
+      ...comment,
+      id: Number(comment.id),
+      activity_id: Number(comment.activity_id),
+      user_id: Number(comment.user_id),
+    };
   },
 
   async likeActivity(activityId: number, userId: number): Promise<void> {
