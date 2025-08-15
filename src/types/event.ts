@@ -14,6 +14,7 @@ export interface Event {
   status: string;
   images: string;
   videos: string;
+  code: string;
   popularity_score: number;
   created_at: string;
   modified_at: string;

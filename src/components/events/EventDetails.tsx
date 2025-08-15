@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Calendar, MapPin, Users, Clock, Star, Shield, CreditCard, ChevronLeft, ChevronRight, X, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Users, Clock, Star, Shield, CreditCard, ChevronLeft, ChevronRight, X, MessageCircle, Key } from 'lucide-react';
 import { useEvent } from '../../contexts/EventContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -28,6 +28,9 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
 
   // Check if event is in the past
   const isEventPast = activeEvent ? new Date(activeEvent.end_datetime) < new Date() : false;
+  
+  // Check if current user is the organizer
+  const isOrganizer = user && activeEvent && user.id === activeEvent.organizer_id;
 
   if (loading) {
     return (
@@ -278,6 +281,24 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
               <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                 {activeEvent.description}
               </p>
+              
+              {/* Event Code for Organizers */}
+              {isOrganizer && activeEvent.code && (
+                <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Key className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-sm font-semibold text-blue-900">Event Code (Organizer Only)</h3>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 border border-blue-200">
+                    <code className="text-sm font-mono text-blue-800 break-all">
+                      {activeEvent.code}
+                    </code>
+                  </div>
+                  <p className="text-xs text-blue-600 mt-2">
+                    This unique code identifies your event in the system
+                  </p>
+                </div>
+              )}
               
               {activeEvent.tags && (
                 <div className="mt-6">
