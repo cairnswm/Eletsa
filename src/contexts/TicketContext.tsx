@@ -86,28 +86,6 @@ export const TicketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
-  const markTicketAsUsed = async (ticketCode: string, eventCode: string) => {
-    try {
-      setError(null);
-      
-      // Mark ticket as used via API
-      await ticketsApi.markTicketAsUsed(ticketCode, eventCode);
-      
-      // Update the ticket in memory to mark as used
-      setTickets(prev => prev.map(ticket => 
-        ticket.ticket_code === ticketCode 
-          ? { ...ticket, used: 1 }
-          : ticket
-      ));
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to mark ticket as used';
-      setError(errorMessage);
-      console.error('Failed to mark ticket as used:', err);
-      throw err;
-    }
-  };
-
   // Fetch tickets when user changes
   useEffect(() => {
     if (user && token) {
@@ -133,7 +111,6 @@ export const TicketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     fetchTickets,
     refreshTickets,
     submitReview,
-    markTicketAsUsed,
     clearError,
   };
 

@@ -29,6 +29,5 @@ export interface TicketContextType {
   fetchTickets: () => Promise<void>;
   refreshTickets: () => Promise<void>;
   submitReview: (eventTitle: string, rating: number, review: string) => Promise<void>;
-  markTicketAsUsed: (ticketCode: string, eventCode: string) => Promise<void>;
   clearError: () => void;
 }
