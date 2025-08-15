@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Calendar, MapPin, Users, Clock, Star, Shield, CreditCard, ChevronLeft, ChevronRight, X, MessageCircle, Key } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Users, Clock, Star, Shield, CreditCard, ChevronLeft, ChevronRight, X, MessageCircle, Key, Download } from 'lucide-react';
 import { useEvent } from '../../contexts/EventContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +10,8 @@ import { OrganizerCard } from './OrganizerCard';
 import { ContactOrganizerModal } from './ContactOrganizerModal';
 import { TicketType } from '../../types/event';
 import { ReviewsSection } from './ReviewsSection';
+import QRCode from 'qrcode';
+import jsPDF from 'jspdf';
 
 interface EventDetailsProps {
   onBack: () => void;
@@ -25,6 +27,7 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
   const [showTicketModal, setShowTicketModal] = React.useState(false);
   const [selectedTicketType, setSelectedTicketType] = React.useState<TicketType | null>(null);
   const [activeTab, setActiveTab] = React.useState<'comments' | 'reviews'>('comments');
+  const [generatingPDF, setGeneratingPDF] = React.useState(false);
 
   // Check if event is in the past
   const isEventPast = activeEvent ? new Date(activeEvent.end_datetime) < new Date() : false;
@@ -123,6 +126,129 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
   const handleCloseTicketModal = () => {
     setShowTicketModal(false);
     setSelectedTicketType(null);
+  };
+
+  const generateEventSummaryPDF = async () => {
+    if (!activeEvent || !activeEvent.code) return;
+
+    try {
+      setGeneratingPDF(true);
+
+      // Generate QR code for the event code
+      const qrDataUrl = await QRCode.toDataURL(activeEvent.code, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      // Add header with Eletsa branding
+      pdf.setFillColor(30, 48, 255); // #1E30FF
+      pdf.rect(0, 0, 210, 40, 'F');
+      
+      // Add Eletsa logo/text
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(24);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Eletsa', 20, 25);
+      
+      // Add website URL
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('https://eletsa.cairns.co.za', 150, 25);
+
+      // Event Summary Title
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFontSize(20);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text('Event Summary', 20, 60);
+
+      // Event Title
+      pdf.setFontSize(16);
+      pdf.setFont('helvetica', 'bold');
+      const titleLines = pdf.splitTextToSize(activeEvent.title, 170);
+      pdf.text(titleLines, 20, 80);
+      
+      let currentY = 80 + (titleLines.length * 8);
+
+      // Event Location
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Location:', 20, currentY + 15);
+      pdf.setFont('helvetica', 'bold');
+      const locationLines = pdf.splitTextToSize(activeEvent.location_name, 150);
+      pdf.text(locationLines, 20, currentY + 25);
+      
+      currentY += 25 + (locationLines.length * 6);
+
+      // Event Date & Time
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Date & Time:', 20, currentY + 15);
+      pdf.setFont('helvetica', 'bold');
+      const startDate = new Date(activeEvent.start_datetime);
+      const endDate = new Date(activeEvent.end_datetime);
+      const dateTimeText = `${startDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })} ${startDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      })} - ${endDate.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      })}`;
+      const dateTimeLines = pdf.splitTextToSize(dateTimeText, 150);
+      pdf.text(dateTimeLines, 20, currentY + 25);
+      
+      currentY += 25 + (dateTimeLines.length * 6);
+
+      // QR Code Section
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Event Code:', 20, currentY + 20);
+      
+      // Add QR code
+      pdf.addImage(qrDataUrl, 'PNG', 20, currentY + 30, 60, 60);
+      
+      // Add event code text
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Event Code:', 90, currentY + 45);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(activeEvent.code, 90, currentY + 55);
+      
+      pdf.setFont('helvetica', 'normal');
+      pdf.text('Scan this QR code or use the code above', 90, currentY + 70);
+      pdf.text('for event management and verification.', 90, currentY + 80);
+
+      // Footer
+      pdf.setFontSize(8);
+      pdf.setTextColor(128, 128, 128);
+      pdf.text('Generated by Eletsa Event Management System', 20, 280);
+      pdf.text(`Generated on: ${new Date().toLocaleString()}`, 20, 285);
+
+      // Download the PDF
+      const fileName = `event-summary-${activeEvent.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`;
+      pdf.save(fileName);
+
+    } catch (error) {
+      console.error('Failed to generate PDF:', error);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setGeneratingPDF(false);
+    }
   };
 
   console.log("TICKETTYPES:", ticketTypes);
@@ -297,6 +423,14 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
                   <p className="text-xs text-blue-600 mt-2">
                     This unique code identifies your event in the system
                   </p>
+                  <button
+                    onClick={generateEventSummaryPDF}
+                    disabled={generatingPDF}
+                    className="mt-3 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>{generatingPDF ? 'Generating PDF...' : 'Download Event Summary'}</span>
+                  </button>
                 </div>
               )}
               
