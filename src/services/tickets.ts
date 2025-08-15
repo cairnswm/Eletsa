@@ -38,4 +38,17 @@ export const ticketsApi = {
 
     await handleApiResponse(response);
   },
+
+  async markTicketAsUsed(ticketCode: string, eventCode: string): Promise<void> {
+    const response = await fetch(`${TICKETS_API}/api.php/attendance/${ticketCode}`, {
+      method: "PUT",
+      headers: createHeaders(true),
+      body: JSON.stringify({
+        "event-code": eventCode,
+        "used": 1
+      }),
+    });
+
+    await handleApiResponse(response);
+  },
 };
