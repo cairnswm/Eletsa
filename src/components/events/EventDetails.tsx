@@ -276,15 +276,14 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column - 60% */}
           <div className="lg:col-span-2 space-y-8">
+
+            
             {/* Event Description */}
             <div className="bg-white rounded-xl shadow-md p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Event</h2>
               <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                 {activeEvent.description}
               </p>
-              
-              {/* Organizer Event Details */}
-              {isOrganizer && <OrganizerEventDetails event={activeEvent} />}
               
               {activeEvent.tags && (
                 <div className="mt-6">
