@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Users, UserCheck, Star, DollarSign, TrendingUp, Receipt, Building } from 'lucide-react';
+import { User, Users, UserCheck, Star, DollarSign, TrendingUp, Receipt, Building, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganizer } from '../contexts/OrganizerContext';
 import { TransactionProvider, useTransaction } from '../contexts/TransactionContext';
