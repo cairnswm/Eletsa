@@ -170,11 +170,14 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setOrganizers(prev => [...prev, optimisticOrganizer]);
       
       const newOrganizer = await organizersApi.createOrganizer(data);
+      console.log("newOrganizer", newOrganizer);
       
       // Replace the optimistic organizer with the real one
       setOrganizers(prev => 
         prev.map(org => org.user_id === data.user_id ? newOrganizer : org)
       );
+
+      console.log("Organizers List", organizers);
       
       // Fetch user details for the new organizer - not needed the users details are already loaded
       // await fetchOrganizerUsers([newOrganizer]);
