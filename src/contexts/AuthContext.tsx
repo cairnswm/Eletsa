@@ -59,13 +59,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           // Add new property
           return [...prev, {
-            id: Date.now(), // Temporary ID
+            id: Date.now(), // Temporary ID - will be updated on next fetch
             user_id: user.id,
             name,
             value
           }];
         }
       });
+      
+      // Refresh properties to get the correct ID from server
+      await fetchUserProperties(user.id);
     } catch (err) {
       console.error('Property update error:', err);
       setError(err instanceof Error ? err.message : 'Property update failed');

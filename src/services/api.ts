@@ -128,10 +128,21 @@ export const api = {
   },
 
   async updateUserProperty(userId: number, name: string, value: string) {
-    const response = await fetch(`${AUTH_API}/api.php/user/${userId}/properties`, {
-      method: 'POST',
+    // Check if property already exists to determine if we should POST or PUT
+    const existingProperty = await this.fetchUserProperties(userId)
+      .then(properties => properties.find(prop => prop.name === name))
+      .catch(() => null);
+
+    const url = existingProperty 
+      ? `${AUTH_API}/api.php/property/${existingProperty.id}`
+      : `${AUTH_API}/api.php/property`;
+    
+    const method = existingProperty ? 'PUT' : 'POST';
+    
+    const response = await fetch(url, {
+      method: method,
       headers: createHeaders(true),
-      body: JSON.stringify({ name, value }),
+      body: JSON.stringify({ user_id: userId, name, value }),
     });
 
     const data = await handleApiResponse(response);
