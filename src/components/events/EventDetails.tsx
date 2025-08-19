@@ -445,16 +445,6 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
               </div>
             </div>
 
-            {/* Security Badge */}
-            <div className="bg-gradient-to-r from-[#489707]/10 to-[#1E30FF]/10 rounded-xl p-6">
-              <div className="flex items-center space-x-3 mb-3">
-                <Shield className="w-6 h-6 text-[#489707]" />
-                <h3 className="text-lg font-semibold text-gray-900">Secure Event</h3>
-              </div>
-              <p className="text-sm text-gray-600">
-                This event is hosted by a verified organizer and uses secure payment processing through Payweb.
-              </p>
-            </div>
           </div>
         </div>
       </div>
