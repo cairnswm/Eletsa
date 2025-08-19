@@ -116,6 +116,27 @@ export const api = {
     const responseData = await handleApiResponse(response);
     return responseData;
   },
+
+  async fetchUserProperties(userId: number) {
+    const response = await fetch(`${AUTH_API}/api.php/user/${userId}/properties`, {
+      method: 'GET',
+      headers: createHeaders(true),
+    });
+
+    const data = await handleApiResponse(response);
+    return Array.isArray(data) ? data : [data];
+  },
+
+  async updateUserProperty(userId: number, name: string, value: string) {
+    const response = await fetch(`${AUTH_API}/api.php/user/${userId}/properties`, {
+      method: 'POST',
+      headers: createHeaders(true),
+      body: JSON.stringify({ name, value }),
+    });
+
+    const data = await handleApiResponse(response);
+    return data;
+  },
 };
 
 // Export utilities for other API modules

@@ -3,11 +3,16 @@ import { Building, Save, AlertCircle, CheckCircle, FileText } from 'lucide-react
 import { useAuth } from '../../contexts/AuthContext';
 
 export const OrganizerTab: React.FC = () => {
-  const { user, updateProfile, loading, error } = useAuth();
+  const { user, getUserProperty, updateUserProperty, loading, error } = useAuth();
+  
+  // Get VAT number from user properties
+  const vatProperty = getUserProperty('vat number');
+  const currentVatNumber = vatProperty?.value || '';
+  
   const [formData, setFormData] = useState({
-    vat_number: user?.vat_number === 'NO VAT' ? '' : (user?.vat_number || ''),
+    vat_number: currentVatNumber === 'NO VAT' ? '' : currentVatNumber,
   });
-  const [isNotVatRegistered, setIsNotVatRegistered] = useState(user?.vat_number === 'NO VAT');
+  const [isNotVatRegistered, setIsNotVatRegistered] = useState(currentVatNumber === 'NO VAT');
   const [saved, setSaved] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,7 +26,7 @@ export const OrganizerTab: React.FC = () => {
         return; // Form validation will handle this
       }
       
-      await updateProfile({ vat_number: vatValue });
+      await updateUserProperty('vat number', vatValue);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
@@ -126,23 +131,23 @@ export const OrganizerTab: React.FC = () => {
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-gray-700">Current VAT Status:</span>
               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                user.vat_number === 'NO VAT' 
+                currentVatNumber === 'NO VAT' 
                   ? 'bg-gray-100 text-gray-800' 
-                  : user.vat_number 
+                  : currentVatNumber 
                     ? 'bg-green-100 text-green-800'
                     : 'bg-yellow-100 text-yellow-800'
               }`}>
-                {user.vat_number === 'NO VAT' 
+                {currentVatNumber === 'NO VAT' 
                   ? 'Not VAT Registered' 
-                  : user.vat_number 
+                  : currentVatNumber 
                     ? 'VAT Registered'
                     : 'Not Set'
                 }
               </span>
             </div>
-            {user.vat_number && user.vat_number !== 'NO VAT' && (
+            {currentVatNumber && currentVatNumber !== 'NO VAT' && (
               <div className="mt-2 text-sm text-gray-600">
-                VAT Number: <span className="font-mono">{user.vat_number}</span>
+                VAT Number: <span className="font-mono">{currentVatNumber}</span>
               </div>
             )}
           </div>

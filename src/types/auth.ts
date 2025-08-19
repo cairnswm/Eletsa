@@ -8,7 +8,13 @@ export interface User {
   role: string | null;
   app_id: string;
   permissions: string[];
-  vat_number: string | null;
+}
+
+export interface UserProperty {
+  id: number;
+  user_id: number;
+  name: string;
+  value: string;
 }
 
 export interface AuthResponse {
@@ -23,7 +29,6 @@ export interface AuthResponse {
   role: string | null;
   app_id: string;
   permissions: string[];
-  vat_number: string | null;
 }
 
 export interface LoginRequest {
@@ -48,11 +53,16 @@ export interface UpdateUserRequest {
   firstname?: string;
   lastname?: string;
   avatar?: string;
-  vat_number?: string;
+}
+
+export interface UpdateUserPropertyRequest {
+  name: string;
+  value: string;
 }
 
 export interface AuthContextType {
   user: User | null;
+  userProperties: UserProperty[];
   token: string | null;
   hasCompletedProfile: boolean;
   loading: boolean;
@@ -61,6 +71,8 @@ export interface AuthContextType {
   register: (credentials: RegisterRequest) => Promise<void>;
   logout: () => void;
   updateProfile: (data: UpdateUserRequest) => Promise<void>;
+  updateUserProperty: (name: string, value: string) => Promise<void>;
+  getUserProperty: (name: string) => UserProperty | null;
   validateToken: () => Promise<void>;
   clearError: () => void;
 }

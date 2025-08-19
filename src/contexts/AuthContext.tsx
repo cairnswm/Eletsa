@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, AuthContextType, LoginRequest, RegisterRequest, UpdateUserRequest } from '../types/auth';
+import { User, UserProperty, AuthContextType, LoginRequest, RegisterRequest, UpdateUserRequest } from '../types/auth';
 import { api } from '../services/api';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -14,6 +14,7 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [userProperties, setUserProperties] = useState<UserProperty[]>([]);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +26,54 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
   };
 
+  const fetchUserProperties = async (userId: number) => {
+    try {
+      const properties = await api.fetchUserProperties(userId);
+      setUserProperties(properties);
+    } catch (err) {
+      console.error('Failed to fetch user properties:', err);
+      // Don't set error for properties fetch failure
+    }
+  };
+
+  const getUserProperty = (name: string): UserProperty | null => {
+    return userProperties.find(prop => prop.name === name) || null;
+  };
+
+  const updateUserProperty = async (name: string, value: string) => {
+    if (!user) throw new Error('No user logged in');
+
+    try {
+      setLoading(true);
+      setError(null);
+      await api.updateUserProperty(user.id, name, value);
+      
+      // Update local properties state
+      setUserProperties(prev => {
+        const existingIndex = prev.findIndex(prop => prop.name === name);
+        if (existingIndex >= 0) {
+          // Update existing property
+          const updated = [...prev];
+          updated[existingIndex] = { ...updated[existingIndex], value };
+          return updated;
+        } else {
+          // Add new property
+          return [...prev, {
+            id: Date.now(), // Temporary ID
+            user_id: user.id,
+            name,
+            value
+          }];
+        }
+      });
+    } catch (err) {
+      console.error('Property update error:', err);
+      setError(err instanceof Error ? err.message : 'Property update failed');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
   const validateToken = async () => {
     const storedToken = localStorage.getItem('auth_token');
     if (!storedToken) {
@@ -44,10 +93,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: response.role,
         app_id: response.app_id,
         permissions: response.permissions,
-        vat_number: response.vat_number,
       };
       setUser(userData);
       setToken(storedToken);
+      
+      // Fetch user properties after successful token validation
+      await fetchUserProperties(response.id);
+      
       setError(null);
     } catch (err) {
       console.error('Token validation failed:', err);
@@ -77,12 +129,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: response.role,
         app_id: response.app_id,
         permissions: response.permissions,
-        vat_number: response.vat_number,
       };
 
       setUser(userData);
       setToken(response.token);
       localStorage.setItem('auth_token', response.token);
+      
+      // Fetch user properties after successful login
+      await fetchUserProperties(response.id);
       
       console.log('Login successful, token stored:', response.token);
     } catch (err) {
@@ -111,12 +165,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: response.role,
         app_id: response.app_id,
         permissions: response.permissions,
-        vat_number: response.vat_number,
       };
 
       setUser(userData);
       setToken(response.token);
       localStorage.setItem('auth_token', response.token);
+      
+      // Fetch user properties after successful registration
+      await fetchUserProperties(response.id);
       
       console.log('Registration successful, token stored:', response.token);
     } catch (err) {
@@ -130,6 +186,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
+    setUserProperties([]);
     setToken(null);
     setError(null);
     localStorage.removeItem('auth_token');
@@ -161,6 +218,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value: AuthContextType = {
     user,
+    userProperties,
     token,
     hasCompletedProfile,
     loading,
@@ -169,6 +227,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     logout,
     updateProfile,
+    updateUserProperty,
+    getUserProperty,
     validateToken,
     clearError,
   };
