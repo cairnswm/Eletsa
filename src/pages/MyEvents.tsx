@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Plus, Users, DollarSign, TrendingUp, Edit, Star } from 'lucide-react';
+import { Calendar, Plus, Users, DollarSign, TrendingUp, Edit, Star, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganizer } from '../contexts/OrganizerContext';
 import { useEvent } from '../contexts/EventContext';
+import { VATWarning } from '../components/common/VATWarning';
 import { EventCard } from '../components/events/EventCard';
 
 export const MyEvents: React.FC = () => {
   const navigate = useNavigate();
-  const { user, hasCompletedProfile } = useAuth();
+  const { user, hasCompletedProfile, getUserProperty } = useAuth();
   const { getOrganizerByUserId, fetchOrganizerEvents, getOrganizerEvents } = useOrganizer();
   const { setActiveEventId } = useEvent();
   const [activeTab, setActiveTab] = useState<'active' | 'past'>('active');
@@ -17,6 +18,10 @@ export const MyEvents: React.FC = () => {
 
   // Get organizer data
   const userOrganizer = user ? getOrganizerByUserId(user.id) : null;
+  
+  // Check if organizer has VAT configuration
+  const vatProperty = getUserProperty('vat number');
+  const hasVatConfiguration = !!vatProperty;
 
   // FIXED: Get organizer events using user.id instead of organizer.id
   // since organizer_id field in events table links to user table
@@ -170,9 +175,9 @@ export const MyEvents: React.FC = () => {
           <div className="flex flex-col items-end">
             <button 
               onClick={() => navigate('/create-event')}
-              disabled={!hasCompletedProfile}
+              disabled={!hasCompletedProfile || !hasVatConfiguration}
               className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 ${
-                hasCompletedProfile 
+                hasCompletedProfile && hasVatConfiguration
                   ? 'bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white hover:opacity-90' 
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
@@ -180,21 +185,32 @@ export const MyEvents: React.FC = () => {
               <Plus className="w-5 h-5" />
               <span>Create Event</span>
             </button>
-            {!hasCompletedProfile && (
+            {(!hasCompletedProfile || !hasVatConfiguration) && (
               <div className="mt-2 text-right">
                 <p className="text-xs text-gray-500">
-                  Complete your profile to create events
+                  {!hasCompletedProfile 
+                    ? 'Complete your profile to create events'
+                    : 'Complete VAT configuration to create events'
+                  }
                 </p>
                 <button
                   onClick={() => navigate('/profile')}
                   className="text-xs text-[#1E30FF] hover:text-[#FF2D95] font-medium transition-colors duration-200"
                 >
-                  Go to Profile
+                  {!hasCompletedProfile ? 'Go to Profile' : 'Configure VAT'}
                 </button>
               </div>
             )}
           </div>
         </div>
+
+        {/* VAT Configuration Warning */}
+        {userOrganizer && !hasVatConfiguration && (
+          <VATWarning 
+            onConfigureClick={() => navigate('/profile')}
+            className="mb-8"
+          />
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

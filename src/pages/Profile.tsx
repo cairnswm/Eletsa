@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { User, Users, UserCheck, Star, DollarSign, TrendingUp, Receipt, Building, AlertCircle } from 'lucide-react';
+import { User, Users, UserCheck, Star, DollarSign, TrendingUp, Receipt, Building } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useOrganizer } from '../contexts/OrganizerContext';
 import { TransactionProvider, useTransaction } from '../contexts/TransactionContext';
+import { VATWarning } from '../components/common/VATWarning';
 import { ProfileTab } from '../components/profile/ProfileTab';
 import { FollowersTab } from '../components/profile/FollowersTab';
 import { FollowingTab } from '../components/profile/FollowingTab';
@@ -81,21 +82,10 @@ const ProfileContent: React.FC = () => {
                   <div className="w-10 h-10 bg-gradient-to-r from-[#489707] to-[#1E30FF] rounded-full flex items-center justify-center">
                     <Star className="w-5 h-5 text-white" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Become an Event Organizer</h3>
-                    <p className="text-sm text-gray-600">Start hosting your own events and build your community</p>
-                  </div>
-                </div>
-                <button
-                  onClick={handleBecomeOrganizer}
-                  disabled={becomingOrganizer}
-                  className="bg-gradient-to-r from-[#489707] to-[#1E30FF] text-white px-6 py-2 rounded-lg font-medium hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                >
-                  <TrendingUp className="w-4 h-4" />
-                  <span>{becomingOrganizer ? 'Setting up...' : 'Get Started'}</span>
-                </button>
-              </div>
-            </div>
+            <VATWarning 
+              onConfigureClick={() => setActiveTab('organizer')}
+              className="mb-6"
+            />
           )}
 
           {/* Navigation Tabs */}
