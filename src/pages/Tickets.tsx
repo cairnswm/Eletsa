@@ -2,6 +2,7 @@ import React from 'react';
 import { Ticket, Star, Clock, Calendar } from 'lucide-react';
 import { useTicket } from '../contexts/useTicket';
 import { TicketCard } from '../components/tickets/TicketCard';
+import { TicketCard } from '../components/tickets/TicketCard';
 
 export const Tickets: React.FC = () => {
   const { tickets, loading, error, refreshTickets } = useTicket();
@@ -111,7 +112,7 @@ export const Tickets: React.FC = () => {
           currentTickets.length > 0 ? (
             <div className="space-y-6">
               {currentTickets.map((ticket) => (
-                <TicketCard 
+                <TicketCard
                   key={ticket.ticket_code} 
                   ticket={ticket} 
                   showReviewOption={activeTab === 'past'}
