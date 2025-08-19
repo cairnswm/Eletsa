@@ -333,6 +333,9 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption
                   </div>
                 </div>
               </div>
+            </div>
+            
+            <div className="flex items-center justify-between">
 
               <div className="flex items-center space-x-3">
                 {/* Location Button - only show if coordinates exist and not a past event */}
