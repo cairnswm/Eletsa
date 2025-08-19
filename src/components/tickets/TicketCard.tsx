@@ -334,7 +334,9 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption
                 </div>
               </div>
             </div>
-            
+          </div>
+          
+          <div className="border-t border-gray-200 pt-4">            
             <div className="flex items-center justify-between">
 
               <div className="flex items-center space-x-3">
