@@ -63,7 +63,7 @@ const Cart: React.FC<{ cart: { items: CartItem[]; cart_total: string }; getTotal
 
       {cartDropdownOpen && (
         <div className="cart-dropdown bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 flex flex-col
-                        fixed left-4 right-4 bottom-4 max-h-[calc(100vh-6rem)]
+                        fixed left-4 right-4 top-20 max-h-[calc(100vh-6rem)]
                         sm:absolute sm:right-0 sm:left-auto sm:bottom-auto sm:mt-2 sm:w-80 sm:max-h-96">
           <div className="px-4 py-2 border-b border-gray-200">
             <h3 className="font-semibold text-gray-900">Shopping Cart</h3>
