@@ -43,7 +43,14 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // Utility function to bulk fetch user details for organizers
   const fetchOrganizerUsers = async (organizerList: Organizer[]) => {
-    const userIds = organizerList.map(organizer => organizer.user_id);
+    // Filter out organizers that don't have valid user_id
+    const validOrganizers = organizerList.filter(organizer => organizer.user_id && organizer.user_id > 0);
+    
+    if (validOrganizers.length === 0) {
+      return;
+    }
+    
+    const userIds = validOrganizers.map(organizer => organizer.user_id);
     if (userIds.length > 0) {
       try {
         // Create fake follow relations to trigger bulk user fetch
@@ -142,9 +149,32 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       setLoading(true);
       setError(null);
+      
+      // Optimistically add organizer to state immediately to prevent race conditions
+      const optimisticOrganizer: Organizer = {
+        id: Date.now(), // Temporary ID
+        user_id: data.user_id,
+        is_verified: data.is_verified || false,
+        verification_method: data.verification_method || null,
+        social_proof_links: data.social_proof_links || null,
+        payout_eligible: data.payout_eligible || false,
+        events_hosted: data.events_hosted || 0,
+        tickets_sold: data.tickets_sold || 0,
+        positive_reviews: data.positive_reviews || 0,
+        quick_payout_eligibility: data.quick_payout_eligibility || false,
+        badges: data.badges || null,
+        created_at: new Date().toISOString(),
+        modified_at: new Date().toISOString(),
+      };
+      
+      setOrganizers(prev => [...prev, optimisticOrganizer]);
+      
       const newOrganizer = await organizersApi.createOrganizer(data);
       
-      setOrganizers(prev => [...prev, newOrganizer]);
+      // Replace the optimistic organizer with the real one
+      setOrganizers(prev => 
+        prev.map(org => org.user_id === data.user_id ? newOrganizer : org)
+      );
       
       // Fetch user details for the new organizer
       await fetchOrganizerUsers([newOrganizer]);
@@ -154,6 +184,10 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       const errorMessage = err instanceof Error ? err.message : 'Failed to create organizer';
       setError(errorMessage);
       console.error('Failed to create organizer:', err);
+      
+      // Remove the optimistic organizer on error
+      setOrganizers(prev => prev.filter(org => org.user_id !== data.user_id));
+      
       throw err;
     } finally {
       setLoading(false);
