@@ -13,6 +13,7 @@ import { TransactionsTab } from '../components/profile/TransactionsTab';
 const ProfileContent: React.FC = () => {
   const { user } = useAuth();
   const { getOrganizerByUserId, createOrganizer } = useOrganizer();
+  const { getUserProperty } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'followers' | 'following' | 'organizer' | 'payouts' | 'transactions'>('profile');
   const [becomingOrganizer, setBecomingOrganizer] = useState(false);
 
@@ -20,6 +21,9 @@ const ProfileContent: React.FC = () => {
   const userOrganizer = user ? getOrganizerByUserId(user.id) : null;
   const isOrganizer = !!userOrganizer;
 
+  // Check if organizer has VAT configuration
+  const vatProperty = getUserProperty('vat number');
+  const hasVatConfiguration = !!vatProperty;
   const handleBecomeOrganizer = async () => {
     if (!user || becomingOrganizer) return;
 
@@ -34,6 +38,8 @@ const ProfileContent: React.FC = () => {
         positive_reviews: 0,
         quick_payout_eligibility: false,
       });
+      // Switch to organizer tab after successful creation
+      setActiveTab('organizer');
     } catch (err) {
       console.error('Failed to become organizer:', err);
     } finally {
