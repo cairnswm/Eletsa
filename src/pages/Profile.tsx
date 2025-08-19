@@ -191,7 +191,6 @@ const ProfileContent: React.FC = () => {
             {activeTab === 'followers' && <FollowersTab />}
             {activeTab === 'following' && <FollowingTab />}
             {activeTab === 'organizer' && isOrganizer && <OrganizerTab />}
-            {activeTab === 'organizer' && isOrganizer && <OrganizerTab />}
             {activeTab === 'payouts' && isOrganizer && <PayoutsTab />}
             {activeTab === 'transactions' && <TransactionsTab />}
           </div>
