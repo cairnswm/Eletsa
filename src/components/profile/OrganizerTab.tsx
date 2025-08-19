@@ -3,7 +3,7 @@ import { Building, Save, AlertCircle, CheckCircle, FileText } from 'lucide-react
 import { useAuth } from '../../contexts/AuthContext';
 
 export const OrganizerTab: React.FC = () => {
-  const { user, getUserProperty, updateUserProperty, loading, error } = useAuth();
+  const { user, getUserProperty, updateUserProperty, error } = useAuth();
   
   // Get VAT number from user properties
   const vatProperty = getUserProperty('vat number');
@@ -14,11 +14,13 @@ export const OrganizerTab: React.FC = () => {
   });
   const [isNotVatRegistered, setIsNotVatRegistered] = useState(currentVatNumber === 'NO VAT');
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
+      setSaving(true);
       const vatValue = isNotVatRegistered ? 'NO VAT' : formData.vat_number.trim();
       
       // Validate VAT number if not checking "Not VAT Registered"
@@ -31,6 +33,8 @@ export const OrganizerTab: React.FC = () => {
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
       // Error is handled by context
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -157,11 +161,11 @@ export const OrganizerTab: React.FC = () => {
         <div className="pt-6">
           <button
             type="submit"
-            disabled={loading || (!isNotVatRegistered && !formData.vat_number.trim())}
+            disabled={saving || (!isNotVatRegistered && !formData.vat_number.trim())}
             className="w-full bg-gradient-to-r from-[#489707] to-[#1E30FF] text-white py-3 px-4 rounded-lg font-medium hover:opacity-90 focus:ring-2 focus:ring-[#1E30FF] focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
           >
             <Save className="w-5 h-5" />
-            <span>{loading ? 'Saving...' : 'Save Organizer Details'}</span>
+            <span>{saving ? 'Saving...' : 'Save Organizer Details'}</span>
           </button>
         </div>
       </form>

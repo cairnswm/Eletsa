@@ -44,7 +44,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) throw new Error('No user logged in');
 
     try {
-      setLoading(true);
       setError(null);
       await api.updateUserProperty(user.id, name, value);
       
@@ -73,8 +72,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Property update error:', err);
       setError(err instanceof Error ? err.message : 'Property update failed');
       throw err;
-    } finally {
-      setLoading(false);
     }
   };
   const validateToken = async () => {
