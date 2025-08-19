@@ -31,7 +31,7 @@ export const LocationShare: React.FC<LocationShareProps> = ({
       title={`Navigate to ${locationName}`}
     >
       <Navigation className="w-4 h-4" />
-      <span className="text-sm font-medium">Get Directions</span>
+      <span className="text-sm font-medium hidden sm:inline">Get Directions</span>
     </button>
   );
 };

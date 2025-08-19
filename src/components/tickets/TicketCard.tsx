@@ -343,7 +343,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption
                       className="flex items-center space-x-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors duration-200"
                     >
                       <MapPin className="w-4 h-4" />
-                      <span className="text-sm font-medium">View Location</span>
+                      <span className="text-sm font-medium hidden sm:inline">View Location</span>
                     </button>
                     <LocationShare 
                       latitude={latitude} 
@@ -360,7 +360,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption
                       className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200"
                     >
                       <QrCode className="w-4 h-4" />
-                      <span className="text-sm font-medium">Show QR</span>
+                      <span className="text-sm font-medium hidden sm:inline">Show QR</span>
                     </button>
                     <button 
                       onClick={downloadPDF}
@@ -368,7 +368,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption
                       className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-[#1E30FF] to-[#FF2D95] text-white rounded-lg hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Download className="w-4 h-4" />
-                      <span className="text-sm font-medium">{isGeneratingPDF ? 'Generating...' : 'Download'}</span>
+                      <span className="text-sm font-medium hidden sm:inline">{isGeneratingPDF ? 'Generating...' : 'Download'}</span>
                     </button>
                   </>
                 )}
@@ -381,7 +381,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket, showReviewOption
                   >
                     <Star className="w-4 h-4" />
                     <span className="text-sm font-medium">
-                      {showReviewForm ? 'Cancel Review' : 'Add Review'}
+                      <span className="hidden sm:inline">{showReviewForm ? 'Cancel Review' : 'Add Review'}</span>
                     </span>
                   </button>
                 )}
