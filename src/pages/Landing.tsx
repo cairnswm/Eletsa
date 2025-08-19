@@ -44,11 +44,13 @@ export const Landing: React.FC = () => {
                 <span>Browse Events</span>
               </Link>
               <Link
-                to="/register"
+                to={user && isOrganizer ? "/my-events" : user ? "/profile" : "/register"}
                 className="border-2 border-[#1E30FF] text-[#1E30FF] px-8 py-4 rounded-xl font-medium hover:bg-[#1E30FF] hover:text-white transition-all duration-200 flex items-center space-x-2"
               >
                 <Calendar className="w-5 h-5" />
-                <span>Start Organizing</span>
+                <span>
+                  {user && isOrganizer ? 'My Events' : user ? 'Become Organizer' : 'Start Organizing'}
+                </span>
               </Link>
             </div>
           </div>
