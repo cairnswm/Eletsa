@@ -82,6 +82,24 @@ const ProfileContent: React.FC = () => {
                   <div className="w-10 h-10 bg-gradient-to-r from-[#489707] to-[#1E30FF] rounded-full flex items-center justify-center">
                     <Star className="w-5 h-5 text-white" />
                   </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Become an Event Organizer</h3>
+                    <p className="text-sm text-gray-600">Start hosting events and earning money</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleBecomeOrganizer}
+                  disabled={becomingOrganizer}
+                  className="bg-gradient-to-r from-[#489707] to-[#1E30FF] text-white px-6 py-2 rounded-lg font-medium hover:shadow-lg transition-all duration-200 disabled:opacity-50"
+                >
+                  {becomingOrganizer ? 'Processing...' : 'Get Started'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* VAT Warning for organizers without VAT configuration */}
+          {isOrganizer && !hasVatConfiguration && (
             <VATWarning 
               onConfigureClick={() => setActiveTab('organizer')}
               className="mb-6"
