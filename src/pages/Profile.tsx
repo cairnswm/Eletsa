@@ -13,7 +13,6 @@ import { TransactionsTab } from '../components/profile/TransactionsTab';
 const ProfileContent: React.FC = () => {
   const { user } = useAuth();
   const { getOrganizerByUserId, createOrganizer } = useOrganizer();
-  const [activeTab, setActiveTab] = useState<'profile' | 'followers' | 'following' | 'payouts' | 'transactions'>('profile');
   const [activeTab, setActiveTab] = useState<'profile' | 'followers' | 'following' | 'organizer' | 'payouts' | 'transactions'>('profile');
   const [becomingOrganizer, setBecomingOrganizer] = useState(false);
 
