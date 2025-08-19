@@ -62,14 +62,16 @@ const Cart: React.FC<{ cart: { items: CartItem[]; cart_total: string }; getTotal
       </button>
 
       {cartDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 max-h-96 overflow-y-auto cart-dropdown">
+        <div className="absolute right-0 sm:right-0 mt-2 w-80 sm:w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50 cart-dropdown
+                        fixed sm:absolute left-4 sm:left-auto right-4 sm:right-0 bottom-4 sm:bottom-auto top-auto sm:top-auto sm:mt-2
+                        max-h-[calc(100vh-8rem)] sm:max-h-96 flex flex-col">
           <div className="px-4 py-2 border-b border-gray-200">
             <h3 className="font-semibold text-gray-900">Shopping Cart</h3>
           </div>
 
           {cart && cart.items.length > 0 ? (
             <>
-              <div className="max-h-64 overflow-y-auto">
+              <div className="flex-1 overflow-y-auto min-h-0">
                 {cart.items.map((item, index) => (
                   <div key={index} className="px-4 py-2 border-b border-gray-200">
                     <div className="flex justify-between items-center">
@@ -116,7 +118,7 @@ const Cart: React.FC<{ cart: { items: CartItem[]; cart_total: string }; getTotal
                 ))}
               </div>
 
-              <div className="px-4 py-3 border-t border-gray-200 bg-gray-50">
+              <div className="px-4 py-3 border-t border-gray-200 bg-gray-50 flex-shrink-0">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-700">Total</span>
                   <span className="text-sm font-medium text-gray-700">{formatCurrency(cart.cart_total)}</span>
@@ -134,7 +136,7 @@ const Cart: React.FC<{ cart: { items: CartItem[]; cart_total: string }; getTotal
               </div>
             </>
           ) : (
-            <div className="px-4 py-8 text-center">
+            <div className="px-4 py-8 text-center flex-shrink-0">
               <ShoppingCart className="w-12 h-12 text-gray-400 mx-auto mb-3" />
               <p className="text-gray-600 text-sm">Your cart is empty</p>
               <p className="text-gray-500 text-xs">Add some tickets to get started!</p>
