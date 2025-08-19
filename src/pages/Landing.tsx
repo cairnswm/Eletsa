@@ -2,9 +2,17 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Calendar, MapPin, Users, Star, Shield, Zap, CreditCard, Trophy, MessageCircle, Search } from 'lucide-react';
 import { useTenant } from '../contexts/TenantContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useOrganizer } from '../contexts/OrganizerContext';
 
 export const Landing: React.FC = () => {
   const { tenant } = useTenant();
+  const { user } = useAuth();
+  const { getOrganizerByUserId } = useOrganizer();
+
+  // Check if user is an organizer
+  const userOrganizer = user ? getOrganizerByUserId(user.id) : null;
+  const isOrganizer = !!userOrganizer;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1E30FF]/10 via-white to-[#FF2D95]/10">
@@ -165,10 +173,10 @@ export const Landing: React.FC = () => {
 
             <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 p-6 border border-gray-100">
               <div className="w-12 h-12 bg-gradient-to-r from-[#f0900a] to-[#FF2D95] rounded-xl flex items-center justify-center mb-4">
-                <Trophy className="w-6 h-6 text-white" />
+                <MessageCircle className="w-6 h-6 text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Gamification</h3>
-              <p className="text-gray-600 text-sm">Earn badges, levels, and leaderboards to encourage participation and loyalty.</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Direct Communication</h3>
+              <p className="text-gray-600 text-sm">Message organizers and attendees directly to get event details and connect with your community.</p>
             </div>
 
             <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 p-6 border border-gray-100">
@@ -265,13 +273,15 @@ export const Landing: React.FC = () => {
               <Search className="w-5 h-5 mr-2" />
               <span>Find Your Next Event</span>
             </Link>
-            <Link
-              to="/register"
-              className="inline-flex items-center border-2 border-[#1E30FF] text-[#1E30FF] px-8 py-4 rounded-xl font-medium hover:bg-[#1E30FF] hover:text-white transition-all duration-200"
-            >
-              <Calendar className="w-5 h-5 mr-2" />
-              <span>Become an Organizer Today</span>
-            </Link>
+            {user && !isOrganizer && (
+              <Link
+                to="/profile"
+                className="inline-flex items-center border-2 border-[#1E30FF] text-[#1E30FF] px-8 py-4 rounded-xl font-medium hover:bg-[#1E30FF] hover:text-white transition-all duration-200"
+              >
+                <Calendar className="w-5 h-5 mr-2" />
+                <span>Become an Organizer Today</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>
