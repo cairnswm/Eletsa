@@ -278,6 +278,13 @@ export const EventDetails: React.FC<EventDetailsProps> = ({ onBack }) => {
           <div className="lg:col-span-2 space-y-8">
 
             
+              {/* Organizer Event Details */}
+            <div className="bg-white rounded-xl shadow-md p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Organizer Controls</h2>            
+              {isOrganizer && <OrganizerEventDetails event={activeEvent} />}
+            </div>
+
+            
             {/* Event Description */}
             <div className="bg-white rounded-xl shadow-md p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">About This Event</h2>
