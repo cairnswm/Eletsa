@@ -44,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: response.role,
         app_id: response.app_id,
         permissions: response.permissions,
+        vat_number: response.vat_number,
       };
       setUser(userData);
       setToken(storedToken);
@@ -76,6 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: response.role,
         app_id: response.app_id,
         permissions: response.permissions,
+        vat_number: response.vat_number,
       };
 
       setUser(userData);
@@ -109,6 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: response.role,
         app_id: response.app_id,
         permissions: response.permissions,
+        vat_number: response.vat_number,
       };
 
       setUser(userData);

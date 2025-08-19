@@ -6,6 +6,7 @@ import { TransactionProvider, useTransaction } from '../contexts/TransactionCont
 import { ProfileTab } from '../components/profile/ProfileTab';
 import { FollowersTab } from '../components/profile/FollowersTab';
 import { FollowingTab } from '../components/profile/FollowingTab';
+import { OrganizerTab } from '../components/profile/OrganizerTab';
 import { PayoutsTab } from '../components/profile/PayoutsTab';
 import { TransactionsTab } from '../components/profile/TransactionsTab';
 
@@ -13,6 +14,7 @@ const ProfileContent: React.FC = () => {
   const { user } = useAuth();
   const { getOrganizerByUserId, createOrganizer } = useOrganizer();
   const [activeTab, setActiveTab] = useState<'profile' | 'followers' | 'following' | 'payouts' | 'transactions'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'followers' | 'following' | 'organizer' | 'payouts' | 'transactions'>('profile');
   const [becomingOrganizer, setBecomingOrganizer] = useState(false);
 
   // Check if user is an organizer
@@ -140,6 +142,19 @@ const ProfileContent: React.FC = () => {
               {isOrganizer && (
                 <>
                   <button
+                    onClick={() => setActiveTab('organizer')}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
+                      activeTab === 'organizer'
+                        ? 'border-[#1E30FF] text-[#1E30FF]'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <Building className="w-4 h-4" />
+                      <span>Organizer</span>
+                    </div>
+                  </button>
+                  <button
                     onClick={() => setActiveTab('payouts')}
                     className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors duration-200 ${
                       activeTab === 'payouts'
@@ -176,6 +191,8 @@ const ProfileContent: React.FC = () => {
             {activeTab === 'profile' && <ProfileTab />}
             {activeTab === 'followers' && <FollowersTab />}
             {activeTab === 'following' && <FollowingTab />}
+            {activeTab === 'organizer' && isOrganizer && <OrganizerTab />}
+            {activeTab === 'organizer' && isOrganizer && <OrganizerTab />}
             {activeTab === 'payouts' && isOrganizer && <PayoutsTab />}
             {activeTab === 'transactions' && <TransactionsTab />}
           </div>
