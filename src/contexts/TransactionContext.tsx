@@ -157,7 +157,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       console.log('TransactionContext: All requirements met, calling fetchAccounts');
       fetchAccounts();
     } else {
-      console.log('TransactionContext: Requirements not met, clearing data');
+      console.log('TransactionContext: Requirements not met, clearing data', user, token, api);
       setAccounts([]);
       setTransactions([]);
       setError(null);
