@@ -27,15 +27,23 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   // Load TX API
   useEffect(() => {
+    console.log('TransactionContext: Loading TX API script...');
     const loadApi = async () => {
       try {
         const script = document.createElement('script');
         script.src = 'https://tx.cairnsgames.co.za/tx.js';
         script.async = true;
         script.onload = () => {
+          console.log('TransactionContext: TX script loaded successfully');
           if (window.TX) {
+            console.log('TransactionContext: window.TX is available:', window.TX);
             setApi(window.TX);
+          } else {
+            console.error('TransactionContext: window.TX is not available after script load');
           }
+        };
+        script.onerror = () => {
+          console.error('TransactionContext: Failed to load TX script');
         };
         document.body.appendChild(script);
       } catch (error) {
@@ -47,7 +55,14 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, []);
 
   const fetchAccounts = React.useCallback(async () => {
+    console.log('TransactionContext: fetchAccounts called', { user: user?.id, token: !!token, api: !!api });
+    
     if (!user || !token || !api) {
+      console.log('TransactionContext: Missing requirements for fetchAccounts', { 
+        hasUser: !!user, 
+        hasToken: !!token, 
+        hasApi: !!api 
+      });
       setAccounts([]);
       return;
     }
@@ -56,25 +71,40 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setLoading(true);
       setError(null);
       
+      console.log('TransactionContext: Setting TX API configuration', { appId: 'e671937d-54c9-11f0-9ec0-1a220d8ac2c9', userId: user.id });
+      
       // Set TX API configuration
       if (api) {
         api.setAppId('e671937d-54c9-11f0-9ec0-1a220d8ac2c9');
         api.setUserId(user.id);
+        console.log('TransactionContext: TX API configured successfully');
       }
       
+      console.log('TransactionContext: Calling getUserBalances...');
       const accountsData = await transactionsApi.fetchUserAccounts();
+      console.log('TransactionContext: Received accounts data:', accountsData);
       setAccounts(accountsData);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch accounts';
+      console.error('TransactionContext: Error fetching accounts:', err);
       setError(errorMessage);
-      console.error('Failed to fetch accounts:', err);
     } finally {
       setLoading(false);
     }
   }, [user, token, api]);
 
   const fetchTransactions = React.useCallback(async (accountId?: number, limit: number = 100) => {
+    console.log('TransactionContext: fetchTransactions called', { 
+      accountId, 
+      limit, 
+      user: user?.id, 
+      token: !!token, 
+      api: !!api,
+      accountsLength: accounts.length 
+    });
+    
     if (!user || !token || !api) {
+      console.log('TransactionContext: Missing requirements for fetchTransactions');
       setTransactions([]);
       return;
     }
@@ -83,10 +113,11 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     let targetAccountId = accountId;
     if (!targetAccountId && accounts.length > 0) {
       targetAccountId = accounts[0].id;
+      console.log('TransactionContext: Using first account ID:', targetAccountId);
     }
 
     if (!targetAccountId) {
-      console.log('No account ID available for fetching transactions');
+      console.log('TransactionContext: No account ID available for fetching transactions');
       return;
     }
 
@@ -94,10 +125,13 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setLoading(true);
       setError(null);
       
+      console.log('TransactionContext: Calling getAccountLedger with accountId:', targetAccountId, 'limit:', limit);
       const transactionsData = await transactionsApi.fetchAccountLedger(targetAccountId, limit);
+      console.log('TransactionContext: Received transactions data:', transactionsData);
       setTransactions(transactionsData);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch transactions';
+      console.error('TransactionContext: Error fetching transactions:', err);
       setError(errorMessage);
       console.error('Failed to fetch transactions:', err);
     } finally {
@@ -106,7 +140,6 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [user, token, api, accounts]);
 
   const refreshTransactions = async () => {
-    await fetchAccounts();
     if (accounts.length > 0) {
       await fetchTransactions(accounts[0].id);
     }
@@ -114,9 +147,17 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   // Fetch accounts when user changes
   useEffect(() => {
+    console.log('TransactionContext: User/token/api changed effect', { 
+      user: user?.id, 
+      token: !!token, 
+      api: !!api 
+    });
+    
     if (user && token && api) {
+      console.log('TransactionContext: All requirements met, calling fetchAccounts');
       fetchAccounts();
     } else {
+      console.log('TransactionContext: Requirements not met, clearing data');
       setAccounts([]);
       setTransactions([]);
       setError(null);
@@ -125,8 +166,13 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   // Fetch transactions when accounts are loaded
   useEffect(() => {
+    console.log('TransactionContext: Accounts changed effect', { accountsLength: accounts.length });
+    
     if (accounts.length > 0) {
+      console.log('TransactionContext: Accounts available, calling fetchTransactions');
       fetchTransactions(accounts[0].id);
+    } else {
+      console.log('TransactionContext: No accounts available');
     }
   }, [accounts, fetchTransactions]);
 
