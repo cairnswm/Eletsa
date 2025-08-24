@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { UserTransaction, TransactionContextType } from '../types/transaction';
+import { UserAccount, UserTransaction, TransactionContextType } from '../types/transaction';
 import { transactionsApi } from '../services/transactions';
 import { useAuth } from './AuthContext';
 
@@ -15,6 +15,7 @@ export const useTransaction = () => {
 
 export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, token } = useAuth();
+  const [accounts, setAccounts] = useState<UserAccount[]>([]);
   const [transactions, setTransactions] = useState<UserTransaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -23,16 +24,55 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setError(null);
   };
 
-  const fetchTransactions = React.useCallback(async () => {
+  const fetchAccounts = React.useCallback(async () => {
     if (!user || !token) {
-      setTransactions([]);
+      setAccounts([]);
       return;
     }
 
     try {
       setLoading(true);
       setError(null);
-      const transactionsData = await transactionsApi.fetchUserTransactions();
+      
+      // Set TX API configuration
+      if (window.TX) {
+        window.TX.setAppId('e671937d-54c9-11f0-9ec0-1a220d8ac2c9');
+        window.TX.setUserId(user.id);
+      }
+      
+      const accountsData = await transactionsApi.fetchUserAccounts();
+      setAccounts(accountsData);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch accounts';
+      setError(errorMessage);
+      console.error('Failed to fetch accounts:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, token]);
+
+  const fetchTransactions = React.useCallback(async (accountId?: number, limit: number = 100) => {
+    if (!user || !token) {
+      setTransactions([]);
+      return;
+    }
+
+    // If no accountId provided, use the first account
+    let targetAccountId = accountId;
+    if (!targetAccountId && accounts.length > 0) {
+      targetAccountId = accounts[0].id;
+    }
+
+    if (!targetAccountId) {
+      console.log('No account ID available for fetching transactions');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const transactionsData = await transactionsApi.fetchAccountLedger(targetAccountId, limit);
       setTransactions(transactionsData);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch transactions';
@@ -41,34 +81,48 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } finally {
       setLoading(false);
     }
-  }, [user, token]);
+  }, [user, token, accounts]);
 
   const refreshTransactions = async () => {
-    await fetchTransactions();
+    await fetchAccounts();
+    if (accounts.length > 0) {
+      await fetchTransactions(accounts[0].id);
+    }
   };
 
-  // Fetch transactions when user changes
+  // Fetch accounts when user changes
   useEffect(() => {
     if (user && token) {
-      fetchTransactions();
+      fetchAccounts();
     } else {
+      setAccounts([]);
       setTransactions([]);
       setError(null);
     }
-  }, [user?.id, token, fetchTransactions]);
+  }, [user?.id, token, fetchAccounts]);
 
-  // Clear transactions when user logs out
+  // Fetch transactions when accounts are loaded
+  useEffect(() => {
+    if (accounts.length > 0) {
+      fetchTransactions(accounts[0].id);
+    }
+  }, [accounts, fetchTransactions]);
+
+  // Clear data when user logs out
   useEffect(() => {
     if (!user) {
+      setAccounts([]);
       setTransactions([]);
       setError(null);
     }
   }, [user]);
 
   const value: TransactionContextType = {
+    accounts,
     transactions,
     loading,
     error,
+    fetchAccounts,
     fetchTransactions,
     refreshTransactions,
     clearError,
