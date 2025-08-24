@@ -19,13 +19,35 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [transactions, setTransactions] = useState<UserTransaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [api, setApi] = useState<any>(null);
 
   const clearError = () => {
     setError(null);
   };
 
+  // Load TX API
+  useEffect(() => {
+    const loadApi = async () => {
+      try {
+        const script = document.createElement('script');
+        script.src = 'https://tx.cairnsgames.co.za/tx.js';
+        script.async = true;
+        script.onload = () => {
+          if (window.TX) {
+            setApi(window.TX);
+          }
+        };
+        document.body.appendChild(script);
+      } catch (error) {
+        console.error('Failed to load TX API:', error);
+      }
+    };
+
+    loadApi();
+  }, []);
+
   const fetchAccounts = React.useCallback(async () => {
-    if (!user || !token) {
+    if (!user || !token || !api) {
       setAccounts([]);
       return;
     }
@@ -35,9 +57,9 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setError(null);
       
       // Set TX API configuration
-      if (window.TX) {
-        window.TX.setAppId('e671937d-54c9-11f0-9ec0-1a220d8ac2c9');
-        window.TX.setUserId(user.id);
+      if (api) {
+        api.setAppId('e671937d-54c9-11f0-9ec0-1a220d8ac2c9');
+        api.setUserId(user.id);
       }
       
       const accountsData = await transactionsApi.fetchUserAccounts();
@@ -49,10 +71,10 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } finally {
       setLoading(false);
     }
-  }, [user, token]);
+  }, [user, token, api]);
 
   const fetchTransactions = React.useCallback(async (accountId?: number, limit: number = 100) => {
-    if (!user || !token) {
+    if (!user || !token || !api) {
       setTransactions([]);
       return;
     }
@@ -81,7 +103,7 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } finally {
       setLoading(false);
     }
-  }, [user, token, accounts]);
+  }, [user, token, api, accounts]);
 
   const refreshTransactions = async () => {
     await fetchAccounts();
@@ -92,14 +114,14 @@ export const TransactionProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   // Fetch accounts when user changes
   useEffect(() => {
-    if (user && token) {
+    if (user && token && api) {
       fetchAccounts();
     } else {
       setAccounts([]);
       setTransactions([]);
       setError(null);
     }
-  }, [user?.id, token, fetchAccounts]);
+  }, [user?.id, token, api, fetchAccounts]);
 
   // Fetch transactions when accounts are loaded
   useEffect(() => {
