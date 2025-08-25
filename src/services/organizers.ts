@@ -135,7 +135,7 @@ export const organizersApi = {
         headers: createHeaders(),
       }
     );
-  }
+  },
 
   async createPayoutRequest(
     payoutRequestData: CreatePayoutRequestRequest
