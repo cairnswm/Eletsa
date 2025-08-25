@@ -18,13 +18,11 @@ export interface Organizer {
 
 export interface PayoutRequest {
   id: number;
-  organizer_id: number;
-  event_id: number;
-  requested_amount: number;
+  amount: string;
   status: string;
-  payout_date: string | null;
   created_at: string;
-  modified_at: string;
+  approved_at: string | null;
+  external_reference: string | null;
 }
 
 export interface Payout {
@@ -59,37 +57,9 @@ export interface Transaction {
 }
 
 // Request types for creating/updating
-export interface CreateOrganizerRequest {
-  user_id: number;
-  is_verified?: boolean;
-  verification_method?: string;
-  social_proof_links?: string;
-  payout_eligible?: boolean;
-  events_hosted?: number;
-  tickets_sold?: number;
-  positive_reviews?: number;
-  quick_payout_eligibility?: boolean;
-  badges?: string;
-}
-
-export interface UpdateOrganizerRequest {
-  is_verified?: boolean;
-  verification_method?: string;
-  social_proof_links?: string;
-  payout_eligible?: boolean;
-  events_hosted?: number;
-  tickets_sold?: number;
-  positive_reviews?: number;
-  quick_payout_eligibility?: boolean;
-  badges?: string;
-}
-
 export interface CreatePayoutRequestRequest {
-  organizer_id: number;
-  event_id: number;
-  requested_amount: number;
-  status?: string;
-  payout_date?: string;
+  accountType: string;
+  amount: number;
 }
 
 export interface UpdatePayoutRequestRequest {

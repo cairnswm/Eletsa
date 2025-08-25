@@ -16,7 +16,6 @@ export const PayoutRequestModal: React.FC<PayoutRequestModalProps> = ({
   const { createPayoutRequest, loading } = useOrganizer();
   const [formData, setFormData] = useState({
     requested_amount: '',
-    payout_date: '',
   });
   const [error, setError] = useState<string | null>(null);
 
@@ -38,17 +37,13 @@ export const PayoutRequestModal: React.FC<PayoutRequestModalProps> = ({
 
     try {
       await createPayoutRequest({
-        organizer_id: organizerId,
-        event_id: 0, // Default value since event selection is removed
-        requested_amount: amount,
-        status: 'pending',
-        payout_date: formData.payout_date || undefined,
+        accountType: 'user',
+        amount: amount,
       });
 
       // Reset form and close modal
       setFormData({
         requested_amount: '',
-        payout_date: '',
       });
       onClose();
     } catch (err) {
@@ -137,26 +132,6 @@ export const PayoutRequestModal: React.FC<PayoutRequestModalProps> = ({
                   Amount: {formatCurrency(formData.requested_amount)}
                 </p>
               )}
-            </div>
-
-            {/* Preferred Payout Date */}
-            <div>
-              <label htmlFor="payout_date" className="block text-sm font-medium text-gray-700 mb-2">
-                Preferred Payout Date
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  id="payout_date"
-                  name="payout_date"
-                  type="date"
-                  value={formData.payout_date}
-                  onChange={handleChange}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#1E30FF] focus:border-transparent"
-                />
-              </div>
-              <p className="mt-1 text-xs text-gray-500">Optional - Leave blank for immediate processing</p>
             </div>
 
             {/* Action Buttons */}

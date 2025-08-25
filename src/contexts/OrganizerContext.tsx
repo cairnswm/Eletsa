@@ -439,6 +439,22 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
+  // Fetch payout requests when user and API are available
+  useEffect(() => {
+    console.log('OrganizerContext: User/API changed effect for payout requests', { 
+      user: user?.id, 
+      api: !!api 
+    });
+    
+    if (user && api) {
+      console.log('OrganizerContext: All requirements met, calling fetchPayoutRequests');
+      fetchPayoutRequests();
+    } else {
+      console.log('OrganizerContext: Requirements not met, clearing payout requests');
+      setPayoutRequests([]);
+    }
+  }, [user?.id, api, fetchPayoutRequests]);
+
   // Load organizers on mount
   useEffect(() => {
     fetchOrganizers();
@@ -480,9 +496,7 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     
     // Payout Request methods
     fetchPayoutRequests,
-    fetchOrganizerPayoutRequests,
     createPayoutRequest,
-    updatePayoutRequest,
     
     // Payout methods
     fetchPayouts,

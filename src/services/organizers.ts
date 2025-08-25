@@ -1,3 +1,45 @@
+// Add TX API methods to global window object
+declare global {
+  interface Window {
+    TX: {
+      setAppId: (appId: string) => void;
+      setUserId: (userId: number) => void;
+      getUserBalances: () => Promise<Array<{
+        id: number;
+        account_type: string;
+        balance: string;
+      }>>;
+      getAccountLedger: (accountId: number, limit?: number) => Promise<Array<{
+        id: number;
+        transaction_id: number;
+        user_id: number;
+        account_type: string;
+        type: string;
+        gross_amount: string;
+        currency: string;
+        description: string;
+        created_at: string;
+        reference: string;
+        transaction_description: string;
+      }>>;
+      getPayoutHistory: () => Promise<Array<{
+        amount: string;
+        status: string;
+        created_at: string;
+        approved_at: string | null;
+        external_reference: string | null;
+      }>>;
+      requestPayout: (accountType: string, amount: number) => Promise<{
+        amount: string;
+        status: string;
+        created_at: string;
+        approved_at: string | null;
+        external_reference: string | null;
+      }>;
+    };
+  }
+}
+
 import { createHeaders, handleApiResponse } from "./api";
 import {
   Organizer,
@@ -136,99 +178,20 @@ export const organizersApi = {
       }
     );
 
-    const data = await handleApiResponse(response);
-    const payouts = Array.isArray(data) ? data : [data];
-
-    // FIXED: Convert string amounts to numbers
-    return payouts.map((payout) => ({
-      ...payout,
-      payout_amount: payout.payout_amount ? Number(payout.payout_amount) : 0,
-      payout_fee: payout.payout_fee ? Number(payout.payout_fee) : 0,
-    }));
-  },
-
-  // Payout Request endpoints
-  async fetchPayoutRequests(): Promise<PayoutRequest[]> {
-    const response = await fetch(`${ORGANIZER_API}/api.php/payout_requests`, {
-      method: "GET",
-      headers: createHeaders(),
-    });
-
-    const data = await handleApiResponse(response);
-    const payoutRequests = Array.isArray(data) ? data : [data];
-
-    // FIXED: Convert string amounts to numbers
-    return payoutRequests.map((request) => ({
-      ...request,
-      requested_amount: request.requested_amount
-        ? Number(request.requested_amount)
-        : 0,
-    }));
-  },
-
-  async fetchPayoutRequest(id: number): Promise<PayoutRequest> {
-    const response = await fetch(
-      `${ORGANIZER_API}/api.php/payout_requests/${id}`,
-      {
-        method: "GET",
-        headers: createHeaders(),
-      }
-    );
-
-    const data = await handleApiResponse(response);
-
-    // FIXED: Convert string amounts to numbers
-    return {
-      ...data,
-      requested_amount: data.requested_amount
-        ? Number(data.requested_amount)
-        : 0,
-    };
-  },
-
   async createPayoutRequest(
     payoutRequestData: CreatePayoutRequestRequest
   ): Promise<PayoutRequest> {
-    const response = await fetch(`${ORGANIZER_API}/api.php/payout_requests`, {
-      method: "POST",
-      headers: createHeaders(true),
-      body: JSON.stringify(payoutRequestData),
-    });
+    if (!window.TX) {
+      throw new Error('TX API not available');
+    }
 
-    const data = await handleApiResponse(response);
-    const payoutRequest = Array.isArray(data) ? data[0] : data;
-
-    // FIXED: Convert string amounts to numbers
-    return {
-      ...payoutRequest,
-      requested_amount: payoutRequest.requested_amount
-        ? Number(payoutRequest.requested_amount)
-        : 0,
-    };
-  },
-
-  async updatePayoutRequest(
-    id: number,
-    payoutRequestData: UpdatePayoutRequestRequest
-  ): Promise<PayoutRequest> {
-    const response = await fetch(
-      `${ORGANIZER_API}/api.php/payout_requests/${id}`,
-      {
-        method: "PUT",
-        headers: createHeaders(true),
-        body: JSON.stringify(payoutRequestData),
-      }
+    console.log('organizersApi: Calling TX.requestPayout with:', payoutRequestData);
+    const payoutRequest = await window.TX.requestPayout(
+      payoutRequestData.accountType,
+      payoutRequestData.amount
     );
-
-    const data = await handleApiResponse(response);
-
-    // FIXED: Convert string amounts to numbers
-    return {
-      ...data,
-      requested_amount: data.requested_amount
-        ? Number(data.requested_amount)
-        : 0,
-    };
+    console.log('organizersApi: requestPayout response:', payoutRequest);
+    return payoutRequest;
   },
 
   // Payout endpoints

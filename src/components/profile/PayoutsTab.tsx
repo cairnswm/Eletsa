@@ -8,10 +8,9 @@ export const PayoutsTab: React.FC = () => {
   const { user } = useAuth();
   const { 
     getOrganizerByUserId,
-    fetchOrganizerPayouts, 
-    fetchOrganizerPayoutRequests,
+    fetchOrganizerPayouts,
+    payoutRequests,
     payouts, 
-    payoutRequests 
   } = useOrganizer();
   const [showPayoutRequestModal, setShowPayoutRequestModal] = useState(false);
 
@@ -21,19 +20,14 @@ export const PayoutsTab: React.FC = () => {
   // Load organizer data when component mounts
   useEffect(() => {
     if (userOrganizer) {
-      // Only fetch if we don't already have the data
+      // Only fetch payouts if we don't already have the data
       const organizerPayouts = payouts.filter(p => p.organizer_id === userOrganizer.id);
-      const organizerPayoutRequests = payoutRequests.filter(pr => pr.organizer_id === userOrganizer.id);
       
-      // Only fetch if we don't have any data for this organizer
-      if (organizerPayouts.length === 0 && organizerPayoutRequests.length === 0) {
-        Promise.all([
-          fetchOrganizerPayouts(userOrganizer.id),
-          fetchOrganizerPayoutRequests(userOrganizer.id)
-        ]).catch(console.error);
+      // Only fetch if we don't have any payout data for this organizer
+      if (organizerPayouts.length === 0) {
+        fetchOrganizerPayouts(userOrganizer.id).catch(console.error);
       }
     }
-  }, [userOrganizer?.id, payouts, payoutRequests, fetchOrganizerPayouts, fetchOrganizerPayoutRequests]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-ZA', {
@@ -82,7 +76,6 @@ export const PayoutsTab: React.FC = () => {
 
   // Filter data for current organizer
   const organizerPayouts = payouts.filter(p => p.organizer_id === userOrganizer.id);
-  const organizerPayoutRequests = payoutRequests.filter(pr => pr.organizer_id === userOrganizer.id);
 
   return (
     <div>
@@ -106,14 +99,14 @@ export const PayoutsTab: React.FC = () => {
           <Clock className="w-5 h-5 text-[#f0900a]" />
           <h3 className="text-lg font-semibold text-gray-900">Payout Requests</h3>
           <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-sm">
-            {organizerPayoutRequests.length}
+            {payoutRequests.length}
           </span>
         </div>
 
-        {organizerPayoutRequests.length > 0 ? (
+        {payoutRequests.length > 0 ? (
           <div className="space-y-3">
-            {organizerPayoutRequests.map((request) => (
-              <div key={request.id} className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+            {payoutRequests.map((request, index) => (
+              <div key={index} className="bg-orange-50 rounded-lg p-4 border border-orange-200">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-3">
                     <div className="w-8 h-8 bg-gradient-to-r from-[#f0900a] to-[#FF2D95] rounded-full flex items-center justify-center">
@@ -121,7 +114,7 @@ export const PayoutsTab: React.FC = () => {
                     </div>
                     <div>
                       <h4 className="font-semibold text-gray-900">
-                        {formatCurrency(request.requested_amount)}
+                        {formatCurrency(parseFloat(request.amount))}
                       </h4>
                     </div>
                   </div>
@@ -136,9 +129,9 @@ export const PayoutsTab: React.FC = () => {
                     <span className="ml-2 font-medium">{formatDate(request.created_at)}</span>
                   </div>
                   <div>
-                    <span className="text-gray-600">Preferred Date:</span>
+                    <span className="text-gray-600">Approved:</span>
                     <span className="ml-2 font-medium">
-                      {request.payout_date && request.payout_date !== '0000-00-00 00:00:00' ? formatDate(request.payout_date) : 'Immediate'}
+                      {request.approved_at ? formatDate(request.approved_at) : 'Pending'}
                     </span>
                   </div>
                 </div>
