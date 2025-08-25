@@ -135,6 +135,34 @@ export const organizersApi = {
         headers: createHeaders(),
       }
     );
+
+    const data = await handleApiResponse(response);
+    const payouts = Array.isArray(data) ? data : [data];
+
+    // FIXED: Convert string amounts to numbers
+    return payouts.map((payout) => ({
+      ...payout,
+      payout_amount: payout.payout_amount ? Number(payout.payout_amount) : 0,
+      payout_fee: payout.payout_fee ? Number(payout.payout_fee) : 0,
+    }));
+  },
+
+  async fetchPayoutRequests(): Promise<PayoutRequest[]> {
+    const response = await fetch(`${ORGANIZER_API}/api.php/payout_requests`, {
+      method: "GET",
+      headers: createHeaders(),
+    });
+
+    const data = await handleApiResponse(response);
+    const payoutRequests = Array.isArray(data) ? data : [data];
+
+    // FIXED: Convert string amounts to numbers
+    return payoutRequests.map((request) => ({
+      ...request,
+      requested_amount: request.requested_amount
+        ? Number(request.requested_amount)
+        : 0,
+    }));
   },
 
   async createPayoutRequest(
