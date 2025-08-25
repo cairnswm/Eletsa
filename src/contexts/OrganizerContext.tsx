@@ -453,6 +453,8 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       console.log('OrganizerContext: Requirements not met, clearing payout requests');
       setPayoutRequests([]);
     }
+  }
+  )
 
   // Load organizers on mount
   useEffect(() => {
