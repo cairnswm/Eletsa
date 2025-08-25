@@ -443,17 +443,16 @@ export const OrganizerProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     console.log('OrganizerContext: User/API changed effect for payout requests', { 
       user: user?.id, 
-      api: !!api 
+      api: !!window.TX 
     });
     
-    if (user && api) {
+    if (user && window.TX) {
       console.log('OrganizerContext: All requirements met, calling fetchPayoutRequests');
       fetchPayoutRequests();
     } else {
       console.log('OrganizerContext: Requirements not met, clearing payout requests');
       setPayoutRequests([]);
     }
-  }, [user?.id, api, fetchPayoutRequests]);
 
   // Load organizers on mount
   useEffect(() => {
