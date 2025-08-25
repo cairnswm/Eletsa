@@ -1,45 +1,3 @@
-// Add TX API methods to global window object
-declare global {
-  interface Window {
-    TX: {
-      setAppId: (appId: string) => void;
-      setUserId: (userId: number) => void;
-      getUserBalances: () => Promise<Array<{
-        id: number;
-        account_type: string;
-        balance: string;
-      }>>;
-      getAccountLedger: (accountId: number, limit?: number) => Promise<Array<{
-        id: number;
-        transaction_id: number;
-        user_id: number;
-        account_type: string;
-        type: string;
-        gross_amount: string;
-        currency: string;
-        description: string;
-        created_at: string;
-        reference: string;
-        transaction_description: string;
-      }>>;
-      getPayoutHistory: () => Promise<Array<{
-        amount: string;
-        status: string;
-        created_at: string;
-        approved_at: string | null;
-        external_reference: string | null;
-      }>>;
-      requestPayout: (accountType: string, amount: number) => Promise<{
-        amount: string;
-        status: string;
-        created_at: string;
-        approved_at: string | null;
-        external_reference: string | null;
-      }>;
-    };
-  }
-}
-
 import { createHeaders, handleApiResponse } from "./api";
 import {
   Organizer,
@@ -177,6 +135,7 @@ export const organizersApi = {
         headers: createHeaders(),
       }
     );
+  }
 
   async createPayoutRequest(
     payoutRequestData: CreatePayoutRequestRequest
