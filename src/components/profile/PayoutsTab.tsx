@@ -77,7 +77,7 @@ export const PayoutsTab: React.FC = () => {
 
   // Filter data for current organizer
   const organizerPayouts = payouts.filter(p => p.organizer_id === userOrganizer.id);
-  const organizerPayoutRequests = payoutRequests.filter(pr => pr.organizer_id === userOrganizer.id);
+  const organizerPayoutRequests = payoutRequests.filter(p => p.organizer_id === userOrganizer.id);
 
   return (
     <div>
